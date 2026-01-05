@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiple Profiles</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        a {
+            text-decoration: none;
+            color: black;
+        }
+
+        .profile-list {
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .profile-container {
+            display: flex;
+            align-items: center;
+            background-color: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .profile-pic img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 15px;
+            object-fit: cover;
+        }
+
+        .profile-info h3 {
+            font-size: 16px;
+            color: #333;
+        }
+
+        .profile-info {
+            flex-grow: 1;
+        }
+
+        @media (max-width: 600px) {
+            .profile-container {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                padding: 10px;
+            }
+
+            .profile-pic img {
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <h2>CHATS</h2>
+    <div class="profile-list">
+        <div class="profile-container">
+            <div class="profile-pic"><img src="Photos/AP.jpg" alt=""></div>
+            <div class="profile-info">
+                <h3>Abhijeet Patil</h3>
+            </div>
+        </div>
+        <div class="profile-container">
+            <div class="profile-pic"><img src="Photos/AAP.jpg" alt=""></div>
+            <div class="profile-info">
+                <h3>Abhishek Patit</h3>
+            </div>
+        </div>
+        <div class="profile-container">
+            <div class="profile-pic"><img src="Photos/Nagesh.jpg" alt=""></div>
+            <div class="profile-info">
+                <h3>Nagesh CK</h3>
+            </div>
+        </div>
+        <div class="profile-container">
+            <div class="profile-pic"><img src="Photos/Pramod.jpg" alt=""></div>
+            <div class="profile-info">
+                <h3>Prince Pramod</h3>
+            </div>
+        </div>
+        <div class="profile-container">
+            <div class="profile-pic"><img src="Photos/MM.jpg" alt=""></div>
+            <div class="profile-info">
+                <h3>Monika</h3>
+            </div>
+        </div>
+        <div class="profile-container">
+            <div class="profile-pic"><img src="" alt=""></div>
+            <div class="profile-info">
+                <h3>Nivedita Bhangure</h3>
+            </div>
+        </div>
+        <div class="profile-container">
+            <div class="profile-pic"><img src="Photos/N.jpg" alt=""></div>
+            <div class="profile-info">
+                <h3>Nikita Bhalke</h3>
+            </div>
+        </div>
+        <div class="profile-container">
+            <div class="profile-pic"><img src="Photos/RH.jpg" alt=""></div>
+            <div class="profile-info">
+                <h3>Abhishek Hankuni</h3>
+            </div>
+        </div>
+        <div class="profile-container">
+            <div class="profile-pic"><img src="Photos/Sachin.png" alt=""></div>
+            <div class="profile-info">
+                <h3>Sachin Bomma</h3>
+            </div>
+        </div>
+        <img src="{image}" />
+    </div>
+    
+
+    <script>
+        window.onload = function () {
+            const friendList = JSON.parse(localStorage.getItem('friends')) || [];
+            const profileList = document.querySelector('.profile-list');
+
+            profileList.innerHTML = ''; 
+
+            friendList.forEach(friend => {
+                const profile = document.createElement('div');
+                profile.className = 'profile-container';
+                profile.innerHTML = `
+                    <div class="profile-pic"><img src="${friend.image}" alt="${friend.name}"></div>
+                    <div class="profile-info">
+                        <h3><a href="${friend.link}">${friend.name}</a></h3>
+                    </div>
+                `;
+                profileList.appendChild(profile);
+            });
+        };
+        function startChat(name) {
+            localStorage.setItem('chatWith', name);
+        }
+        const friends = JSON.parse(localStorage.getItem('friends')) || [];
+        friends.forEach(friend => {
+            const friendDiv = document.createElement('div');
+            friendDiv.innerHTML = `
+        <img src="${friend.image}" alt="${friend.name}" style="width:60px;height:60px;border-radius:50%;">
+        <p>${friend.name}</p>
+    `;
+            document.getElementById("friendsList").appendChild(friendDiv);
+        });
+    </script>
+
+</body>
+
+</html>

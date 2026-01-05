@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat App with Emojis & Images</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f3f4f6;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .chat-container {
+      width: 400px;
+      height: 600px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .header {
+      background: #6366f1;
+      color: white;
+      padding: 15px;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      cursor: pointer;
+    }
+
+    .clear-btn {
+      background: white;
+      color: #4f46e5;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #chat-box {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+    }
+
+    .message {
+      max-width: 70%;
+      padding: 8px 12px;
+      border-radius: 20px;
+      margin: 10px 0;
+      font-size: 14px;
+      word-wrap: break-word;
+    }
+
+    .user {
+      align-self: flex-end;
+      background: #dbeafe;
+    }
+
+    .bot {
+      align-self: flex-start;
+      background: #bbf7d0;
+    }
+
+    .input-area {
+      display: flex;
+      padding: 10px;
+      border-top: 1px solid #ddd;
+      gap: 10px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 10px;
+      border-radius: 20px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      padding: 10px 14px;
+      cursor: pointer;
+    }
+
+    .emoji-picker,
+    .photo-capture {
+      display: none;
+      flex-wrap: wrap;
+      padding: 10px;
+      border-top: 1px solid #ccc;
+    }
+
+    .emoji {
+      font-size: 24px;
+      cursor: pointer;
+      margin: 5px;
+    }
+
+    video {
+      width: 100%;
+      border-radius: 10px;
+    }
+
+    canvas {
+      display: none;
+    }
+
+    .message img {
+      max-width: 100%;
+      border-radius: 12px;
+      margin-top: 5px;
+      cursor: pointer;
+    }
+
+    .overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+      flex-direction: column;
+    }
+
+    .large-photo {
+      max-width: 90%;
+      max-height: 90%;
+    }
+
+    .back-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      background: #f3f4f6;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="chat-container">
+    <div class="header">
+      <img src="AAP.jpg" class="profile-pic" alt="Profile" onclick="openFullPhoto()" />
+      Abhishek
+      <button class="clear-btn" onclick="clearChat()">🗑️</button>
+    </div>
+
+    <div id="chat-box"></div>
+
+    <div class="emoji-picker" id="emojiPicker">
+      <span class="emoji">😀</span>
+      <span class="emoji">😂</span>
+      <span class="emoji">😍</span>
+      <span class="emoji">😭</span>
+      <span class="emoji">🔥</span>
+      <span class="emoji">❤️</span>
+    </div>
+
+    <div class="photo-capture" id="photoCapture">
+      <video id="video" autoplay></video>
+      <button onclick="takePhoto()">📸 Capture Photo</button>
+      <canvas id="canvas"></canvas>
+    </div>
+
+    <div class="input-area">
+      <input type="text" id="userInput" placeholder="Type a message..." />
+      <div class="toggle-btn" onclick="toggleOptions()">➕</div>
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <div id="fullPhotoView" class="overlay">
+    <img src="AAP.jpg" class="large-photo" />
+    <button onclick="closeFullPhoto()" class="back-btn">Back</button>
+  </div>
+
+  <div id="chatImgView" class="overlay">
+    <img id="chatImg" class="large-photo" />
+    <button onclick="closeChatImg()" class="back-btn">Back</button>
+  </div>
+
+  <script>
+    const chatBox = document.getElementById('chat-box');
+    const userInput = document.getElementById('userInput');
+    const emojiPicker = document.getElementById('emojiPicker');
+    const photoCapture = document.getElementById('photoCapture');
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+
+    function appendMessage(content, className, isImage = false) {
+      const msg = document.createElement('div');
+      msg.className = 'message ' + className;
+      if (isImage) {
+        const img = document.createElement('img');
+        img.src = content;
+        img.onclick = () => showChatImage(content);
+        msg.appendChild(img);
+      } else {
+        msg.textContent = content;
+      }
+      chatBox.appendChild(msg);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function sendMessage() {
+      const text = userInput.value.trim();
+      if (!text) return;
+      appendMessage(text, 'user');
+      userInput.value = '';
+      setTimeout(() => {
+        appendMessage(generateAutoResponse(text), 'bot');
+      }, 500);
+    }
+
+    function clearChat() {
+      chatBox.innerHTML = '';
+    }
+
+    function toggleOptions() {
+      const show = emojiPicker.style.display === 'flex';
+      emojiPicker.style.display = show ? 'none' : 'flex';
+      photoCapture.style.display = show ? 'none' : 'flex';
+      if (!show) startCamera();
+      else stopCamera();
+    }
+
+    function startCamera() {
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => video.srcObject = stream)
+        .catch(() => alert('Camera access denied.'));
+    }
+
+    function stopCamera() {
+      const stream = video.srcObject;
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
+      }
+    }
+
+    function takePhoto() {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      const image = canvas.toDataURL('image/png');
+      appendMessage(image, 'user', true);
+    }
+
+    function generateAutoResponse(text) {
+      const t = text.toLowerCase();
+      if (t.includes('hello') || t.includes('hi')) return 'Hi there! 😊';
+      if (t.includes('how are you')) return 'I am good! How about you?';
+      return 'Nice to chat with you!';
+    }
+
+    document.querySelectorAll('.emoji').forEach(el => {
+      el.addEventListener('click', () => {
+        userInput.value += el.textContent;
+        emojiPicker.style.display = 'none';
+      });
+    });
+
+    function openFullPhoto() {
+      document.getElementById('fullPhotoView').style.display = 'flex';
+    }
+
+    function closeFullPhoto() {
+      document.getElementById('fullPhotoView').style.display = 'none';
+    }
+
+    function showChatImage(src) {
+      const overlay = document.getElementById('chatImgView');
+      const img = document.getElementById('chatImg');
+      img.src = src;
+      overlay.style.display = 'flex';
+    }
+
+    function closeChatImg() {
+      document.getElementById('chatImgView').style.display = 'none';
+    }
+
+    userInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') sendMessage();
+    });
+  </script>
+</body>
+
+</html>

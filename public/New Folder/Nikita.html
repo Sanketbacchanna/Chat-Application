@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Chat App with Emojis & Images</title>
+  <style>
+    body {
+      background: #e0e7ff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .chat-container {
+      width: 400px;
+      height: 600px;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .header {
+      padding: 15px;
+      background: #6366f1;
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+      text-align: start;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .profile-pic {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-right: 10px;
+      vertical-align: middle;
+      cursor: pointer;
+    }
+
+    .clear-btn {
+      margin-left: auto;
+      background: white;
+      color: #4f46e5;
+      padding: 5px 10px;
+      border: none;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    #chat-box {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message {
+      margin: 10px 0;
+      max-width: 70%;
+      padding: 10px 15px;
+      border-radius: 20px;
+      font-size: 14px;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+
+    .message img {
+      max-width: 100%;
+      border-radius: 12px;
+      margin-top: 5px;
+      cursor: pointer;
+    }
+
+    .user {
+      align-self: flex-end;
+      background: #c7d2fe;
+    }
+
+    .bot {
+      align-self: flex-start;
+      background: #bbf7d0;
+    }
+
+    .input-area {
+      display: flex;
+      padding: 10px;
+      border-top: 1px solid #ddd;
+      gap: 10px;
+      align-items: center;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      font-size: 14px;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .upload-btn {
+      background: #4f46e5;
+      padding: 5px 10px;
+      border-radius: 20px;
+      color: white;
+      cursor: pointer;
+    }
+
+    .emoji-toggle {
+      background: #4f46e5;
+      padding: 5px 10px;
+      border-radius: 20px;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .emoji-picker {
+      padding: 10px;
+      display: none;
+      flex-wrap: wrap;
+      max-height: 120px;
+      overflow-y: auto;
+      background: #f9fafb;
+      border-top: 1px solid #ccc;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .emoji {
+      font-size: 24px;
+      margin: 5px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .emoji:hover {
+      transform: scale(1.2);
+    }
+
+    button {
+      padding: 10px 12px;
+      border: none;
+      background: #4f46e5;
+      color: white;
+      border-radius: 20px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #4338ca;
+    }
+
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .large-photo {
+      max-width: 90%;
+      max-height: 80%;
+      border-radius: 10px;
+    }
+
+    .back-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: white;
+      border: none;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="chat-container">
+    <div class="header">
+      <img src="N.jpg" class="profile-pic" alt="Profile" onclick="openFullPhoto()" />
+      Nikita
+      <button class="clear-btn" onclick="clearChat()">🗑️</button>
+    </div>
+
+    <div id="chat-box"></div>
+
+    <div class="emoji-picker" id="emojiPicker">
+      <span class="emoji">❤️</span>
+      <span class="emoji">🧡</span>
+      <span class="emoji">💛</span>
+      <span class="emoji">💚</span>
+      <span class="emoji">💙</span>
+      <span class="emoji">💜</span>
+      <span class="emoji">🖤</span>
+      <span class="emoji">💖</span>
+      <span class="emoji">💝</span>
+      <span class="emoji">💘</span>
+      <span class="emoji">💗</span>
+      <span class="emoji">😀</span>
+      <span class="emoji">😃</span>
+      <span class="emoji">😄</span>
+      <span class="emoji">😁</span>
+      <span class="emoji">😆</span>
+      <span class="emoji">😅</span>
+      <span class="emoji">😂</span>
+      <span class="emoji">🤣</span>
+      <span class="emoji">😊</span>
+      <span class="emoji">😇</span>
+      <span class="emoji">😉</span>
+      <span class="emoji">😍</span>
+      <span class="emoji">😘</span>
+      <span class="emoji">😋</span>
+      <span class="emoji">😜</span>
+      <span class="emoji">😎</span>
+      <span class="emoji">🤔</span>
+      <span class="emoji">🤗</span>
+      <span class="emoji">🥰</span>
+      <span class="emoji">😢</span>
+      <span class="emoji">😭</span>
+      <span class="emoji">😠</span>
+      <span class="emoji">😡</span>
+      <span class="emoji">🤯</span>
+      <span class="emoji">😱</span>
+      <span class="emoji">💓</span>
+      <span class="emoji">💕</span>
+      <span class="emoji">💞</span>
+      <span class="emoji">💟</span>
+      <span class="emoji">😀</span>
+      <span class="emoji">😄</span>
+      <span class="emoji">😂</span>
+      <span class="emoji">😍</span>
+      <span class="emoji">❤️</span>
+      <span class="emoji">💖</span>
+      <span class="emoji">🔥</span>
+      <span class="emoji">🎉</span>
+      <span class="emoji">💯</span>
+      <span class="emoji">😭</span>
+      <span class="emoji">😎</span>
+      <span class="emoji">🤗</span>
+    </div>
+
+    <div class="input-area">
+      <input type="text" id="userInput" placeholder="Type a message..." />
+      <label class="upload-btn" for="imgInput">📷</label>
+      <input type="file" id="imgInput" accept="image/*" />
+      <div class="emoji-toggle" onclick="toggleEmojiPicker()">❤️</div>
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <!-- Profile Full View -->
+  <div id="fullPhotoView" class="overlay">
+    <img src="N.jpg" class="large-photo" />
+    <button onclick="closeFullPhoto()" class="back-btn">Back</button>
+  </div>
+
+  <!-- Chat Image Full View -->
+  <div id="chatImgView" class="overlay">
+    <img id="chatImg" class="large-photo" />
+    <button onclick="closeChatImg()" class="back-btn">Back</button>
+  </div>
+
+  <script>
+    const chatBox = document.getElementById('chat-box');
+    const userInput = document.getElementById('userInput');
+    const emojiPicker = document.getElementById('emojiPicker');
+    const imgInput = document.getElementById('imgInput');
+
+    function appendMessage(content, className, isImage = false) {
+      const msg = document.createElement('div');
+      msg.className = 'message ' + className;
+
+      if (isImage) {
+        const img = document.createElement('img');
+        img.src = content;
+        img.onclick = () => showChatImage(content);
+        msg.appendChild(img);
+      } else {
+        msg.innerText = content;
+      }
+
+      chatBox.appendChild(msg);
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      saveMessage(content, className, isImage);
+    }
+
+    function saveMessage(content, className, isImage = false) {
+      const messages = JSON.parse(localStorage.getItem('chatMessages')) || [];
+      messages.push({ content, className, isImage });
+      localStorage.setItem('chatMessages', JSON.stringify(messages));
+    }
+
+    function loadMessages() {
+      const messages = JSON.parse(localStorage.getItem('chatMessages')) || [];
+      messages.forEach(msg => {
+        const div = document.createElement('div');
+        div.className = 'message ' + msg.className;
+
+        if (msg.isImage) {
+          const img = document.createElement('img');
+          img.src = msg.content;
+          img.onclick = () => showChatImage(msg.content);
+          div.appendChild(img);
+        } else {
+          div.innerText = msg.content;
+        }
+
+        chatBox.appendChild(div);
+      });
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function clearChat() {
+      localStorage.removeItem('chatMessages');
+      chatBox.innerHTML = '';
+    }
+
+    function sendMessage() {
+      const text = userInput.value.trim();
+      if (!text) return;
+      appendMessage(text, 'user');
+      userInput.value = '';
+
+      setTimeout(() => {
+        const reply = generateAutoResponse(text);
+        appendMessage(reply, 'bot');
+      }, 1000);
+    }
+
+    function generateAutoResponse(msg) {
+      msg = msg.toLowerCase();
+      if (msg.includes("hi") || msg.includes("hello")) return "Hey there! 👋 How can I help you today?";
+      if (msg.includes("how are you")) return "Fine Bro 😄";
+      if (msg.includes("who are you")) return "I am your school friend.";
+      if (msg.includes("have you eat")) return "Yes, completed. Yours?";
+      if (msg.includes("where are you")) return "I am on the way.";
+      if (msg.includes("going college")) return "No, you are going or not?";
+      if (msg.includes("i am not coming college")) return "Why you're not coming?";
+      if (msg.includes("you stupid")) return "I am not. You are stupid!";
+      if (msg.includes("bye")) return "Bye! See you soon.";
+      if (msg.includes("❤️")) return "❤️❤️";
+      return "I am not able to reply now!";
+    }
+
+    emojiPicker.addEventListener('click', function (e) {
+      if (e.target.classList.contains('emoji')) {
+        userInput.value += e.target.textContent;
+        userInput.focus();
+        emojiPicker.style.display = 'none'; // Hide after selection
+      }
+    });
+
+    function toggleEmojiPicker() {
+      emojiPicker.style.display = emojiPicker.style.display === 'flex' ? 'none' : 'flex';
+    }
+
+    userInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") sendMessage();
+    });
+
+    imgInput.addEventListener('change', function () {
+      const file = this.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          appendMessage(e.target.result, 'user', true);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    function openFullPhoto() {
+      document.getElementById('fullPhotoView').style.display = 'flex';
+    }
+
+    function closeFullPhoto() {
+      document.getElementById('fullPhotoView').style.display = 'none';
+    }
+
+    function showChatImage(src) {
+      document.getElementById('chatImg').src = src;
+      document.getElementById('chatImgView').style.display = 'flex';
+    }
+
+    function closeChatImg() {
+      document.getElementById('chatImgView').style.display = 'none';
+    }
+
+    window.onload = () => {
+      loadMessages();
+    };
+  </script>
+</body>
+
+</html>

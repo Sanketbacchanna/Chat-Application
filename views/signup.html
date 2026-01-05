@@ -1,0 +1,251 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up Form</title>
+    <link rel="stylesheet" href="public/style.css">
+     <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 10px;
+            
+        }
+        a{
+            text-decoration: none;
+        }
+        .form-container {
+            background-color: rgb(11, 128, 130);
+            padding: 20px;
+            border-radius: 8px;
+           box-shadow: black;
+            width: 100%;
+            max-width: 400px;
+            /* background-color: black; */
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        p{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        @media (max-width: 480px) {
+            .form-container {
+                padding: 15px;
+            }
+            input, button {
+                padding: 8px;
+            }
+        }
+    </style> 
+</head>
+<body>
+    <div class="form-container">
+        <form action="/handleform" method="POST">
+            <h2>Sign Up</h2>
+            <div class="input-group">
+                <label for="name">UserName</label>
+                <input type="text" id="name" name="UserName" required>
+            </div>
+            
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="Passwords" required>
+            </div> 
+            <div class="input-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email_id" required>
+            </div>         
+            <button type="submit">Sign Up</button>
+            <p>Already have an Account ?<a href="Login.html">Login</a></p>
+        </form>
+    </div>
+</body>
+</html> -->
+
+
+<!-- some change -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Social App - Sign Up</title>
+  <link rel="stylesheet" href="public/style.css">
+  <style>
+    /* Base styles */
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #74ebd5, #acb6e5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    a {
+      text-decoration: none;
+      color: #131010;
+      margin-left: 5px;
+      font-weight: bold;
+    }
+
+    .form-container {
+      background: #ffffff;
+      padding: 30px 25px;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 400px;
+      animation: slideFade 1s ease forwards;
+      transform: translateY(50px);
+      opacity: 0;
+      background: transparent;
+    }
+
+    @keyframes slideFade {
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #555;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-sizing: border-box;
+      transition: all 0.3s ease;
+    }
+
+    input:focus {
+      border-color: #74ebd5;
+      box-shadow: 0 0 5px rgba(116, 235, 213, 0.7);
+      outline: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.4s ease;
+    }
+
+    button:hover {
+      background: linear-gradient(135deg, #764ba2, #667eea);
+    }
+
+    p {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 14px;
+      color: #555;
+    }
+
+    @media (max-width: 480px) {
+      .form-container {
+        padding: 20px 15px;
+      }
+
+      input,
+      button {
+        padding: 10px;
+      }
+    }
+
+    a {
+      color: rgb(196, 214, 57);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="form-container">
+    <form action="/handleform" method="POST">
+      <h2>Create Account</h2>
+      <div class="input-group">
+        <label for="name">Username</label>
+        <input type="text" id="name" name="UserName" required>
+      </div>
+
+      <div class="input-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="Passwords" required>
+      </div>
+
+      <div class="input-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email_id" required>
+      </div>
+
+      <button type="submit">Sign Up</button>
+      <p>Already have an account?<a href="Login.html">Login</a></p>
+    </form>
+  </div>
+</body>
+
+</html>

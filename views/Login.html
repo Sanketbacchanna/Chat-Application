@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatWithMe</title>
+
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-image: url('login.avif');
+            background-size: cover;
+            overflow: hidden;
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.8);
+            /* semi-transparent white */
+            padding: 30px 50px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            backdrop-filter: blur(5px);
+            animation: fadeIn 1s ease-in-out;
+            background: transparent;
+        }
+
+        h2 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 6px;
+            margin-right: 10px;
+        }
+
+        .input-group input {
+            width: 90%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .input-group input:focus {
+            border-color: #6b73ff;
+            box-shadow: 0 0 8px rgba(107, 115, 255, 0.6);
+        }
+
+        .forgot {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 8px;
+            margin-bottom: 20px;
+        }
+
+        .forgot a {
+            color: #6b73ff;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+
+        .forgot a:hover {
+            color: #0033cc;
+        }
+
+        button {
+            width: 97%;
+            padding: 12px;
+            background: linear-gradient(135deg, #6b73ff 0%, #000dff 100%);
+            color: white;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #000dff 0%, #6b73ff 100%);
+            transform: translateY(-3px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        p {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        p a {
+            color: #6b73ff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        p a:hover {
+            color: #0033cc;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                /* width: 90%; */
+                padding: 20px 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-container">
+        <form action="/login" method="POST">
+            <h2>Login to CWM</h2>
+            <div class="input-group">
+                <label for="username">Email</label>
+                <input type="text" id="username" name="email_id" required>
+            </div>
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="Passwords" required>
+            </div>
+            <div class="forgot">
+                <a href="forgot.html">Forgot Password?</a>
+            </div>
+            <button type="submit">Login</button>
+        </form>
+        <p>Don't have an account? <a href="/signup.html">Sign Up</a></p>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>

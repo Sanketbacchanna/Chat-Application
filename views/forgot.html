@@ -1,0 +1,256 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forgot Password</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+
+            input,
+            button {
+                font-size: 14px;
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Forgot Password</h2>
+        <p>Enter your email to reset your password</p>
+        <form onsubmit="handleForgot(event)">
+            <input type="email" name="email" placeholder="Enter your email" required>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+    <script>
+        function handleForgot(event) {
+        event.preventDefault();
+        const email = document.querySelector('input[name="email"]').value;
+        localStorage.setItem("resetEmail", email); // Save email
+        window.location.href = "reset.html"; // Go to reset page
+    }
+    </script>
+</body>
+
+</html> -->
+
+<!-- new one -->
+<!-- 
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Reset Password</title>
+  <style>
+    body { font-family: Arial; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f4f4f4; }
+    .container { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 0 10px #ccc; width: 300px; }
+    h2{
+      text-align: center;
+    }
+    input { width: 100%; padding: 10px; margin-top: 10px; }
+    button { 
+      width: 108%; padding: 10px; margin-top: 10px; 
+      background: #007bff; color: white; border: none; border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Reset Password</h2>
+    <input type="email" id="email" placeholder="Enter your email" required />
+    <input type="password" id="newPassword" placeholder="New password" required />
+    <button onclick="resetPassword()">Reset</button>
+  </div>
+
+  <script>
+    async function resetPassword() {
+      const email_id = document.getElementById('email').value;
+      const newPassword = document.getElementById('newPassword').value;
+
+      if (newPassword.length < 4) {
+        alert("Password must be at least 4 characters.");
+        return;
+      }
+
+      try {
+        const res = await fetch('/reset-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email_id, newPassword })
+        });
+
+        const text = await res.text();
+        alert(text);
+        if (res.ok) window.location.href = "/Login";
+      } catch (error) {
+        alert("Error resetting password.");
+      }
+    }
+  </script>
+</body>
+</html> -->
+
+<!-- responsive code -->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reset Password</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      padding: 20px;
+      background: url('onemore.webp') no-repeat center center/cover;
+    }
+
+    .container {
+      background: white;
+      padding: 30px 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #ccc;
+      width: 100%;
+      max-width: 350px;
+      background: transparent;
+
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #ccc;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 15px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    @media (max-width: 400px) {
+      .container {
+        padding: 20px 15px;
+      }
+
+      button {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h2>Reset Password</h2>
+    <input type="email" id="email" placeholder="Enter your email" required />
+    <input type="password" id="newPassword" placeholder="New password" required />
+    <button onclick="resetPassword()">Reset</button>
+  </div>
+
+  <script>
+    async function resetPassword() {
+      const email_id = document.getElementById('email').value;
+      const newPassword = document.getElementById('newPassword').value;
+
+      if (newPassword.length < 4) {
+        alert("Password must be at least 4 characters.");
+        return;
+      }
+
+      try {
+        const res = await fetch('/reset-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email_id, newPassword })
+        });
+
+        const text = await res.text();
+        alert(text);
+        if (res.ok) window.location.href = "/Login";
+      } catch (error) {
+        alert("Error resetting password.");
+      }
+    }
+  </script>
+</body>
+
+</html>
