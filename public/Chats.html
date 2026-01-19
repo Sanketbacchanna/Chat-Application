@@ -5,6 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Multiple Profiles</title>
+    <!-- PWA -->
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#d71920">
     <style>
         * {
             margin: 0;
@@ -75,6 +78,30 @@
                 margin-bottom: 10px;
             }
         }
+        /* for socket io */
+        #chatBox {
+    width: 100%;
+    max-width: 500px;
+    height: 250px;
+    background: #fff;
+    border: 1px solid #ccc;
+    margin-bottom: 10px;
+    padding: 10px;
+    overflow-y: auto;
+}
+
+.me {
+    text-align: right;
+    color: blue;
+    margin: 5px;
+}
+
+.other {
+    text-align: left;
+    color: green;
+    margin: 5px;
+}
+
     </style>
 </head>
 
@@ -137,8 +164,7 @@
         </div>
         <img src="{image}" />
     </div>
-    
-
+    <!-- fresh on for socket io -->
     <script>
         window.onload = function () {
             const friendList = JSON.parse(localStorage.getItem('friends')) || [];
@@ -171,7 +197,35 @@
             document.getElementById("friendsList").appendChild(friendDiv);
         });
     </script>
+<!-- using socket -->
+ <script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io();
 
+  function sendMessage() {
+    const msgInput = document.getElementById("message");
+    const msg = msgInput.value;
+
+    if (msg.trim() === "") return;
+
+    // show own message
+    const chatBox = document.getElementById("chatBox");
+    chatBox.innerHTML += `<div class="me">${msg}</div>`;
+
+    // send to server
+    socket.emit("sendMessage", {
+      sender: "Me",
+      message: msg
+    });
+
+    msgInput.value = "";
+  }
+
+  // receive reply
+  socket.on("receiveMessage", (data) => {
+    const chatBox = document.getElementById("chatBox");
+    chatBox.innerHTML += `<div class="other">${data.message}</div>`;
+  });
+</script>
 </body>
-
 </html>

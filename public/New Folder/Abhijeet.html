@@ -557,7 +557,7 @@
     </div>
   </div>
 
-  <!-- Profile Full View -->
+  Profile Full View -->
 <!-- <div id="fullPhotoView" class="overlay">
     <img src="AP.jpg" class="large-photo" />
     <button onclick="closeFullPhoto()" class="back-btn">Back</button>
@@ -705,13 +705,15 @@
 </html> -->
 
 <!-- responsive code -->
-
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
   <meta charset="UTF-8">
   <title>Chat App with Emojis & Images</title>
+  <!-- PWA -->
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#d71920">
   <style>
     body {
       background: #e0e7ff;
@@ -904,72 +906,6 @@
       font-weight: bold;
       cursor: pointer;
     }
-
-    /* Responsive styles */
-    @media (max-width: 500px) {
-      .chat-container {
-        width: 100vw;
-        height: 100vh;
-        border-radius: 0;
-      }
-
-      .header {
-        padding: 10px;
-        font-size: 16px;
-      }
-
-      .profile-pic {
-        width: 35px;
-        height: 35px;
-      }
-
-      .clear-btn {
-        padding: 4px 8px;
-        font-size: 12px;
-      }
-
-      .input-area {
-        flex-direction: row;
-        gap: 5px;
-        padding: 8px;
-      }
-
-      input[type="text"] {
-        font-size: 13px;
-        padding: 8px;
-      }
-
-      .upload-btn,
-      .emoji-toggle,
-      button {
-        padding: 6px 8px;
-        font-size: 13px;
-      }
-
-      .emoji-picker {
-        max-height: 100px;
-      }
-
-      .emoji {
-        font-size: 20px;
-        margin: 4px;
-      }
-
-      .message {
-        font-size: 13px;
-        padding: 8px 12px;
-      }
-
-      .large-photo {
-        max-width: 95%;
-        max-height: 80%;
-      }
-
-      .back-btn {
-        font-size: 14px;
-        padding: 8px 16px;
-      }
-    }
   </style>
 </head>
 
@@ -985,7 +921,6 @@
     <div id="chat-box"></div>
 
     <div class="emoji-picker" id="emojiPicker">
-      <!-- Emojis here -->
       <span class="emoji">❤️</span>
       <span class="emoji">🧡</span>
       <span class="emoji">💛</span>
@@ -1038,7 +973,6 @@
       <span class="emoji">😭</span>
       <span class="emoji">😎</span>
       <span class="emoji">🤗</span>
-      <!-- Add more emojis as needed -->
     </div>
 
     <div class="input-area">
@@ -1050,13 +984,13 @@
     </div>
   </div>
 
-  <!-- Full profile photo view -->
+  <!-- Profile Full View -->
   <div id="fullPhotoView" class="overlay">
     <img src="AP.jpg" class="large-photo" />
     <button onclick="closeFullPhoto()" class="back-btn">Back</button>
   </div>
 
-  <!-- Chat image full view -->
+  <!-- Chat Image Full View -->
   <div id="chatImgView" class="overlay">
     <img id="chatImg" class="large-photo" />
     <button onclick="closeChatImg()" class="back-btn">Back</button>
@@ -1132,8 +1066,8 @@
 
     function generateAutoResponse(msg) {
       msg = msg.toLowerCase();
-      if (msg.includes("hi") || msg.includes("hello")) return " Hii Bro";
-      if (msg.includes("how are you")) return "Fine Bro 😄" || "what about you ?";
+      if (msg.includes("hi") || msg.includes("hello")) return "Hello";
+      if (msg.includes("how are you")) return "Fine Bro 😄";
       if (msg.includes("who are you")) return "I am your school friend.";
       if (msg.includes("have you eat")) return "Yes, completed. Yours?";
       if (msg.includes("where are you")) return "I am on the way.";
@@ -1149,7 +1083,7 @@
       if (e.target.classList.contains('emoji')) {
         userInput.value += e.target.textContent;
         userInput.focus();
-        emojiPicker.style.display = 'none';
+        emojiPicker.style.display = 'none'; // Hide after selection
       }
     });
 

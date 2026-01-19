@@ -1,7 +1,12 @@
 const express = require('express');
 const path = require('path');
+const http = require("http");
 const mysql2 = require('mysql2');
 const app = express();
+const server = http.createServer(app);
+
+// your PWA / service worker code
+app.use(express.static("public"));
 
 app.use(express.json());
 
@@ -48,8 +53,12 @@ app.post('/handleform', (req, res) => {
 // ✅ Login handler
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.get('/Login', (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'Login.html'));
+// app.get('/login', (req, res) => {
+//     res.sendFile(path.join(__dirname, 'views', 'Login.html'));
+// });
+
+app.get('/', (req, res) => {
+    res.redirect('/login');
 });
 
 app.post('/Login', (req, res) => {
@@ -163,9 +172,32 @@ app.post('/reset-password', (req, res) => {
 //     }
 // });
 
+// old one
 
 app.listen(3001, () => {
     console.log('Server is running on port 3001');
 });
+
+//new one
+// const server = http.createServer(app);
+// const io = new Server(server);
+
+// server.listen(3000, () => {
+//   console.log("Server running on http://localhost:3000");
+// });
+// using socket.io
+// io.on("connection", (socket) => {
+//   console.log("User connected:", socket.id);
+
+//   socket.on("sendMessage", (data) => {
+//     // data = { sender, message }
+//     socket.broadcast.emit("receiveMessage", data);
+//   });
+
+//   socket.on("disconnect", () => {
+//     console.log("User disconnected:", socket.id);
+//   });
+// });
+
 
 
