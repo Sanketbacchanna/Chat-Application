@@ -164,7 +164,7 @@ io.on('connection', (socket) => {
 });
 
 // 🔥 Start server with Automatic Port Switching
-let PORT = 3001;
+let PORT = process.env.PORT || 3001;
 
 server.on('error', (e) => {
     if (e.code === 'EADDRINUSE') {
