@@ -66,9 +66,9 @@ app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'Login.html'));
 });
 
-// app.get('/', (req, res) => {
-//     res.redirect('/login');
-// });
+app.get('/', (req, res) => {
+    res.redirect('/login');
+});
 
 app.post('/Login', (req, res) => {
     const { email_id, Passwords } = req.body;
