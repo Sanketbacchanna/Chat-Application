@@ -133,9 +133,7 @@
                 if (friend.image && friend.image.trim() !== '') {
                     avatarHtml = `<img src="${friend.image}" alt="${friend.name}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; margin-right: 15px;">`;
                 } else {
-                    const colors = ['#007bff', '#28a745', '#dc3545', '#ffc107', '#17a2b8', '#6610f2'];
-                    const color = colors[friend.name.length % colors.length];
-                    avatarHtml = `<div style="width: 50px; height: 50px; border-radius: 50%; background-color: ${color}; color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; margin-right: 15px;">${friend.name.charAt(0).toUpperCase()}</div>`;
+                    avatarHtml = `<div style="width: 50px; height: 50px; border-radius: 50%; background-color: #007bff; color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; margin-right: 15px;">${friend.name.charAt(0).toUpperCase()}</div>`;
                 }
 
                 profile.innerHTML = `
