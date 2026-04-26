@@ -163,23 +163,8 @@ io.on('connection', (socket) => {
     });
 });
 
-// 🔥 Start server with Automatic Port Switching
-let PORT = process.env.PORT || 3001;
-
-server.on('error', (e) => {
-    if (e.code === 'EADDRINUSE') {
-        console.log(`⚠️  Port ${PORT} is already in use! Automatically trying port ${PORT + 1}...`);
-        PORT++; // Increment port
-        setTimeout(() => {
-            server.close();
-            server.listen(PORT, '0.0.0.0');
-        }, 100);
-    } else {
-        console.error("Server error:", e);
-    }
-});
-
+// 🔥 Start server
+const PORT = process.env.PORT || 3001;
 server.listen(PORT, '0.0.0.0', () => {
-    console.log(`✅ Server running securely on http://localhost:${PORT}`);
-    console.log(`   (If you open multiple terminals, it will automatically switch to a new port!)`);
+    console.log(`✅ Server is LIVE and running on port ${PORT}`);
 });
