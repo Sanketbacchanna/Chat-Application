@@ -17,7 +17,7 @@ const database = mysql2.createConnection({
     user: process.env.USERNAME || process.env.DB_USER || "root",
     password: process.env.PASSWORD || process.env.DB_PASSWORD || "Sanket@123",
     database: process.env.DB_NAME || "test",
-    port: process.env.PORT || process.env.DB_PORT || 3306,
+    port: process.env.DB_PORT || 3306,
     ssl: (process.env.HOST || process.env.DB_HOST) ? {
         minVersion: 'TLSv1.2',
         rejectUnauthorized: true
