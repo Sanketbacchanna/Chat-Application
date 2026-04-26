@@ -107,125 +107,53 @@
 
 <body>
     <h2>CHATS</h2>
-    <div class="profile-list">
-        <div class="profile-container">
-            <div class="profile-pic"><img src="Photos/AP.jpg" alt=""></div>
-            <div class="profile-info">
-                <h3>Abhijeet Patil</h3>
-            </div>
-        </div>
-        <div class="profile-container">
-            <div class="profile-pic"><img src="Photos/AAP.jpg" alt=""></div>
-            <div class="profile-info">
-                <h3>Abhishek Patit</h3>
-            </div>
-        </div>
-        <div class="profile-container">
-            <div class="profile-pic"><img src="Photos/Nagesh.jpg" alt=""></div>
-            <div class="profile-info">
-                <h3>Nagesh CK</h3>
-            </div>
-        </div>
-        <div class="profile-container">
-            <div class="profile-pic"><img src="Photos/Pramod.jpg" alt=""></div>
-            <div class="profile-info">
-                <h3>Prince Pramod</h3>
-            </div>
-        </div>
-        <div class="profile-container">
-            <div class="profile-pic"><img src="Photos/MM.jpg" alt=""></div>
-            <div class="profile-info">
-                <h3>Monika</h3>
-            </div>
-        </div>
-        <div class="profile-container">
-            <div class="profile-pic"><img src="" alt=""></div>
-            <div class="profile-info">
-                <h3>Nivedita Bhangure</h3>
-            </div>
-        </div>
-        <div class="profile-container">
-            <div class="profile-pic"><img src="Photos/N.jpg" alt=""></div>
-            <div class="profile-info">
-                <h3>Nikita Bhalke</h3>
-            </div>
-        </div>
-        <div class="profile-container">
-            <div class="profile-pic"><img src="Photos/RH.jpg" alt=""></div>
-            <div class="profile-info">
-                <h3>Abhishek Hankuni</h3>
-            </div>
-        </div>
-        <div class="profile-container">
-            <div class="profile-pic"><img src="Photos/Sachin.png" alt=""></div>
-            <div class="profile-info">
-                <h3>Sachin Bomma</h3>
-            </div>
-        </div>
-        <img src="{image}" />
+    <div class="profile-list" id="profileList">
+        <!-- Friends will be dynamically loaded here -->
     </div>
-    <!-- fresh on for socket io -->
+
     <script>
         window.onload = function () {
             const friendList = JSON.parse(localStorage.getItem('friends')) || [];
-            const profileList = document.querySelector('.profile-list');
+            const profileList = document.getElementById('profileList');
 
-            profileList.innerHTML = ''; 
+            if (friendList.length === 0) {
+                profileList.innerHTML = '<p style="text-align:center; color:gray; margin-top:50px; font-size:18px;">You don\'t have any friends yet.</p>';
+                return;
+            }
 
             friendList.forEach(friend => {
+                const link = document.createElement('a');
+                const imgParam = friend.image ? `&image=${encodeURIComponent(friend.image)}` : '';
+                link.href = `personal_chat.html?user=${encodeURIComponent(friend.name)}${imgParam}`;
+                
                 const profile = document.createElement('div');
                 profile.className = 'profile-container';
+
+                let avatarHtml = '';
+                if (friend.image && friend.image.trim() !== '') {
+                    avatarHtml = `<img src="${friend.image}" alt="${friend.name}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; margin-right: 15px;">`;
+                } else {
+                    const colors = ['#007bff', '#28a745', '#dc3545', '#ffc107', '#17a2b8', '#6610f2'];
+                    const color = colors[friend.name.length % colors.length];
+                    avatarHtml = `<div style="width: 50px; height: 50px; border-radius: 50%; background-color: ${color}; color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; margin-right: 15px;">${friend.name.charAt(0).toUpperCase()}</div>`;
+                }
+
                 profile.innerHTML = `
-                    <div class="profile-pic"><img src="${friend.image}" alt="${friend.name}"></div>
+                    ${avatarHtml}
                     <div class="profile-info">
-                        <h3><a href="${friend.link}">${friend.name}</a></h3>
+                        <h3>${friend.name}</h3>
                     </div>
                 `;
-                profileList.appendChild(profile);
+                
+                link.appendChild(profile);
+                profileList.appendChild(link);
             });
         };
+        
         function startChat(name) {
             localStorage.setItem('chatWith', name);
+            window.location.href = 'personal_chat.html?user=' + encodeURIComponent(name);
         }
-        const friends = JSON.parse(localStorage.getItem('friends')) || [];
-        friends.forEach(friend => {
-            const friendDiv = document.createElement('div');
-            friendDiv.innerHTML = `
-        <img src="${friend.image}" alt="${friend.name}" style="width:60px;height:60px;border-radius:50%;">
-        <p>${friend.name}</p>
-    `;
-            document.getElementById("friendsList").appendChild(friendDiv);
-        });
     </script>
-<!-- using socket -->
- <script src="/socket.io/socket.io.js"></script>
-<script>
-  const socket = io();
-
-  function sendMessage() {
-    const msgInput = document.getElementById("message");
-    const msg = msgInput.value;
-
-    if (msg.trim() === "") return;
-
-    // show own message
-    const chatBox = document.getElementById("chatBox");
-    chatBox.innerHTML += `<div class="me">${msg}</div>`;
-
-    // send to server
-    socket.emit("sendMessage", {
-      sender: "Me",
-      message: msg
-    });
-
-    msgInput.value = "";
-  }
-
-  // receive reply
-  socket.on("receiveMessage", (data) => {
-    const chatBox = document.getElementById("chatBox");
-    chatBox.innerHTML += `<div class="other">${data.message}</div>`;
-  });
-</script>
 </body>
 </html>

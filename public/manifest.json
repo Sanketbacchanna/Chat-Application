@@ -1,7 +1,7 @@
 {
   "name": "ChatWithMe",
   "short_name": "Chat App",
-  "start_url": "/login",
+  "start_url": "/public/login.html",
   "scope": "/",
   "display": "standalone",
   "background_color": "#e60000",

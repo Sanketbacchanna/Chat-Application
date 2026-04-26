@@ -914,85 +914,59 @@
         <h1>CHAT WITH ME</h1>
         <section id="projects">
             <h2>SUGGESTIONS</h2>
-            <div class="project-grid">
-                <div class="project">
-                    <img src="Photos/AP.jpg" alt="Abhijeet Patil">
-                    <h3>Abhijeet Patil</h3>
-                    <button onclick="handleFriendClick(this)">Add Friend</button>
-                </div>
-                <div class="project">
-                    <img src="Photos/Nagesh.jpg" alt="Nagesh CK">
-                    <h3>Nagesh CK</h3>
-                    <button onclick="handleFriendClick(this)">Add Friend</button>
-                </div>
-                <div class="project">
-                    <img src="Photos/Pramod.jpg" alt="Prince Pramod">
-                    <h3>Prince Pramod</h3>
-                    <button onclick="handleFriendClick(this)">Add Friend</button>
-                </div>
-                <div class="project">
-                    <img src="Photos/Mahesh.jpg" alt="Mahesh Santpure">
-                    <h3>Mahesh Santpure</h3>
-                    <button onclick="handleFriendClick(this)">Add Friend</button>
-                </div>
-                <div class="project">
-                    <img src="Photos/AAP.jpg" alt="">
-                    <h3>Abhishek Patil</h3>
-                    <button onclick="handleFriendClick(this)">Add Friend</button>
-                </div>
-                <div class="project">
-                    <img src="Photos/SB.jpg" alt="">
-                    <h3>Sangamesh Bacchanna</h3>
-                    <button onclick="handleFriendClick(this)">Add Friend</button>
-                </div>
-                <div class="project">
-                    <img src="Photos/N.jpg" alt="">
-                    <h3>Nikita Bhalke</h3>
-                    <button onclick="handleFriendClick(this)">Add Friend</button>
-                </div>
-                <div class="project">
-                    <img src="Photos/Nivi.png" alt="">
-                    <h3>Nivedita Bhangure</h3>
-                    <button onclick="handleFriendClick(this)">Add Friend</button>
-                </div>
-                <div class="project">
-                    <img src="Photos/MM.jpg" alt="">
-                    <h3>Monika</h3>
-                    <button onclick="handleFriendClick(this)">Add Friend</button>
-                </div>
-                <div class="project">
-                    <img src="Photos/R.jpg" alt="">
-                    <h3>Ranjita Desai</h3>
-                    <button onclick="handleFriendClick(this)">Add Friend</button>
-                </div>
-                <div class="project">
-                    <img src="Photos/RH.jpg" alt="">
-                    <h3>Hankuni Abhishek</h3>
-                    <button onclick="handleFriendClick(this)">Add Friend</button>
-                </div>
-                <div class="project">
-                    <img src="Photos/Sachin.png" alt="">
-                    <h3>Sachin Bomma</h3>
-                    <button onclick="handleFriendClick(this)">Add Friend</button>
-                </div>
-                <!-- More projects here -->
+            <div class="project-grid" id="projectGrid">
+                <!-- Users will be dynamically loaded from the database here -->
             </div>
-            </form>
         </section>
     </div>
 
     <script>
-        window.onload = function () {
+        window.onload = async function () {
+            // 1. Fetch users from our new MySQL database API
+            try {
+                const response = await fetch('/api/users');
+                const dbUsers = await response.json();
+                
+                const projectGrid = document.getElementById('projectGrid');
+                projectGrid.innerHTML = ''; 
+                
+                dbUsers.forEach(user => {
+                    const projectDiv = document.createElement('div');
+                    projectDiv.className = 'project';
+                    projectDiv.innerHTML = `
+                        <div style="width: 120px; height: 120px; border-radius: 50%; background-color: #007bff; color: white; display: flex; align-items: center; justify-content: center; font-size: 48px; font-weight: bold; margin: 0 auto 10px auto;">
+                            ${user.UserName.charAt(0).toUpperCase()}
+                        </div>
+                        <h3>${user.UserName}</h3>
+                        <button onclick="handleFriendClick(this)">Add Friend</button>
+                    `;
+                    projectGrid.appendChild(projectDiv);
+                });
+            } catch (error) {
+                console.error("Error fetching users from database:", error);
+            }
+
+            // 2. Update button states based on localStorage
+            const friends = JSON.parse(localStorage.getItem('friends')) || [];
+            document.querySelectorAll('.project').forEach(project => {
+                const name = project.querySelector('h3')?.textContent;
+                if (friends.find(f => f.name === name)) {
+                    updateToFriendState(project, name);
+                }
+            });
+
+            // 3. Handle Animation Delay
             setTimeout(function () {
                 document.getElementById('animation-scene').style.display = 'none';
                 document.getElementById('homepage').style.display = 'block';
-            }, 6000); // 5 seconds delay
+            }, 6000); // 6 seconds delay
         };
 
         function handleFriendClick(button) {
             const projectDiv = button.closest('.project');
             const friendName = projectDiv.querySelector('h3')?.textContent;
-            const img = projectDiv.querySelector('img').src;
+            const imgEl = projectDiv.querySelector('img');
+            const img = imgEl ? imgEl.src : '';
             const link = "New folder/" + friendName.split(' ')[0] + ".html";
             let friends = JSON.parse(localStorage.getItem('friends')) || [];
             const isFriend = friends.some(f => f.name === friendName);
@@ -1027,14 +1001,30 @@
         function filterSuggestions() {
             const input = document.getElementById('search').value.toLowerCase();
             const projects = document.querySelectorAll('.project');
+            let anyVisible = false;
             projects.forEach(project => {
                 const name = project.querySelector('h3').textContent.toLowerCase();
                 if (name.includes(input)) {
                     project.style.display = 'block';
+                    anyVisible = true;
                 } else {
                     project.style.display = 'none';
                 }
             });
+
+            let noProfileMsg = document.getElementById('noProfileMsg');
+            if (!noProfileMsg) {
+                noProfileMsg = document.createElement('p');
+                noProfileMsg.id = 'noProfileMsg';
+                noProfileMsg.style.textAlign = 'center';
+                noProfileMsg.style.color = 'gray';
+                noProfileMsg.style.marginTop = '20px';
+                noProfileMsg.style.fontSize = '18px';
+                noProfileMsg.style.width = '100%';
+                noProfileMsg.textContent = 'No profile found';
+                document.getElementById('projectGrid').appendChild(noProfileMsg);
+            }
+            noProfileMsg.style.display = anyVisible ? 'none' : 'block';
         }
 
         // new script

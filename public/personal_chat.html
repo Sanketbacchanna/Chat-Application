@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Private Chat</title>
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#d71920">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            height: 100vh;
+        }
+
+        .header {
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .back-btn {
+            text-decoration: none;
+            color: #007bff;
+            font-weight: bold;
+            margin-right: 15px;
+            font-size: 18px;
+        }
+
+        #chatProfilePic {
+            width: 40px; 
+            height: 40px; 
+            border-radius: 50%; 
+            margin-right: 15px; 
+            object-fit: cover;
+            border: 1px solid #ccc;
+        }
+
+        #chatHeader {
+            font-size: 18px;
+            color: #333;
+        }
+
+        .header-actions {
+            margin-left: auto;
+        }
+
+        .video-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        #chatBox {
+            width: 100%;
+            max-width: 500px;
+            flex: 1;
+            background: #fff;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+            padding: 10px;
+            overflow-y: auto;
+            border-radius: 8px;
+        }
+
+        .me {
+            text-align: right;
+            color: blue;
+            margin: 5px;
+            font-size: 1.1rem;
+        }
+
+        .other {
+            text-align: left;
+            color: green;
+            margin: 5px;
+            font-size: 1.1rem;
+        }
+
+        .input-container {
+            display: flex; 
+            width: 100%; 
+            max-width: 500px; 
+            gap: 5px; 
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        #message {
+            flex: 1; 
+            padding: 10px; 
+            border-radius: 4px; 
+            border: 1px solid #ccc;
+            font-size: 1.1rem;
+        }
+
+        .action-btn {
+            padding: 10px; 
+            border-radius: 4px; 
+            border: none; 
+            background: #f8f9fa; 
+            color: #333; 
+            cursor: pointer;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+
+        .send-btn {
+            padding: 10px 20px; 
+            border-radius: 4px; 
+            border: none; 
+            background: #007bff; 
+            color: white; 
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #emojiPicker {
+            display: none;
+            position: absolute;
+            bottom: 50px;
+            left: 0;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            grid-template-columns: repeat(6, 1fr);
+            gap: 5px;
+        }
+
+        #emojiPicker span {
+            font-size: 24px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        #emojiPicker span:hover {
+            transform: scale(1.2);
+        }
+
+        .recording {
+            animation: pulse 1s infinite;
+            background: #dc3545 !important;
+            color: white !important;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* Image Modal Styles */
+        #imageModal {
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0; 
+            top: 0; 
+            width: 100%; 
+            height: 100%; 
+            background-color: rgba(0,0,0,0.8); 
+            justify-content: center; 
+            align-items: center;
+        }
+        #imageModal img {
+            max-width: 90%; 
+            max-height: 90%; 
+            border-radius: 10px;
+        }
+        #imageModal .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Fullscreen Image Modal -->
+    <div id="imageModal">
+        <span class="close-btn" onclick="closeImageModal()">&times;</span>
+        <img id="modalImg" src="">
+    </div>
+
+    <div class="header">
+        <a href="Chats.html" class="back-btn">←</a>
+        <div id="avatarContainer"></div>
+        <h2 id="chatHeader">Chat</h2>
+        
+        <div class="header-actions">
+            <button class="video-btn" onclick="startVideoCall()">📹 Video</button>
+        </div>
+    </div>
+
+    <!-- Chat Box -->
+    <div id="chatBox"></div>
+    <div class="input-container">
+        <!-- Emoji Picker Panel -->
+        <div id="emojiPicker">
+            <span onclick="addEmoji('😀')">😀</span><span onclick="addEmoji('😂')">😂</span><span onclick="addEmoji('❤️')">❤️</span>
+            <span onclick="addEmoji('👍')">👍</span><span onclick="addEmoji('🙌')">🙌</span><span onclick="addEmoji('😊')">😊</span>
+            <span onclick="addEmoji('😍')">😍</span><span onclick="addEmoji('😭')">😭</span><span onclick="addEmoji('😎')">😎</span>
+            <span onclick="addEmoji('🤔')">🤔</span><span onclick="addEmoji('🔥')">🔥</span><span onclick="addEmoji('🎉')">🎉</span>
+            <span onclick="addEmoji('🙏')">🙏</span><span onclick="addEmoji('✨')">✨</span><span onclick="addEmoji('💯')">💯</span>
+            <span onclick="addEmoji('💔')">💔</span><span onclick="addEmoji('😡')">😡</span><span onclick="addEmoji('👋')">👋</span>
+        </div>
+
+        <button class="action-btn" onclick="toggleEmojiPicker()">😀</button>
+        <button id="recordBtn" class="action-btn" onclick="toggleRecording()">🎤</button>
+        <input type="text" id="message" placeholder="Type a message..." onkeypress="handleKeyPress(event)">
+        <button class="send-btn" onclick="sendMessage()">Send</button>
+    </div>
+
+    <!-- Socket.io -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const contactName = urlParams.get('user') || 'Unknown Contact';
+        const contactImage = urlParams.get('image');
+        
+        // Update header
+        document.title = "Chat with " + contactName;
+        document.getElementById('chatHeader').innerText = contactName;
+        
+        const avatarContainer = document.getElementById('avatarContainer');
+        if (contactImage && contactImage !== 'undefined' && contactImage.trim() !== '') {
+            avatarContainer.innerHTML = `<img id="chatProfilePic" src="${contactImage}" alt="Profile" onclick="openImageModal()" style="cursor: pointer; width: 40px; height: 40px; border-radius: 50%; margin-right: 15px; object-fit: cover; border: 1px solid #ccc;">`;
+        } else {
+            const colors = ['#007bff', '#28a745', '#dc3545', '#ffc107', '#17a2b8', '#6610f2'];
+            const color = colors[contactName.length % colors.length];
+            avatarContainer.innerHTML = `<div id="chatProfilePic" style="width: 40px; height: 40px; border-radius: 50%; background-color: ${color}; color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; margin-right: 15px; cursor: default;">${contactName.charAt(0).toUpperCase()}</div>`;
+        }
+
+        // Ask for the username when the page loads
+        let myUsername = prompt("Please enter your name to join the chat:", "User");
+        if (!myUsername) {
+            myUsername = "Anonymous";
+        }
+
+        // Image Modal logic
+        function openImageModal() {
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImg');
+            const profilePic = document.getElementById('chatProfilePic');
+            modalImg.src = profilePic.src;
+            modal.style.display = 'flex';
+        }
+
+        function closeImageModal() {
+            document.getElementById('imageModal').style.display = 'none';
+        }
+
+        // Emoji logic
+        function toggleEmojiPicker() {
+            const picker = document.getElementById('emojiPicker');
+            picker.style.display = picker.style.display === 'grid' ? 'none' : 'grid';
+        }
+
+        function addEmoji(emoji) {
+            const msgInput = document.getElementById("message");
+            msgInput.value += emoji;
+            toggleEmojiPicker(); // hide after picking
+            msgInput.focus();
+        }
+
+        // Video Call logic
+        function startVideoCall() {
+            const roomName = `ChatApp_${Date.now()}`;
+            const link = `https://meet.jit.si/${roomName}`;
+            
+            // Send link as message so the other person can click it
+            const linkHtml = `📞 <a href="${link}" target="_blank" style="color: inherit; text-decoration: underline; font-weight: bold;">Click to join Video Call</a>`;
+            socket.emit("chat message", { username: myUsername, text: linkHtml });
+            
+            // Open for myself
+            window.open(link, '_blank');
+        }
+
+        // Voice message logic
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+
+        async function toggleRecording() {
+            const recordBtn = document.getElementById('recordBtn');
+
+            if (!isRecording) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.start();
+                    isRecording = true;
+                    
+                    recordBtn.classList.add('recording');
+                    recordBtn.innerText = '⏹️';
+
+                    mediaRecorder.ondataavailable = event => {
+                        audioChunks.push(event.data);
+                    };
+
+                    mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        const reader = new FileReader();
+                        reader.readAsDataURL(audioBlob);
+                        reader.onloadend = () => {
+                            const base64Audio = reader.result;
+                            const audioHtml = `<audio controls src="${base64Audio}" style="max-width: 200px; height: 40px; outline: none;"></audio>`;
+                            socket.emit("chat message", { username: myUsername, text: audioHtml });
+                        };
+                        audioChunks = [];
+                    };
+                } catch (err) {
+                    alert("Microphone access denied or not available!");
+                }
+            } else {
+                mediaRecorder.stop();
+                isRecording = false;
+                recordBtn.classList.remove('recording');
+                recordBtn.innerText = '🎤';
+            }
+        }
+
+        function sendMessage() {
+            const msgInput = document.getElementById("message");
+            const msg = msgInput.value;
+
+            if (msg.trim() === "") return;
+
+            socket.emit("chat message", {
+                username: myUsername,
+                text: msg
+            });
+
+            msgInput.value = "";
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // Receive reply matching index.js
+        socket.on("chat message", (data) => {
+            const chatBox = document.getElementById("chatBox");
+            const cssClass = data.username === myUsername ? "me" : "other";
+            
+            chatBox.innerHTML += `
+                <div class="${cssClass}">
+                    <b>${data.username}</b> <span style="font-size: 0.8em; color: gray;">(${data.timestamp})</span><br>
+                    ${data.text}
+                </div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+    </script>
+</body>
+</html>

@@ -1,14 +1,16 @@
+const http = require('http');
+const { Server } = require('socket.io');
 const express = require('express');
 const path = require('path');
-const http = require("http");
+// const http = require("http");
 const mysql2 = require('mysql2');
 const app = express();
-const server = http.createServer(app);
+// const server = http.createServer(app);
 
 // your PWA / service worker code
-app.use(express.static("public"));
+// app.use(express.static("public"));
 
-app.use(express.json());
+// app.use(express.json());
 
 const database = mysql2.createConnection({
     host: "127.0.0.1",
@@ -25,6 +27,7 @@ database.connect((error) => {
 });
 // Sign-up handler
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'views')));
 
 app.use(express.urlencoded({ extended: true }));
 
@@ -40,26 +43,26 @@ app.post('/handleform', (req, res) => {
         database.query(SQL_COMMAND, [UserName, Passwords, email_id], (err, result) => {
             if (err) {
                 console.error(err);
-                return res.send("Registration unsuccessful");
+                return res.redirect("login_error.html");
             }
             console.log(result);
             res.redirect("homepage.html");
         });
     } catch (err) {
         console.error(err);
-        res.send("Registration unsuccessful");
+        res.redirect("login_error.html");
     }
 });
 // ✅ Login handler
 app.use(express.static(path.join(__dirname, 'public')));
 
-// app.get('/login', (req, res) => {
-//     res.sendFile(path.join(__dirname, 'views', 'Login.html'));
-// });
-
-app.get('/', (req, res) => {
-    res.redirect('/login');
+app.get('/login', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'Login.html'));
 });
+
+// app.get('/', (req, res) => {
+//     res.redirect('/login');
+// });
 
 app.post('/Login', (req, res) => {
     const { email_id, Passwords } = req.body;
@@ -72,53 +75,27 @@ app.post('/Login', (req, res) => {
         if (results.length > 0) {
             res.redirect("/homepage.html");
         } else {
-            res.send("Invalid email or password");
+            res.redirect("login_error.html");
         }
     });
 });
 // ✅ HomePage handler
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.get('/search', (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'homepage.html'));
-});
-
-app.post('/search', (req, res) => {
-
-    if (results.length > 0) {
-        res.redirect("/Chats.html");
-    }
-});
-
-// login signup
-app.use(express.static(path.join(__dirname, 'views')));
-
-app.get('/login', (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'login.html'));
-});
-
-app.post('/login', (req, res) => {
-
-    if (results.length > 0) {
-        res.redirect("/signup.html");
-    }
-});
-
-
-
-// signup login
-
-app.use(express.static(path.join(__dirname, 'views')));
-
-app.get('/handleform', (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'signup.html'));
-});
-
-app.post('/handleform', (req, res) => {
-
-    if (results.length > 0) {
-        res.redirect("/signup.html");
-    }
+// ✅ API to Search Users from MySQL Database
+app.get('/api/users', (req, res) => {
+    const searchQuery = req.query.q || '';
+    
+    // Search the database for any user whose name matches the search text
+    const SQL_COMMAND = "SELECT UserName, email_id FROM users WHERE UserName LIKE ?";
+    database.query(SQL_COMMAND, [`%${searchQuery}%`], (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: "Database search failed" });
+        }
+        // Send back the matching users as JSON
+        res.json(results);
+    });
 });
 
 // for forgot password 
@@ -143,61 +120,60 @@ app.post('/reset-password', (req, res) => {
     });
 });
 
-// homepage 
-
-// app.use(express.static(path.join(__dirname, 'public')));
-
-// app.use(express.urlencoded({ extended: true }));
-
-// app.get('/homepage', (req, res) => {
-//     const htmlfile = path.join(__dirname, 'views', 'homepage.html');
-//     res.sendFile(htmlfile);
-// });
-
-// app.post('/friends', (req, res) => {
-//     try {
-//         const { name, image_url, profile_link} = req.body;
-//         const SQL_COMMAND = "INSERT INTO friends(name, image_url, profile_link) VALUES (?, ?, ?)";
-//         database.query(SQL_COMMAND, [name, image_url, profile_link], (err, result) => {
-//             if (err) {
-//                 console.error(err);
-//                 return res.send("Registration unsuccessful");
-//             }
-//             console.log(result);
-//             res.redirect("Chats.html");
-//         });
-//     } catch (err) {
-//         console.error(err);
-//         res.send("Registration unsuccessful");
-//     }
-// });
-
 // old one
 
-app.listen(3001, () => {
-    console.log('Server is running on port 3001');
+// app.listen(3001, () => {
+//     console.log('Server is running on port 3001');
+// });
+
+// 🔥 Create HTTP server for socket.io
+const server = http.createServer(app);
+
+// 🔥 Attach socket.io
+const io = new Server(server, {
+    cors: {
+        origin: "*"
+    }
 });
 
-//new one
-// const server = http.createServer(app);
-// const io = new Server(server);
+// 🔥 Socket.io logic
+io.on('connection', (socket) => {
+    console.log('User connected:', socket.id);
 
-// server.listen(3000, () => {
-//   console.log("Server running on http://localhost:3000");
-// });
-// using socket.io
-// io.on("connection", (socket) => {
-//   console.log("User connected:", socket.id);
+    // Chat message event
+    socket.on('chat message', (msg) => {
+        io.emit('chat message', {
+            text: msg.text,
+            username: msg.username,
+            timestamp: new Date().toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit'
+            })
+        });
+    });
 
-//   socket.on("sendMessage", (data) => {
-//     // data = { sender, message }
-//     socket.broadcast.emit("receiveMessage", data);
-//   });
+    socket.on('disconnect', () => {
+        console.log('User disconnected:', socket.id);
+    });
+});
 
-//   socket.on("disconnect", () => {
-//     console.log("User disconnected:", socket.id);
-//   });
-// });
+// 🔥 Start server with Automatic Port Switching
+let PORT = 3001;
 
+server.on('error', (e) => {
+    if (e.code === 'EADDRINUSE') {
+        console.log(`⚠️  Port ${PORT} is already in use! Automatically trying port ${PORT + 1}...`);
+        PORT++; // Increment port
+        setTimeout(() => {
+            server.close();
+            server.listen(PORT, '0.0.0.0');
+        }, 100);
+    } else {
+        console.error("Server error:", e);
+    }
+});
 
-
+server.listen(PORT, '0.0.0.0', () => {
+    console.log(`✅ Server running securely on http://localhost:${PORT}`);
+    console.log(`   (If you open multiple terminals, it will automatically switch to a new port!)`);
+});
