@@ -13,17 +13,23 @@ const app = express();
 // app.use(express.json());
 
 const database = mysql2.createConnection({
-    host: "127.0.0.1",
-    user: "root",
-    password: "Sanket@123",
-    database: "firstproject"
+    host: process.env.DB_HOST || "127.0.0.1",
+    user: process.env.DB_USER || "root",
+    password: process.env.DB_PASSWORD || "Sanket@123",
+    database: process.env.DB_NAME || "firstproject",
+    port: process.env.DB_PORT || 3306,
+    ssl: process.env.DB_HOST ? {
+        minVersion: 'TLSv1.2',
+        rejectUnauthorized: true
+    } : false
 });
 
 database.connect((error) => {
     if (error) {
-        return console.log(error);
+        console.error("❌ Database connection failed:", error);
+        return;
     }
-    console.log("MySQL database is connected...");
+    console.log("✅ MySQL database is connected...");
 });
 // Sign-up handler
 app.use(express.static(path.join(__dirname, 'public')));
