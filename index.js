@@ -13,6 +13,11 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+    next();
+});
+
 app.use(session({
     store: new FileStore({ path: './sessions' }),
     secret: 'chat-app-secret-123',
@@ -21,68 +26,67 @@ app.use(session({
     cookie: { maxAge: 24 * 60 * 60 * 1000 } // 24 hours
 }));
 
-const database = mysql2.createConnection({
+const dbConfig = {
     host: process.env.HOST || process.env.DB_HOST || "127.0.0.1",
     user: process.env.DB_USER || "root",
     password: process.env.PASSWORD || process.env.DB_PASSWORD || "Sanket@123",
     port: process.env.DB_PORT || 3306,
+    database: process.env.DB_NAME || "test",
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
     ssl: (process.env.HOST || process.env.DB_HOST) ? {
         minVersion: 'TLSv1.2',
-        rejectUnauthorized: true
+        rejectUnauthorized: false
     } : false
-});
+};
 
-database.connect((error) => {
-    if (error) {
-        console.error("❌ Database connection failed:", error);
+console.log(`📡 Attempting to connect to database at ${dbConfig.host}:${dbConfig.port} as user ${dbConfig.user}...`);
+
+const database = mysql2.createPool(dbConfig);
+
+// Test the connection
+database.getConnection((err, connection) => {
+    if (err) {
+        console.error("❌ Database connection failed:", err);
         return;
     }
-    console.log("✅ MySQL database is connected...");
+    console.log("✅ MySQL database pool is connected...");
+    connection.release();
 
-    // Ensure the database exists
-    const dbName = process.env.DB_NAME || "test";
-    database.query(`CREATE DATABASE IF NOT EXISTS ${dbName}`, (err) => {
-        if (err) console.error("❌ Error creating database:", err);
-        database.query(`USE ${dbName}`, (err) => {
-            if (err) console.error("❌ Error switching database:", err);
-            else console.log(`✅ Using database: ${dbName}`);
+    // Ensure tables exist (we don't need to CREATE DATABASE if it's already specified in the pool config)
+    database.query(`CREATE TABLE IF NOT EXISTS users (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        UserName VARCHAR(255) NOT NULL,
+        Passwords VARCHAR(255) NOT NULL,
+        email_id VARCHAR(255) NOT NULL UNIQUE
+    )`, (err) => {
+        if (err) console.error("❌ Error creating users table:", err);
+        else console.log("✅ Users table is ready");
+    });
 
-            // Ensure users table exists
-            database.query(`CREATE TABLE IF NOT EXISTS users (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                UserName VARCHAR(255) NOT NULL,
-                Passwords VARCHAR(255) NOT NULL,
-                email_id VARCHAR(255) NOT NULL UNIQUE
-            )`, (err) => {
-                if (err) console.error("❌ Error creating users table:", err);
-            });
+    database.query(`CREATE TABLE IF NOT EXISTS friends (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_email VARCHAR(255) NOT NULL,
+        friend_email VARCHAR(255) NOT NULL,
+        friend_name VARCHAR(255) NOT NULL,
+        UNIQUE KEY unique_friendship (user_email, friend_email)
+    )`, (err) => {
+        if (err) console.error("❌ Error creating friends table:", err);
+        else console.log("✅ Friends table is ready");
+    });
 
-            // Ensure friends table exists
-            database.query(`CREATE TABLE IF NOT EXISTS friends (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                user_email VARCHAR(255) NOT NULL,
-                friend_email VARCHAR(255) NOT NULL,
-                friend_name VARCHAR(255) NOT NULL,
-                UNIQUE KEY unique_friendship (user_email, friend_email)
-            )`, (err) => {
-                if (err) console.error("❌ Error creating friends table:", err);
-                else console.log("✅ Friends table is ready");
-            });
-
-            // Ensure messages table exists
-            database.query(`CREATE TABLE IF NOT EXISTS messages (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                room_id VARCHAR(255) NOT NULL,
-                sender_email VARCHAR(255) NOT NULL,
-                sender_name VARCHAR(255) NOT NULL,
-                message_text TEXT NOT NULL,
-                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                INDEX (room_id)
-            )`, (err) => {
-                if (err) console.error("❌ Error creating messages table:", err);
-                else console.log("✅ Messages table is ready");
-            });
-        });
+    database.query(`CREATE TABLE IF NOT EXISTS messages (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        room_id VARCHAR(255) NOT NULL,
+        sender_email VARCHAR(255) NOT NULL,
+        sender_name VARCHAR(255) NOT NULL,
+        message_text TEXT NOT NULL,
+        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX (room_id)
+    )`, (err) => {
+        if (err) console.error("❌ Error creating messages table:", err);
+        else console.log("✅ Messages table is ready");
     });
 });
 // Sign-up handler
@@ -126,25 +130,35 @@ app.get('/', (req, res) => {
 });
 
 app.post('/Login', (req, res) => {
-    const { email_id, Passwords } = req.body;
-    console.log(`🔑 Login attempt: ${email_id}`);
+    try {
+        const { email_id, Passwords } = req.body;
+        console.log(`🔑 Login attempt: ${email_id}`);
 
-    const SQL_COMMAND = "SELECT * FROM users WHERE email_id = ? AND Passwords = ?";
-    database.query(SQL_COMMAND, [email_id, Passwords], (err, results) => {
-        if (err) {
-            console.error("❌ Login DB Error:", err);
-            return res.send("Login error");
+        if (!email_id || !Passwords) {
+            console.warn("⚠️ Login failed: Missing credentials");
+            return res.redirect("login_error.html");
         }
-        if (results.length > 0) {
-            const user = results[0];
-            req.session.user = { id: user.id, username: user.UserName, email: user.email_id };
-            console.log(`✅ Login successful for ${user.UserName}`);
-            res.redirect("/homepage.html");
-        } else {
-            console.warn("⚠️ Login failed: Invalid credentials");
-            res.redirect("login_error.html");
-        }
-    });
+
+        const SQL_COMMAND = "SELECT * FROM users WHERE email_id = ? AND Passwords = ?";
+        database.query(SQL_COMMAND, [email_id, Passwords], (err, results) => {
+            if (err) {
+                console.error("❌ Login DB Error:", err);
+                return res.redirect("login_error.html");
+            }
+            if (results.length > 0) {
+                const user = results[0];
+                req.session.user = { id: user.id, username: user.UserName, email: user.email_id };
+                console.log(`✅ Login successful for ${user.UserName}`);
+                res.redirect("/homepage.html");
+            } else {
+                console.warn(`⚠️ Login failed for ${email_id}: Invalid credentials`);
+                res.redirect("login_error.html");
+            }
+        });
+    } catch (err) {
+        console.error("❌ Login Catch Error:", err);
+        res.redirect("login_error.html");
+    }
 });
 
 // ✅ API to get current session user
