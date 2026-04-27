@@ -4,351 +4,456 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>HomePage</title>
+    <title>ChatWithMe - Discover</title>
     <!-- PWA -->
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#007bff">
+    <meta name="theme-color" content="#6b73ff">
+    <link rel="icon" type="image/png" href="/icons/icon-192.png">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --text-main: #2d3436;
+            --text-secondary: #636e72;
+            --accent-color: #6c5ce7;
+        }
+
         /* Basic Reset */
-        body,
-        html {
+        body, html {
             margin: 0;
             padding: 0;
             height: 100%;
-            font-family: Arial, sans-serif;
-            background: #f0f2f5;
+            font-family: 'Poppins', sans-serif;
+            background: #f8f9fd;
+            color: var(--text-main);
             overflow-x: hidden;
         }
 
-        /* Animation Scene */
+        /* Faster Intro Animation Scene */
         .scene {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100vh;
-            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); /* Premium Dark Gradient */
+            background: var(--primary-gradient);
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 1000;
+            transition: opacity 0.8s ease, visibility 0.8s;
         }
 
-        .avatar {
+        .loader-logo {
+            font-size: 48px;
+            font-weight: 700;
+            color: white;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        .avatar-cluster {
+            position: relative;
+            width: 200px;
+            height: 200px;
+        }
+
+        .avatar-anim {
             position: absolute;
-            width: 80px;
-            height: 80px;
-            background-color: #00A0D1;
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.2);
+            -webkit-backdrop-filter: blur(5px);
+            backdrop-filter: blur(5px);
+            border: 2px solid rgba(255, 255, 255, 0.5);
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 24px;
+            font-size: 20px;
             color: white;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            animation: float 6s ease-in-out infinite;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
 
-        .avatar:nth-child(1) { top: 20%; left: 15%; animation-delay: 0s; }
-        .avatar:nth-child(2) { top: 30%; left: 60%; animation-delay: 1s; }
-        .avatar:nth-child(3) { top: 60%; left: 30%; animation-delay: 2s; }
-        .avatar:nth-child(4) { top: 70%; left: 80%; animation-delay: 3s; }
+        .avatar-anim:nth-child(1) { top: 0; left: 70px; animation: orbit 4s linear infinite; }
+        .avatar-anim:nth-child(2) { bottom: 0; left: 70px; animation: orbit 4s linear infinite reverse; }
+        .avatar-anim:nth-child(3) { left: 0; top: 70px; animation: orbit 4s linear infinite; animation-delay: -1s; }
+        .avatar-anim:nth-child(4) { right: 0; top: 70px; animation: orbit 4s linear infinite; animation-delay: -2s; }
 
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
+        @keyframes orbit {
+            from { transform: rotate(0deg) translateX(80px) rotate(0deg); }
+            to { transform: rotate(360deg) translateX(80px) rotate(-360deg); }
         }
-
-        .chat-bubble {
-            position: absolute;
-            background-color: #f1f1f1;
-            border-radius: 20px;
-            padding: 15px 25px;
-            font-size: 16px;
-            color: #333;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            animation: chat 4s ease-in-out infinite;
-            opacity: 0;
-        }
-
-        .chat-bubble:nth-child(5) { top: 20%; left: 40%; animation-delay: 0.5s; }
-        .chat-bubble:nth-child(6) { top: 50%; left: 70%; animation-delay: 1.5s; }
-        .chat-bubble:nth-child(7) { top: 30%; left: 20%; animation-delay: 2.5s; }
-
-        @keyframes chat {
-            0%, 100% { opacity: 0; transform: translateY(0); }
-            50% { opacity: 1; transform: translateY(-30px); }
-        }
-
-        .icon {
-            position: absolute;
-            font-size: 32px;
-            color: #ff4081;
-            animation: pulse 3s ease-in-out infinite;
-        }
-
-        .icon.like { top: 10%; left: 70%; animation-delay: 1s; }
-        .icon.comment { top: 60%; left: 20%; animation-delay: 2s; }
 
         @keyframes pulse {
-            0% { transform: scale(1); opacity: 0.7; }
-            50% { transform: scale(1.5); opacity: 1; }
-            100% { transform: scale(1); opacity: 0.7; }
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.8; }
         }
 
-        /* Homepage Content (Hidden Initially) */
+        /* Main Dashboard Content */
         #homepage {
-            display: none;
-            padding: 0;
-            min-height: 100vh;
+            opacity: 0;
+            transition: opacity 1s ease;
+            padding-top: 80px; /* Navbar space */
         }
 
         nav {
-            background: #000;
-            padding: 10px 30px;
+            background: white;
+            padding: 0 5%;
+            height: 80px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            position: sticky;
+            position: fixed;
             top: 0;
+            width: 90%;
+            left: 5%;
             z-index: 100;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            border-radius: 0 0 24px 24px;
+            box-sizing: border-box;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .logo img {
-            height: 50px; /* Slightly larger */
-            object-fit: contain;
+            height: 40px;
+            border-radius: 8px;
+        }
+
+        .logo span {
+            font-weight: 700;
+            font-size: 20px;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .search-container {
             flex: 1;
-            margin: 0 30px;
-            max-width: 500px;
-        }
-
-        .search-container input[type="text"] {
-            width: 100%;
-            padding: 12px 20px;
-            border: 1px solid #ddd;
-            border-radius: 25px;
-            font-size: 15px;
-            outline: none;
-            transition: all 0.3s ease;
-            background: #fff;
-        }
-
-        .search-container input[type="text"]:focus {
-            border-color: #007bff;
-            box-shadow: 0 0 8px rgba(0, 123, 255, 0.2);
-        }
-
-        /* Kebab Menu (3 dots) */
-        .menu-container {
+            margin: 0 40px;
+            max-width: 600px;
             position: relative;
         }
 
+        .search-container input {
+            width: 100%;
+            padding: 12px 24px 12px 48px;
+            border: 1px solid #edf2f7;
+            border-radius: 16px;
+            font-size: 14px;
+            background: #f7fafc;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .search-container input:focus {
+            background: white;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.1);
+            outline: none;
+        }
+
+        .search-container::before {
+            content: '🔍';
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            opacity: 0.5;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
         .menu-btn {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 24px;
+            background: #f7fafc;
+            border: 1px solid #edf2f7;
+            border-radius: 12px;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            padding: 10px;
+            transition: all 0.2s;
+            font-size: 20px;
+        }
+
+        .menu-btn:hover {
+            background: #edf2f7;
+            transform: scale(1.05);
         }
 
         .dropdown-menu {
             position: absolute;
-            top: 50px;
+            top: 70px;
             right: 0;
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
             display: none;
             flex-direction: column;
-            min-width: 150px;
-            overflow: hidden;
-            z-index: 1000;
+            min-width: 220px;
+            padding: 10px;
+            border: 1px solid #edf2f7;
+            z-index: 1001;
         }
 
         .dropdown-menu a, .dropdown-menu button {
-            padding: 12px 20px;
+            padding: 14px 16px;
             text-decoration: none;
-            color: #333;
+            color: var(--text-main);
             font-weight: 500;
+            border-radius: 12px;
+            transition: 0.2s;
             border: none;
             background: none;
             text-align: left;
             cursor: pointer;
             width: 100%;
-            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
         .dropdown-menu a:hover, .dropdown-menu button:hover {
-            background: #f0f2f5;
+            background: #f8f9fd;
+            color: var(--accent-color);
         }
 
-        h1 {
+        /* Hero Section */
+        header {
             text-align: center;
-            margin: 40px 0 20px;
-            font-size: 2.5rem;
-            color: #1a1a1a;
+            padding: 60px 20px 40px;
+        }
+
+        header h1 {
+            font-size: 42px;
             font-weight: 800;
+            margin-bottom: 10px;
             letter-spacing: -1px;
         }
 
-        h2 {
-            text-align: center;
-            color: #666;
-            font-size: 1.2rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 30px;
+        header p {
+            color: var(--text-secondary);
+            font-size: 18px;
         }
 
+        /* Project Grid */
         .project-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 25px;
-            padding: 0 30px 50px;
-            max-width: 1200px;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+            padding: 0 5% 80px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
         .project {
-            position: relative;
             background: white;
-            padding: 30px 20px;
-            border-radius: 20px;
+            border-radius: 28px;
+            padding: 35px 25px;
             text-align: center;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            transition: 0.3s;
-            border: 1px solid rgba(0, 0, 0, 0.02);
+            position: relative;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid #edf2f7;
         }
 
         .project:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
         }
 
         .close-suggestion {
             position: absolute;
-            top: 15px;
-            right: 15px;
+            top: 20px;
+            right: 20px;
+            width: 32px;
+            height: 32px;
+            background: #f7fafc;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            font-size: 18px;
-            color: #ccc;
-            transition: 0.3s;
+            font-size: 14px;
+            color: #cbd5e0;
+            transition: 0.2s;
         }
 
         .close-suggestion:hover {
-            color: #ff4d4d;
+            background: #fff5f5;
+            color: #f56565;
         }
 
         .avatar-placeholder {
             width: 100px;
             height: 100px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #007bff, #00d2ff);
+            border-radius: 35%;
+            background: var(--primary-gradient);
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 40px;
-            font-weight: bold;
+            font-size: 36px;
+            font-weight: 700;
             margin: 0 auto 20px;
-            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+            box-shadow: 0 10px 20px rgba(107, 115, 255, 0.2);
+            transform: rotate(-3deg);
+            transition: transform 0.3s;
+        }
+
+        .project:hover .avatar-placeholder {
+            transform: rotate(0deg) scale(1.05);
         }
 
         .project h3 {
-            margin: 0 0 10px;
-            font-size: 1.3rem;
-            color: #333;
+            font-size: 20px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .project .email {
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-bottom: 25px;
         }
 
         .btn-group {
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            align-items: center;
-            width: 100%;
-            margin-top: 15px;
+            gap: 12px;
         }
 
         .project button {
-            width: 80%;
-            height: 45px;
-            border: none;
-            border-radius: 10px;
+            padding: 12px 24px;
+            border-radius: 14px;
             font-weight: 600;
-            cursor: pointer;
-            transition: 0.3s;
             font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            width: 100%;
+        }
+
+        .btn-add {
+            background: var(--accent-color);
+            color: white;
+            box-shadow: 0 4px 12px rgba(108, 92, 231, 0.2);
+        }
+
+        .btn-add:hover {
+            background: #5f27cd;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(108, 92, 231, 0.3);
+        }
+
+        .btn-chat {
+            background: #00b894;
+            color: white;
+        }
+
+        .btn-remove {
+            background: #f7fafc;
+            color: #f56565;
+            border: 1px solid #fed7d7;
         }
 
         @media (max-width: 768px) {
-            nav {
-                padding: 10px 15px;
-            }
-            .search-container {
-                margin: 0 10px;
-            }
+            nav { width: 96%; left: 2%; padding: 0 15px; height: 70px; top: 10px; border-radius: 20px; }
+            .search-container { margin: 0 10px; }
+            header h1 { font-size: 32px; }
+            .project-grid { grid-template-columns: 1fr; }
         }
-
     </style>
 </head>
 
 <body>
     <div class="scene" id="animation-scene">
-        <div class="avatar">A</div>
-        <div class="avatar">B</div>
-        <div class="avatar">C</div>
-        <div class="avatar">D</div>
-
-        <div class="chat-bubble">Hey there!</div>
-        <div class="chat-bubble">What's up?</div>
-        <div class="chat-bubble">Long time no see!</div>
-
-        <div class="icon like">Chat With Me❤️</div>
-        <div class="icon comment">💬</div>
+        <div class="loader-logo">CWM</div>
+        <div class="avatar-cluster">
+            <div class="avatar-anim">A</div>
+            <div class="avatar-anim">B</div>
+            <div class="avatar-anim">C</div>
+            <div class="avatar-anim">D</div>
+        </div>
+        <p style="color: white; margin-top: 40px; font-weight: 300; opacity: 0.8;">Connecting you to the world...</p>
     </div>
 
     <div id="homepage">
         <nav>
             <div class="logo">
-                <img src="Photos/logo1.png" alt="Logo">
+                <img src="/icons/icon-192.png" alt="Logo">
+                <span>ChatWithMe</span>
             </div>
             <div class="search-container">
-                <input type="text" id="search" placeholder="Search..." oninput="filterSuggestions()">
+                <input type="text" id="search" placeholder="Search people..." oninput="filterSuggestions()">
             </div>
-            <div class="menu-container">
-                <button class="menu-btn" onclick="toggleMenu()">⋮</button>
-                <div class="dropdown-menu" id="dropdownMenu">
-                    <a href="profile.html">My Profile</a>
-                    <a href="Chats.html">My Friends</a>
-                    <button id="installApp" onclick="installPWA()" style="display: block; background: #28a745; color: white; width: calc(100% - 20px); margin: 10px; border-radius: 5px;">Install App</button>
-                    <a href="/logout">Logout</a>
+            <div class="nav-actions">
+                <div class="menu-container">
+                    <button class="menu-btn" onclick="toggleMenu()">⋮</button>
+                    <div class="dropdown-menu" id="dropdownMenu">
+                        <a href="profile.html">👤 My Profile</a>
+                        <a href="Chats.html">💬 My Friends</a>
+                        <button id="installApp" onclick="installPWA()" style="display: none;">📲 Install App</button>
+                        <hr style="border: 0; border-top: 1px solid #edf2f7; margin: 8px 0; width: 100%;">
+                        <a href="/logout" style="color: #f56565;">🚪 Logout</a>
+                    </div>
                 </div>
             </div>
         </nav>
-        <h1>CHAT WITH ME</h1>
+
+        <header>
+            <h1>Find Someone New</h1>
+            <p>Connect with people around the globe instantly.</p>
+        </header>
+
         <section id="projects">
-            <h2>SUGGESTIONS</h2>
             <div class="project-grid" id="projectGrid">
-                <!-- Users will be dynamically loaded from the database here -->
+                <!-- Users will be dynamically loaded here -->
             </div>
         </section>
     </div>
 
     <script>
-        window.onload = async function () {
-            // 1. Fetch current session to ensure we are logged in
+        // Smooth transition from loader
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const scene = document.getElementById('animation-scene');
+                const home = document.getElementById('homepage');
+                if (scene) {
+                    scene.style.opacity = '0';
+                    scene.style.visibility = 'hidden';
+                    setTimeout(() => {
+                        home.style.opacity = '1';
+                        loadUsers();
+                    }, 400);
+                }
+            }, 1800); // Reduced to 1.8s for better UX
+        });
+
+        async function loadUsers() {
             let currentUser = null;
             try {
                 const meRes = await fetch('/api/me');
                 if (meRes.ok) currentUser = await meRes.json();
             } catch (err) { console.error("Session check failed"); }
 
-            // 2. Fetch users from our MySQL database API
             try {
                 const response = await fetch('/api/users');
                 const dbUsers = await response.json();
@@ -357,70 +462,41 @@
                 projectGrid.innerHTML = '';
 
                 const hiddenUsers = JSON.parse(localStorage.getItem('hiddenUsers')) || [];
+                const friends = JSON.parse(localStorage.getItem('friends')) || [];
 
                 dbUsers.forEach(user => {
                     if (currentUser && user.email_id === currentUser.email) return;
                     if (hiddenUsers.includes(user.email_id)) return;
 
+                    const isFriend = friends.some(f => f.email === user.email_id);
+                    
                     const projectDiv = document.createElement('div');
                     projectDiv.className = 'project';
                     projectDiv.dataset.email = user.email_id;
                     projectDiv.innerHTML = `
                         <span class="close-suggestion" onclick="hideSuggestion('${user.email_id}')">✕</span>
-                        <div class="avatar-placeholder">
-                            ${user.UserName.charAt(0).toUpperCase()}
-                        </div>
+                        <div class="avatar-placeholder">${user.UserName.charAt(0).toUpperCase()}</div>
                         <h3>${user.UserName}</h3>
-                        <p style="color: #888; font-size: 12px; margin-bottom: 5px;">${user.email_id}</p>
+                        <p class="email">${user.email_id}</p>
                         <div class="btn-group">
-                            <button onclick="handleFriendClick(this)" style="background: #007bff; color: white;">Add Friend</button>
+                            ${isFriend 
+                                ? `<button class="btn-chat" onclick="goToChat('${user.UserName}', '${user.email_id}')">Start Chat</button>`
+                                : `<button class="btn-add" onclick="handleAddFriend(this)">Add Friend</button>`
+                            }
                         </div>
                     `;
                     projectGrid.appendChild(projectDiv);
                 });
-
-                // 3. Sync friends from database to localStorage
-                const friendsRes = await fetch('/api/friends');
-                if (friendsRes.ok) {
-                    const dbFriends = await friendsRes.json();
-                    const friendsList = Array.isArray(dbFriends) ? dbFriends.map(f => ({ name: f.friend_name, email: f.friend_email })) : [];
-                    localStorage.setItem('friends', JSON.stringify(friendsList));
-
-                    // Update UI states based on synced friends
-                    document.querySelectorAll('.project').forEach(project => {
-                        const email = project.dataset.email;
-                        if (friendsList.some(f => f.email === email)) {
-                            updateToFriendState(project);
-                        }
-                    });
-                }
             } catch (error) {
-                console.error("Error fetching users from database:", error);
+                console.error("Error fetching users:", error);
             }
-        };
+        }
 
-        // Animation sequence: Hide animation and show homepage after 5 seconds
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                const scene = document.getElementById('animation-scene');
-                if (scene) {
-                    scene.style.opacity = '0';
-                    setTimeout(() => {
-                        scene.style.display = 'none';
-                        const homepage = document.getElementById('homepage');
-                        if (homepage) homepage.style.display = 'block';
-                    }, 500);
-                }
-            }, 5000); 
-        });
-
-        // Menu logic
         function toggleMenu() {
             const menu = document.getElementById('dropdownMenu');
             menu.style.display = (menu.style.display === 'flex') ? 'none' : 'flex';
         }
 
-        // Close menu when clicking outside
         window.addEventListener('click', (e) => {
             if (!e.target.matches('.menu-btn')) {
                 const menu = document.getElementById('dropdownMenu');
@@ -433,142 +509,69 @@
             hiddenUsers.push(email);
             localStorage.setItem('hiddenUsers', JSON.stringify(hiddenUsers));
             const card = document.querySelector(`.project[data-email="${email}"]`);
-            if (card) card.remove();
+            if (card) {
+                card.style.transform = 'scale(0.8)';
+                card.style.opacity = '0';
+                setTimeout(() => card.remove(), 300);
+            }
         }
 
-        // PWA Install logic
-        let deferredPrompt;
-        const installBtn = document.getElementById('installApp');
+        async function handleAddFriend(button) {
+            const card = button.closest('.project');
+            const name = card.querySelector('h3').textContent;
+            const email = card.dataset.email;
 
+            button.disabled = true;
+            button.textContent = "Adding...";
+
+            try {
+                const res = await fetch('/api/add-friend', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ friend_email: email, friend_name: name })
+                });
+
+                if (res.ok) {
+                    let friends = JSON.parse(localStorage.getItem('friends')) || [];
+                    friends.push({ name, email });
+                    localStorage.setItem('friends', JSON.stringify(friends));
+                    
+                    button.parentElement.innerHTML = `<button class="btn-chat" onclick="goToChat('${name}', '${email}')">Start Chat</button>`;
+                }
+            } catch (err) {
+                button.disabled = false;
+                button.textContent = "Add Friend";
+                alert("Connection failed. Try again.");
+            }
+        }
+
+        function goToChat(name, email) {
+            window.location.href = `personal_chat.html?user=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}`;
+        }
+
+        function filterSuggestions() {
+            const query = document.getElementById('search').value.toLowerCase();
+            document.querySelectorAll('.project').forEach(card => {
+                const name = card.querySelector('h3').textContent.toLowerCase();
+                card.style.display = name.includes(query) ? 'block' : 'none';
+            });
+        }
+
+        // PWA
+        let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            if (installBtn) installBtn.style.display = 'block';
+            document.getElementById('installApp').style.display = 'flex';
         });
 
         async function installPWA() {
             if (deferredPrompt) {
                 deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
                 deferredPrompt = null;
-                if (installBtn) installBtn.style.display = 'none';
+                document.getElementById('installApp').style.display = 'none';
             }
         }
-
-        async function handleFriendClick(button) {
-            const projectDiv = button.closest('.project');
-            const friendName = projectDiv.querySelector('h3')?.textContent;
-            const friendEmail = projectDiv.dataset.email;
-
-            let friends = JSON.parse(localStorage.getItem('friends')) || [];
-            const isFriend = friends.some(f => f.email === friendEmail);
-
-            if (!isFriend) {
-                const confirmed = confirm(`Are you sure you want to add ${friendName} as a friend?`);
-                if (confirmed) {
-                    try {
-                        const res = await fetch('/api/add-friend', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ friend_email: friendEmail, friend_name: friendName })
-                        });
-
-                        if (res.ok) {
-                            friends.push({ name: friendName, email: friendEmail });
-                            localStorage.setItem('friends', JSON.stringify(friends));
-                            updateToFriendState(projectDiv, friendName, friendEmail);
-                            window.location.href = `personal_chat.html?user=${encodeURIComponent(friendName)}&email=${encodeURIComponent(friendEmail)}`;
-                        }
-                    } catch (err) {
-                        alert("Error adding friend. Please try again.");
-                    }
-                }
-            } else {
-                alert("This user is already your friend!");
-            }
-        }
-
-        function updateToFriendState(projectDiv, friendName, friendEmail) {
-            if (!friendName) {
-                friendName = projectDiv.querySelector('h3')?.textContent;
-            }
-            if (!friendEmail) {
-                friendEmail = projectDiv.dataset.email;
-            }
-            const btnGroup = projectDiv.querySelector('.btn-group');
-            if (btnGroup) {
-                btnGroup.innerHTML = `
-                    <button onclick="window.location.href='personal_chat.html?user=${encodeURIComponent(friendName)}&email=${encodeURIComponent(friendEmail)}'" style="background: #28a745; color: white;">Chat</button>
-                    <button class="remove-btn" onclick="removeFriend(this)" style="background: #dc3545; color: white;">Remove Friend</button>
-                `;
-            }
-        }
-
-        async function removeFriend(button) {
-            const projectDiv = button.closest('.project');
-            const friendEmail = projectDiv.dataset.email;
-            const friendName = projectDiv.querySelector('h3').textContent;
-
-            if (confirm(`Remove ${friendName} from friends?`)) {
-                try {
-                    const res = await fetch('/api/remove-friend', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ friend_email: friendEmail })
-                    });
-
-                    if (res.ok) {
-                        let friends = JSON.parse(localStorage.getItem('friends')) || [];
-                        friends = friends.filter(f => f.email !== friendEmail);
-                        localStorage.setItem('friends', JSON.stringify(friends));
-                        
-                        const btnGroup = projectDiv.querySelector('.btn-group');
-                        if (btnGroup) {
-                            btnGroup.innerHTML = `<button onclick="handleFriendClick(this)" style="background: #007bff; color: white;">Add Friend</button>`;
-                        }
-                    } else {
-                        alert("Failed to remove friend from database.");
-                    }
-                } catch (err) {
-                    console.error("Error removing friend:", err);
-                    alert("Error removing friend. Please try again.");
-                }
-            }
-        }
-
-        function filterSuggestions() {
-            const input = document.getElementById('search').value.toLowerCase();
-            const projects = document.querySelectorAll('.project');
-            let anyVisible = false;
-
-            projects.forEach(project => {
-                const name = project.querySelector('h3').textContent.toLowerCase();
-                if (name.includes(input)) {
-                    project.style.display = 'block';
-                    anyVisible = true;
-                } else {
-                    project.style.display = 'none';
-                }
-            });
-
-            let noProfileMsg = document.getElementById('noProfileMsg');
-            if (!anyVisible) {
-                if (!noProfileMsg) {
-                    noProfileMsg = document.createElement('div');
-                    noProfileMsg.id = 'noProfileMsg';
-                    noProfileMsg.style.cssText = 'grid-column: 1/-1; text-align: center; padding: 40px; color: #888;';
-                    noProfileMsg.innerHTML = `
-                        <div style="font-size: 48px; margin-bottom: 10px;">🔍</div>
-                        <p style="font-size: 18px;">No users found matching "${document.getElementById('search').value}"</p>
-                    `;
-                    document.getElementById('projectGrid').appendChild(noProfileMsg);
-                }
-                noProfileMsg.style.display = 'block';
-            } else if (noProfileMsg) {
-                noProfileMsg.style.display = 'none';
-            }
-        }
-
     </script>
 </body>
 

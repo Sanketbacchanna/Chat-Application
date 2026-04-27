@@ -2,109 +2,194 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Reset Password</title>
-  <!-- PWA -->
-  <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#007bff">
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatWithMe - Reset Password</title>
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#6b73ff">
+    <link rel="icon" type="image/png" href="/icons/icon-192.png">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
-    body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      padding: 20px;
-      background: url('onemore.webp') no-repeat center center/cover;
-    }
+    <style>
+        :root {
+            --primary-color: #6b73ff;
+            --secondary-color: #000dff;
+            --text-color: #333;
+            --glass-bg: rgba(255, 255, 255, 0.2);
+            --glass-border: rgba(255, 255, 255, 0.3);
+        }
 
-    .container {
-      background: white;
-      padding: 30px 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px #ccc;
-      width: 100%;
-      max-width: 350px;
-      background: transparent;
+        body {
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-size: cover;
+            overflow: hidden;
+        }
 
-    }
+        .shape {
+            position: absolute;
+            filter: blur(50px);
+            z-index: -1;
+            border-radius: 50%;
+        }
+        .shape-1 { width: 300px; height: 300px; background: rgba(107, 115, 255, 0.4); top: -100px; left: -100px; }
+        .shape-2 { width: 400px; height: 400px; background: rgba(118, 75, 162, 0.4); bottom: -150px; right: -150px; }
 
-    h2 {
-      text-align: center;
-      margin-bottom: 20px;
-      color: #ccc;
-    }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            padding: 40px;
+            border-radius: 24px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            animation: fadeIn 1s ease-out;
+            box-sizing: border-box;
+        }
 
-    input {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
+        h2 {
+            color: #fff;
+            font-size: 30px;
+            margin-bottom: 25px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
 
-    button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 15px;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      font-size: 16px;
-    }
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
 
-    @media (max-width: 400px) {
-      .container {
-        padding: 20px 15px;
-      }
+        .input-group label {
+            display: block;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
 
-      button {
-        font-size: 14px;
-      }
-    }
-  </style>
+        .input-group input {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            font-size: 15px;
+            color: #fff;
+            outline: none;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .input-group input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .input-group input:focus {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #fff;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #fff;
+            color: var(--primary-color);
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .back-link {
+            margin-top: 25px;
+            display: block;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+
+        .back-link:hover {
+            color: #fff;
+            text-decoration: underline;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 </head>
 
 <body>
-  <div class="container">
-    <h2>Reset Password</h2>
-    <input type="email" id="email" placeholder="Enter your email" required />
-    <input type="password" id="newPassword" placeholder="New password" required />
-    <button onclick="resetPassword()">Reset</button>
-  </div>
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
 
-  <script>
-    async function resetPassword() {
-      const email_id = document.getElementById('email').value;
-      const newPassword = document.getElementById('newPassword').value;
+    <div class="container">
+        <h2>Reset Password</h2>
+        <div class="input-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" placeholder="Enter your registered email" required />
+        </div>
+        <div class="input-group">
+            <label for="newPassword">New Password</label>
+            <input type="password" id="newPassword" placeholder="Enter new password" required />
+        </div>
+        <button onclick="resetPassword()">Reset Password</button>
+        <a href="/login" class="back-link">Back to Sign In</a>
+    </div>
 
-      if (newPassword.length < 4) {
-        alert("Password must be at least 4 characters.");
-        return;
-      }
+    <script>
+        async function resetPassword() {
+            const email_id = document.getElementById('email').value;
+            const newPassword = document.getElementById('newPassword').value;
 
-      try {
-        const res = await fetch('/reset-password', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email_id, newPassword })
-        });
+            if (!email_id || !newPassword) {
+                alert("Please fill in all fields.");
+                return;
+            }
 
-        const text = await res.text();
-        alert(text);
-        if (res.ok) window.location.href = "/login";
-      } catch (error) {
-        alert("Error resetting password.");
-      }
-    }
-  </script>
+            if (newPassword.length < 4) {
+                alert("Password must be at least 4 characters.");
+                return;
+            }
+
+            try {
+                const res = await fetch('/reset-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email_id, newPassword })
+                });
+
+                const text = await res.text();
+                alert(text);
+                if (res.ok) window.location.href = "/login";
+            } catch (error) {
+                alert("Error resetting password.");
+            }
+        }
+    </script>
 </body>
 
 </html>

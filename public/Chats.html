@@ -4,155 +4,231 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multiple Profiles</title>
+    <title>ChatWithMe - My Friends</title>
     <!-- PWA -->
-  <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#d71920">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#6b73ff">
+    <link rel="icon" type="image/png" href="/icons/icon-192.png">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --text-main: #2d3436;
+            --text-secondary: #636e72;
+            --accent-color: #6c5ce7;
+            --danger-color: #ff7675;
         }
 
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            font-family: 'Poppins', sans-serif;
+            background: #f8f9fd;
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
             padding: 20px;
         }
 
-        h2 {
-            text-align: center;
+        .header {
+            display: flex;
+            align-items: center;
+            padding: 20px 0;
             margin-bottom: 20px;
         }
 
-        a {
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             text-decoration: none;
-            color: black;
+            color: var(--text-main);
+            font-size: 20px;
+            transition: 0.2s;
+        }
+
+        .back-btn:hover {
+            transform: translateX(-3px);
+            background: #f1f2f6;
+        }
+
+        h2 {
+            flex: 1;
+            text-align: center;
+            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
         }
 
         .profile-list {
-            width: 100%;
-            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
 
-        .profile-container {
+        .profile-card {
+            background: white;
+            padding: 16px;
+            border-radius: 20px;
             display: flex;
             align-items: center;
-            background-color: white;
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.03);
+            border: 1px solid #edf2f7;
+            transition: 0.3s;
         }
 
-        .profile-pic img {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            margin-right: 15px;
-            object-fit: cover;
+        .profile-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.06);
         }
 
-        .profile-info h3 {
-            font-size: 16px;
-            color: #333;
+        .avatar-box {
+            width: 56px;
+            height: 56px;
+            border-radius: 18px;
+            background: var(--primary-gradient);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: 600;
+            margin-right: 16px;
+            box-shadow: 0 8px 16px rgba(107, 115, 255, 0.2);
         }
 
         .profile-info {
-            flex-grow: 1;
+            flex: 1;
+            cursor: pointer;
         }
 
-        @media (max-width: 600px) {
-            .profile-container {
-                flex-direction: column;
-                align-items: center;
-                text-align: center;
-                padding: 10px;
-            }
-
-            .profile-pic img {
-                margin-bottom: 10px;
-            }
+        .profile-info h3 {
+            margin: 0;
+            font-size: 17px;
+            font-weight: 600;
         }
-        /* for socket io */
-        #chatBox {
-    width: 100%;
-    max-width: 500px;
-    height: 250px;
-    background: #fff;
-    border: 1px solid #ccc;
-    margin-bottom: 10px;
-    padding: 10px;
-    overflow-y: auto;
-}
 
-.me {
-    text-align: right;
-    color: blue;
-    margin: 5px;
-}
+        .profile-info p {
+            margin: 2px 0 0;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
 
-.other {
-    text-align: left;
-    color: green;
-    margin: 5px;
-}
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
 
+        .btn {
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-chat {
+            background: #00b894;
+            color: white;
+        }
+
+        .btn-chat:hover {
+            background: #00a383;
+            transform: scale(1.05);
+        }
+
+        .btn-remove {
+            background: #fff5f5;
+            color: var(--danger-color);
+        }
+
+        .btn-remove:hover {
+            background: #ffebeb;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 480px) {
+            .profile-card { padding: 12px; }
+            .btn-chat { padding: 8px 12px; }
+            .btn-remove { padding: 8px; }
+        }
     </style>
 </head>
 
 <body>
-    <div style="width: 100%; max-width: 500px; display: flex; align-items: center; margin-bottom: 20px;">
-        <a href="homepage.html" style="font-size: 24px; margin-right: 15px;">←</a>
-        <h2 style="margin: 0; flex: 1; text-align: center;">MY FRIENDS</h2>
-    </div>
-    <div class="profile-list" id="profileList">
-        <!-- Friends will be dynamically loaded here -->
+    <div class="container">
+        <div class="header">
+            <a href="homepage.html" class="back-btn">←</a>
+            <h2>My Friends</h2>
+            <div style="width: 40px;"></div> <!-- Spacer -->
+        </div>
+
+        <div class="profile-list" id="profileList">
+            <!-- Friends will be dynamically loaded here -->
+        </div>
     </div>
 
     <script>
         window.onload = async function () {
-            let friendList = [];
+            const profileList = document.getElementById('profileList');
             try {
                 const res = await fetch('/api/friends');
-                friendList = await res.json();
-                // Map DB fields to what we expect
-                friendList = friendList.map(f => ({ name: f.friend_name, email: f.friend_email }));
-                localStorage.setItem('friends', JSON.stringify(friendList));
-            } catch (err) {
-                console.log("Fetching from localStorage fallback");
-                friendList = JSON.parse(localStorage.getItem('friends')) || [];
-            }
+                const friendList = await res.json();
 
-            const profileList = document.getElementById('profileList');
-
-            if (friendList.length === 0) {
-                profileList.innerHTML = '<p style="text-align:center; color:gray; margin-top:50px; font-size:18px;">You don\'t have any friends yet.</p>';
-                return;
-            }
-
-            friendList.forEach(friend => {
-                const profile = document.createElement('div');
-                profile.className = 'profile-container';
-
-                const avatarHtml = `<div style="width: 50px; height: 50px; border-radius: 50%; background-color: #007bff; color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; margin-right: 15px;">${friend.name.charAt(0).toUpperCase()}</div>`;
-
-                profile.innerHTML = `
-                    <div style="display: flex; align-items: center; flex: 1; cursor: pointer;" onclick="window.location.href='personal_chat.html?user=${encodeURIComponent(friend.name)}&email=${encodeURIComponent(friend.email)}'">
-                        ${avatarHtml}
-                        <div class="profile-info">
-                            <h3>${friend.name}</h3>
+                if (friendList.length === 0) {
+                    profileList.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">🫂</div>
+                            <h3>No friends yet</h3>
+                            <p>Go to Discover to find people to chat with!</p>
+                            <a href="homepage.html" style="color: var(--accent-color); text-decoration: none; font-weight: 600; margin-top: 15px; display: inline-block;">Discover People</a>
                         </div>
-                    </div>
-                    <button onclick="removeFriend('${friend.email}', '${friend.name}')" style="background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-left: 10px;">Remove</button>
-                `;
-                
-                profileList.appendChild(profile);
-            });
+                    `;
+                    return;
+                }
+
+                friendList.forEach(friend => {
+                    const card = document.createElement('div');
+                    card.className = 'profile-card';
+                    card.innerHTML = `
+                        <div class="avatar-box">${friend.friend_name.charAt(0).toUpperCase()}</div>
+                        <div class="profile-info" onclick="startChat('${friend.friend_name}', '${friend.friend_email}')">
+                            <h3>${friend.friend_name}</h3>
+                            <p>${friend.friend_email}</p>
+                        </div>
+                        <div class="actions">
+                            <button class="btn btn-chat" onclick="startChat('${friend.friend_name}', '${friend.friend_email}')">Chat</button>
+                            <button class="btn btn-remove" onclick="removeFriend('${friend.friend_email}', '${friend.friend_name}')">✕</button>
+                        </div>
+                    `;
+                    profileList.appendChild(card);
+                });
+            } catch (err) {
+                console.error("Error loading friends:", err);
+            }
         };
 
         async function removeFriend(email, name) {
@@ -165,22 +241,18 @@
                     });
 
                     if (res.ok) {
-                        // Refresh the list
                         location.reload();
-                    } else {
-                        alert("Failed to remove friend.");
                     }
                 } catch (err) {
-                    console.error(err);
-                    alert("An error occurred.");
+                    alert("Operation failed. Try again.");
                 }
             }
         }
-        
+
         function startChat(name, email) {
-            localStorage.setItem('chatWith', name);
             window.location.href = `personal_chat.html?user=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}`;
         }
     </script>
 </body>
+
 </html>
