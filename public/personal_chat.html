@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Private Chat</title>
-    <link rel="manifest" href="./manifest.json">
-    <meta name="theme-color" content="#d71920">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#007bff">
     <style>
         * {
             margin: 0;
@@ -26,13 +26,15 @@
         .header {
             width: 100%;
             max-width: 500px;
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(15px);
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 15px;
             display: flex;
             align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
         .back-btn {
@@ -78,26 +80,66 @@
             width: 100%;
             max-width: 500px;
             flex: 1;
-            background: #fff;
-            border: 1px solid #ccc;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             margin-bottom: 10px;
-            padding: 10px;
+            padding: 20px;
             overflow-y: auto;
-            border-radius: 8px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .message-wrapper {
+            display: flex;
+            width: 100%;
+            flex-direction: column;
+        }
+
+        .message-bubble {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 18px;
+            font-size: 15px;
+            line-height: 1.4;
+            position: relative;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .message-info {
+            font-size: 11px;
+            margin-bottom: 4px;
+            color: #888;
         }
 
         .me {
+            align-self: flex-end;
+        }
+
+        .me .message-bubble {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .me .message-info {
             text-align: right;
-            color: blue;
-            margin: 5px;
-            font-size: 1.1rem;
         }
 
         .other {
+            align-self: flex-start;
+        }
+
+        .other .message-bubble {
+            background: #e9e9eb;
+            color: #333;
+            border-bottom-left-radius: 4px;
+        }
+
+        .other .message-info {
             text-align: left;
-            color: green;
-            margin: 5px;
-            font-size: 1.1rem;
         }
 
         .input-container {
@@ -260,11 +302,38 @@
             avatarContainer.innerHTML = `<div id="chatProfilePic" style="width: 40px; height: 40px; border-radius: 50%; background-color: #007bff; color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; margin-right: 15px; cursor: default;">${contactName.charAt(0).toUpperCase()}</div>`;
         }
 
-        // Ask for the username when the page loads
-        let myUsername = prompt("Please enter your name to join the chat:", "User");
-        if (!myUsername) {
-            myUsername = "Anonymous";
+        // Get emails for room identification
+        let myEmail = "";
+        let myUsername = "Anonymous";
+        const contactEmail = urlParams.get('email');
+        let roomId = "";
+
+        // Function to create a unique room ID from two emails
+        function createRoomId(email1, email2) {
+            if (!email1 || !email2) return "";
+            // Normalize emails to avoid case-sensitive or spacing mismatches
+            const e1 = email1.trim().toLowerCase();
+            const e2 = email2.trim().toLowerCase();
+            return [e1, e2].sort().join('_');
         }
+
+        fetch('/api/me')
+            .then(res => res.json())
+            .then(user => {
+                if (user.email) {
+                    myEmail = user.email.trim().toLowerCase();
+                    myUsername = user.username || "Anonymous";
+                    
+                    if (contactEmail) {
+                        roomId = createRoomId(myEmail, contactEmail);
+                        console.log("Joining room:", roomId);
+                        socket.emit('join room', { room_id: roomId });
+                    }
+                }
+            })
+            .catch(() => {
+                console.log("Not logged in");
+            });
 
         // Image Modal logic
         function openImageModal() {
@@ -353,12 +422,24 @@
             const msgInput = document.getElementById("message");
             const msg = msgInput.value;
 
-            if (msg.trim() === "") return;
+            if (msg.trim() === "" || !roomId) return;
 
+            const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            // 1. Send to server
             socket.emit("chat message", {
+                room_id: roomId,
+                sender_email: myEmail,
                 username: myUsername,
                 text: msg
             });
+
+            // 2. Render locally immediately (Optimistic UI)
+            renderMessage({
+                username: myUsername,
+                text: msg,
+                timestamp: timestamp
+            }, true); // Pass true to indicate it's a local message
 
             msgInput.value = "";
         }
@@ -369,18 +450,52 @@
             }
         }
 
-        // Receive reply matching index.js
-        socket.on("chat message", (data) => {
+        // Receive history
+        socket.on('chat history', (history) => {
             const chatBox = document.getElementById("chatBox");
-            const cssClass = data.username === myUsername ? "me" : "other";
+            chatBox.innerHTML = ''; // Clear current messages
+            history.forEach(data => {
+                renderMessage(data);
+            });
+        });
+
+        // Receive new message
+        socket.on("chat message", (data) => {
+            // Use email to check if it's from me (more reliable than username)
+            if (data.sender_email !== myEmail) {
+                renderMessage(data);
+            }
+        });
+
+        function renderMessage(data, isLocal = false) {
+            const chatBox = document.getElementById("chatBox");
+            const cssClass = (isLocal || data.sender_email === myEmail) ? "me" : "other";
             
-            chatBox.innerHTML += `
-                <div class="${cssClass}">
-                    <b>${data.username}</b> <span style="font-size: 0.8em; color: gray;">(${data.timestamp})</span><br>
+            // For real-time updates, avoid duplicate messages if the server sends back our own message
+            if (!isLocal && data.sender_email === myEmail) {
+                // Check if the last message was exactly this one to avoid doubles
+                const messages = chatBox.querySelectorAll('.message-wrapper.me');
+                if (messages.length > 0) {
+                    const lastMsg = messages[messages.length - 1];
+                    const lastText = lastMsg.querySelector('.message-bubble').innerText;
+                    if (lastText === data.text) return;
+                }
+            }
+
+            const wrapper = document.createElement('div');
+            wrapper.className = `message-wrapper ${cssClass}`;
+            
+            wrapper.innerHTML = `
+                <div class="message-info">
+                    <b>${data.username}</b> • ${data.timestamp}
+                </div>
+                <div class="message-bubble">
                     ${data.text}
                 </div>`;
+            
+            chatBox.appendChild(wrapper);
             chatBox.scrollTop = chatBox.scrollHeight;
-        });
+        }
     </script>
 </body>
 </html>

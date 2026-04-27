@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .profile-card {
+            background: white;
+            width: 100%;
+            max-width: 400px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+            text-align: center;
+            padding-bottom: 30px;
+        }
+
+        .profile-header {
+            background: linear-gradient(135deg, #007bff, #00d2ff);
+            height: 120px;
+            position: relative;
+        }
+
+        .avatar-container {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: white;
+            position: absolute;
+            bottom: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 5px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: #007bff;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            font-weight: bold;
+        }
+
+        .profile-content {
+            margin-top: 60px;
+            padding: 0 20px;
+        }
+
+        h1 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        p.email {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        .info-grid {
+            text-align: left;
+            margin-bottom: 30px;
+        }
+
+        .info-item {
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #888;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        .info-value {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 0 20px;
+        }
+
+        .btn {
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            text-decoration: none;
+            font-size: 15px;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+
+        .btn-outline {
+            border: 1px solid #ddd;
+            color: #666;
+        }
+
+        .btn-outline:hover {
+            background: #f8f9fa;
+        }
+
+        .btn-danger {
+            color: #dc3545;
+        }
+
+        .back-link {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 20px;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="profile-card">
+        <div class="profile-header">
+            <a href="homepage.html" class="back-link">←</a>
+            <div class="avatar-container">
+                <div class="avatar" id="userAvatar">?</div>
+            </div>
+        </div>
+        
+        <div class="profile-content">
+            <h1 id="userName">Loading...</h1>
+            <p class="email" id="userEmail">...</p>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">Full Name</span>
+                    <span class="info-value" id="valName">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Email ID</span>
+                    <span class="info-value" id="valEmail">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Account Type</span>
+                    <span class="info-value">User Profile</span>
+                </div>
+            </div>
+
+            <div class="actions">
+                <a href="homepage.html" class="btn btn-primary">Back to Chat</a>
+                <a href="Chats.html" class="btn btn-outline">My Friends</a>
+                <a href="/logout" class="btn btn-outline btn-danger">Logout</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.onload = async function() {
+            try {
+                const res = await fetch('/api/me');
+                if (res.ok) {
+                    const user = await res.json();
+                    document.getElementById('userName').innerText = user.username;
+                    document.getElementById('userEmail').innerText = user.email;
+                    document.getElementById('valName').innerText = user.username;
+                    document.getElementById('valEmail').innerText = user.email;
+                    document.getElementById('userAvatar').innerText = user.username.charAt(0).toUpperCase();
+                } else {
+                    window.location.href = '/login';
+                }
+            } catch (err) {
+                console.error("Error fetching profile:", err);
+            }
+        };
+    </script>
+</body>
+</html>

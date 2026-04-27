@@ -1,11 +1,11 @@
 {
   "name": "ChatWithMe",
   "short_name": "Chat App",
-  "start_url": "/public/login.html",
+  "start_url": "/login",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#e60000",
-  "theme_color": "#e60000",
+  "background_color": "#f0f2f5",
+  "theme_color": "#007bff",
   "icons": [
     {
       "src": "/icons/icon-192.png",

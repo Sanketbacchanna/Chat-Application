@@ -106,14 +106,28 @@
 </head>
 
 <body>
-    <h2>CHATS</h2>
+    <div style="width: 100%; max-width: 500px; display: flex; align-items: center; margin-bottom: 20px;">
+        <a href="homepage.html" style="font-size: 24px; margin-right: 15px;">←</a>
+        <h2 style="margin: 0; flex: 1; text-align: center;">MY FRIENDS</h2>
+    </div>
     <div class="profile-list" id="profileList">
         <!-- Friends will be dynamically loaded here -->
     </div>
 
     <script>
-        window.onload = function () {
-            const friendList = JSON.parse(localStorage.getItem('friends')) || [];
+        window.onload = async function () {
+            let friendList = [];
+            try {
+                const res = await fetch('/api/friends');
+                friendList = await res.json();
+                // Map DB fields to what we expect
+                friendList = friendList.map(f => ({ name: f.friend_name, email: f.friend_email }));
+                localStorage.setItem('friends', JSON.stringify(friendList));
+            } catch (err) {
+                console.log("Fetching from localStorage fallback");
+                friendList = JSON.parse(localStorage.getItem('friends')) || [];
+            }
+
             const profileList = document.getElementById('profileList');
 
             if (friendList.length === 0) {
@@ -122,35 +136,50 @@
             }
 
             friendList.forEach(friend => {
-                const link = document.createElement('a');
-                const imgParam = friend.image ? `&image=${encodeURIComponent(friend.image)}` : '';
-                link.href = `personal_chat.html?user=${encodeURIComponent(friend.name)}${imgParam}`;
-                
                 const profile = document.createElement('div');
                 profile.className = 'profile-container';
 
-                let avatarHtml = '';
-                if (friend.image && friend.image.trim() !== '') {
-                    avatarHtml = `<img src="${friend.image}" alt="${friend.name}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; margin-right: 15px;">`;
-                } else {
-                    avatarHtml = `<div style="width: 50px; height: 50px; border-radius: 50%; background-color: #007bff; color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; margin-right: 15px;">${friend.name.charAt(0).toUpperCase()}</div>`;
-                }
+                const avatarHtml = `<div style="width: 50px; height: 50px; border-radius: 50%; background-color: #007bff; color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; margin-right: 15px;">${friend.name.charAt(0).toUpperCase()}</div>`;
 
                 profile.innerHTML = `
-                    ${avatarHtml}
-                    <div class="profile-info">
-                        <h3>${friend.name}</h3>
+                    <div style="display: flex; align-items: center; flex: 1; cursor: pointer;" onclick="window.location.href='personal_chat.html?user=${encodeURIComponent(friend.name)}&email=${encodeURIComponent(friend.email)}'">
+                        ${avatarHtml}
+                        <div class="profile-info">
+                            <h3>${friend.name}</h3>
+                        </div>
                     </div>
+                    <button onclick="removeFriend('${friend.email}', '${friend.name}')" style="background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-left: 10px;">Remove</button>
                 `;
                 
-                link.appendChild(profile);
-                profileList.appendChild(link);
+                profileList.appendChild(profile);
             });
         };
+
+        async function removeFriend(email, name) {
+            if (confirm(`Remove ${name} from your friends?`)) {
+                try {
+                    const res = await fetch('/api/remove-friend', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ friend_email: email })
+                    });
+
+                    if (res.ok) {
+                        // Refresh the list
+                        location.reload();
+                    } else {
+                        alert("Failed to remove friend.");
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert("An error occurred.");
+                }
+            }
+        }
         
-        function startChat(name) {
+        function startChat(name, email) {
             localStorage.setItem('chatWith', name);
-            window.location.href = 'personal_chat.html?user=' + encodeURIComponent(name);
+            window.location.href = `personal_chat.html?user=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}`;
         }
     </script>
 </body>

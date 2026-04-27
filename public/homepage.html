@@ -1,631 +1,13 @@
-
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HomePage</title>
-    <style>
-        nav {
-            background-color: #333;
-            padding: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        nav a {
-            color: white;
-            text-decoration: none;
-            padding: 10px;
-        }
-        .logo img {
-            height: 50px;
-            width: auto;
-            mix-blend-mode: color-dodge;
-        }
-        .search-container {
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .search-container input[type="text"] {
-            padding: 10px;
-            border: none;
-            border-radius: 3px;
-            font-size: 16px;
-            width: 450px;
-        }
-        .project-grid {
-            display: flex;
-            gap: 1.5rem;
-            flex-wrap: wrap;
-            justify-content: center;
-            padding: 20px;
-        }
-        .project {
-            padding: 1rem;
-            border-radius: 8px;
-            text-align: center;
-            background-color: #c9c3c3;
-            flex: 1 1 calc(25% - 1.5rem);
-            min-width: 200px;
-        }
-        .project button {
-            width: 60%;
-            padding: 10px;
-            background-color: #3c923f;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        a {
-            text-decoration: none;
-            color: white;
-        }
-        h1,
-        h2 {
-            text-align: center;
-            margin: 20px 0;
-        }
-        .project img {
-            height: 120px;
-            width: 120px;
-            object-fit: cover;
-            border-radius: 50%;
-        }
-        @media (max-width: 768px) {
-            .search-container input[type="text"] {
-                width: 150px;
-            }
-            .project {
-                flex: 1 1 calc(50% - 1.5rem);
-            }
-        }
-        @media (max-width: 480px) {
-            nav {
-                flex-direction: column;
-                align-items: center;
-            }
-            .search-container {
-                flex-direction: column;
-                width: 100%;
-            }
-            .search-container input[type="text"] {
-                width: 90%;
-            }
-            .project {
-                flex: 1 1 100%;
-            }
-        }
-    </style>
-</head>
-<body>    
-    <nav>
-        <div class="logo">
-            <img src="logo1.png" alt="Logo">
-        </div>
-        <div class="search-container">
-            <input type="text" id="search" placeholder="Search..." oninput="filterSuggestions()">
-        </div>
-    </nav>
-    <h1>CHAT WITH ME</h1>
-    <section id="projects">
-        <h2>SUGGESTIONS</h2>
-        <div class="project-grid">
-            <div class="project">
-                <img src="Photos/AP.jpg" alt="Abhijeet Patil">
-                <h3>Abhijeet Patil</h3>
-                <button onclick="handleFriendClick(this)">Add Friend</button>
-            </div>
-            <div class="project">
-                <img src="Photos/Nagesh.jpg" alt="Nagesh CK">
-                <h3>Nagesh CK</h3>
-                <button onclick="handleFriendClick(this)">Add Friend</button>
-            </div>
-            <div class="project">
-                <img src="Photos/Pramod.jpg" alt="Prince Pramod">
-                <h3>Prince Pramod</h3>
-                <button onclick="handleFriendClick(this)">Add Friend</button>
-            </div>
-            <div class="project">
-                <img src="Photos/Mahesh.jpg" alt="Mahesh Santpure">
-                <h3>Mahesh Santpure</h3>
-                <button onclick="handleFriendClick(this)">Add Friend</button>
-            </div>
-            <div class="project">
-                <img src="Photos/AAP.jpg" alt="">
-                <h3>Abhishek Patil</h3>
-                <button onclick="handleFriendClick(this)">Add Friend</button>
-            </div>
-            <div class="project">
-                <img src="Photos/SB.jpg" alt="">
-                <h3>Sangamesh Bacchanna</h3>
-                <button onclick="handleFriendClick(this)">Add Friend</button>
-            </div>
-            <div class="project">
-                <img src="Photos/N.jpg" alt="">
-                <h3>Nikita Bhalke</h3>
-                <button onclick="handleFriendClick(this)">Add Friend</button>
-            </div>
-            <div class="project">
-                <img src="logo1.png" alt="">
-                <h3>Nivedita Bhangure</h3>
-                <button onclick="handleFriendClick(this)">Add Friend</button>
-            </div>
-            <div class="project">
-                <img src="Photos/MM.jpg" alt="">
-                <h3>Monika</h3>
-                <button onclick="handleFriendClick(this)">Add Friend</button>
-            </div>
-            <div class="project">
-                <img src="Photos/R.jpg" alt="">
-                <h3>Ranjita Desai</h3>
-                <button onclick="handleFriendClick(this)">Add Friend</button>
-            </div>
-            <div class="project">
-                <img src="Photos/RH.jpg" alt="">
-                <h3>Hankuni Abhishek</h3>
-                <button onclick="handleFriendClick(this)">Add Friend</button>
-            </div>
-            <div class="project">
-                <img src="Photos/RH.jpg" alt="">
-                <h3>Sachin Bomma</h3>
-                <button onclick="handleFriendClick(this)">Add Friend</button>
-            </div>
-        </div>
-    </section>
-    <script>
-        function handleFriendClick(button) {
-            const projectDiv = button.closest('.project');
-            const friendName = projectDiv.querySelector('h3')?.textContent;
-            const img = projectDiv.querySelector('img').src;
-            const link = "New folder/" + friendName.split(' ')[0] + ".html";
-            let friends = JSON.parse(localStorage.getItem('friends')) || [];
-            const isFriend = friends.some(f => f.name === friendName);
-            if (!isFriend) {
-                const confirmed = confirm(`Are you sure you want to add ${friendName} as a friend?`);
-                if (confirmed) {
-                    friends.push({ name: friendName, image: img, link: link });
-                    localStorage.setItem('friends', JSON.stringify(friends));
-                    updateToFriendState(projectDiv, friendName);
-                    window.location.href = "Chats.html";
-                }
-            } else {
-                const confirmed = confirm(`Do you want to remove ${friendName} from your friends?`);
-                if (confirmed) {
-                    friends = friends.filter(f => f.name !== friendName);
-                    localStorage.setItem('friends', JSON.stringify(friends));
-                    updateToAddState(projectDiv, friendName);
-                }
-            }
-        }
-        function updateToFriendState(projectDiv, friendName) {
-            const button = projectDiv.querySelector('button');
-            button.textContent = 'Remove Friend';
-            button.style.backgroundColor = 'green';
-        }
-        function updateToAddState(projectDiv, friendName) {
-            const button = projectDiv.querySelector('button');
-            button.textContent = 'Add Friend';
-            button.disabled = false;
-            button.style.backgroundColor = '#3c923f';
-        }
-        window.onload = function () {
-            const friends = JSON.parse(localStorage.getItem('friends')) || [];
-            document.querySelectorAll('.project').forEach(project => {
-                const name = project.querySelector('h3')?.textContent;
-                if (friends.find(f => f.name === name)) {
-                    updateToFriendState(project, name);
-                }
-            });
-        };
-        function filterSuggestions() {
-            const input = document.getElementById('search').value.toLowerCase();
-            const projects = document.querySelectorAll('.project');
-            let anyVisible = false;
-            projects.forEach(project => {
-                const name = project.querySelector('h3').textContent.toLowerCase();
-                if (name.includes(input)) {
-                    project.style.display = 'block';
-                    anyVisible = true;
-                } else {
-                    project.style.display = 'none';
-                }
-            });
-
-            // Optional: show message if no results
-            if (!anyVisible) {
-                console.log("No matching friends found");
-            }
-        }
-    </script>
-</body>
-</html> -->
-
-<!-- <!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>HomePage</title>
-    <style>
-        body,
-        html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-        }
-
-        #splash {
-            background-color: black;
-            height: 100vh;
-            width: 100vw;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        #splash img {
-            width: 250px;
-        }
-
-        #homepage {
-            display: none;
-            /* Hide homepage initially */
-        }
-
-        nav {
-            background-color: #333;
-            padding: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        nav a {
-            color: white;
-            text-decoration: none;
-            padding: 10px;
-        }
-
-        .logo img {
-            height: 50px;
-            width: auto;
-            mix-blend-mode: color-dodge;
-        }
-
-        .search-container {
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .search-container input[type="text"] {
-            padding: 10px;
-            border: none;
-            border-radius: 3px;
-            font-size: 16px;
-            width: 450px;
-        }
-
-        .project-grid {
-            display: flex;
-            gap: 1.5rem;
-            flex-wrap: wrap;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .project {
-            padding: 1rem;
-            border-radius: 8px;
-            text-align: center;
-            background-color: #c9c3c3;
-            flex: 1 1 calc(25% - 1.5rem);
-            min-width: 200px;
-        }
-
-        .project button {
-            width: 60%;
-            padding: 10px;
-            background-color: #3c923f;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        a {
-            text-decoration: none;
-            color: white;
-        }
-
-        h1,
-        h2 {
-            text-align: center;
-            margin: 20px 0;
-        }
-
-        .project img {
-            height: 120px;
-            width: 120px;
-            object-fit: cover;
-            border-radius: 50%;
-        }
-
-        @media (max-width: 768px) {
-            .search-container input[type="text"] {
-                width: 150px;
-            }
-
-            .project {
-                flex: 1 1 calc(50% - 1.5rem);
-            }
-        }
-
-        @media (max-width: 480px) {
-            nav {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .search-container {
-                flex-direction: column;
-                width: 100%;
-            }
-
-            .search-container input[type="text"] {
-                width: 90%;
-            }
-
-            .project {
-                flex: 1 1 100%;
-            }
-        }
-
-        /* adding animation */
-        /* Animations */
-        @keyframes fadeOut {
-            from {
-                opacity: 1;
-            }
-
-            to {
-                opacity: 0;
-            }
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
-        }
-
-        @keyframes popUp {
-            from {
-                transform: scale(0.8);
-                opacity: 0;
-            }
-
-            to {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-
-        /* Apply animation to splash */
-        #splash.fade-out {
-            animation: fadeOut 1s forwards;
-        }
-
-        /* Homepage animation */
-        #homepage.fade-in {
-            animation: fadeIn 1s forwards;
-        }
-
-        /* Project animation */
-        .project {
-            animation: popUp 0.6s ease;
-        }
-
-        /* Button hover animation */
-        .project button:hover {
-            transform: scale(1.05);
-            transition: transform 0.3s;
-        }
-    </style>
-</head>
-
-<body>
-    <!-- Splash Screen -->
-<!-- <div id="splash">
-        <img src="logo1.png" alt="Logo">
-    </div> -->
-<!-- Home Page Content -->
-<!-- <div id="homepage">
-        <nav>
-            <div class="logo">
-                <img src="logo1.png" alt="Logo">
-            </div>
-            <div class="search-container">
-                <input type="text" id="search" placeholder="Search..." oninput="filterSuggestions()">
-            </div>
-        </nav>
-        <h1>CHAT WITH ME</h1>
-        <section id="projects">
-            <h2>SUGGESTIONS</h2>
-            <div class="project-grid"> -->
-<!-- Example Projects (Add your photos correctly) -->
-<!-- <div class="project">
-                    <img src="Photos/AP.jpg" alt="Abhijeet Patil">
-                    <h3>Abhijeet Patil</h3>
-                    <button onclick="handleFriendClick(this)">Add Friend</button>
-                </div>
-                <div class="project">
-                    <img src="Photos/Nagesh.jpg" alt="Nagesh CK">
-                    <h3>Nagesh CK</h3>
-                    <button onclick="handleFriendClick(this)">Add Friend</button>
-                </div>
-                <div class="project">
-                    <img src="Photos/Pramod.jpg" alt="Prince Pramod">
-                    <h3>Prince Pramod</h3>
-                    <button onclick="handleFriendClick(this)">Add Friend</button>
-                </div>
-                <div class="project">
-                    <img src="Photos/Mahesh.jpg" alt="Mahesh Santpure">
-                    <h3>Mahesh Santpure</h3>
-                    <button onclick="handleFriendClick(this)">Add Friend</button>
-                </div>
-                <div class="project">
-                    <img src="Photos/AAP.jpg" alt="">
-                    <h3>Abhishek Patil</h3>
-                    <button onclick="handleFriendClick(this)">Add Friend</button>
-                </div>
-                <div class="project">
-                    <img src="Photos/SB.jpg" alt="">
-                    <h3>Sangamesh Bacchanna</h3>
-                    <button onclick="handleFriendClick(this)">Add Friend</button>
-                </div>
-                <div class="project">
-                    <img src="Photos/N.jpg" alt="">
-                    <h3>Nikita Bhalke</h3>
-                    <button onclick="handleFriendClick(this)">Add Friend</button>
-                </div>
-                <div class="project">
-                    <img src="Photos/Nivi.png" alt="">
-                    <h3>Nivedita Bhangure</h3>
-                    <button onclick="handleFriendClick(this)">Add Friend</button>
-                </div>
-                <div class="project">
-                    <img src="Photos/MM.jpg" alt="">
-                    <h3>Monika</h3>
-                    <button onclick="handleFriendClick(this)">Add Friend</button>
-                </div>
-                <div class="project">
-                    <img src="Photos/R.jpg" alt="">
-                    <h3>Ranjita Desai</h3>
-                    <button onclick="handleFriendClick(this)">Add Friend</button>
-                </div>
-                <div class="project">
-                    <img src="Photos/RH.jpg" alt="">
-                    <h3>Hankuni Abhishek</h3>
-                    <button onclick="handleFriendClick(this)">Add Friend</button>
-                </div>
-                <div class="project">
-                    <img src="Photos/RH.jpg" alt="">
-                    <h3>Sachin Bomma</h3>
-                    <button onclick="handleFriendClick(this)">Add Friend</button>
-                </div> -->
-<!-- Add more projects as needed -->
-<!-- </div>
-        </section>
-    </div>
-    <script> -->
-<!-- // Wait for 2 seconds, then show homepage and hide splash
-        window.onload = function () {
-            setTimeout(function () {
-                document.getElementById('splash').style.display = 'none';
-                document.getElementById('homepage').style.display = 'block';
-            }, 2000);
-        };
-        function handleFriendClick(button) {
-            const projectDiv = button.closest('.project');
-            const friendName = projectDiv.querySelector('h3')?.textContent;
-            const img = projectDiv.querySelector('img').src;
-            const link = "New folder/" + friendName.split(' ')[0] + ".html";
-            let friends = JSON.parse(localStorage.getItem('friends')) || [];
-            const isFriend = friends.some(f => f.name === friendName);
-            if (!isFriend) {
-                const confirmed = confirm(`Are you sure you want to add ${friendName} as a friend?`);
-                if (confirmed) {
-                    friends.push({ name: friendName, image: img, link: link });
-                    localStorage.setItem('friends', JSON.stringify(friends));
-                    updateToFriendState(projectDiv, friendName);
-                    window.location.href = "Chats.html";
-                }
-            } else {
-                const confirmed = confirm(`Do you want to remove ${friendName} from your friends?`);
-                if (confirmed) {
-                    friends = friends.filter(f => f.name !== friendName);
-                    localStorage.setItem('friends', JSON.stringify(friends));
-                    updateToAddState(projectDiv, friendName);
-                }
-            }
-        }
-        function updateToFriendState(projectDiv, friendName) {
-            const button = projectDiv.querySelector('button');
-            button.textContent = 'Remove Friend';
-            button.style.backgroundColor = 'green';
-        }
-        function updateToAddState(projectDiv, friendName) {
-            const button = projectDiv.querySelector('button');
-            button.textContent = 'Add Friend';
-            button.disabled = false;
-            button.style.backgroundColor = '#3c923f';
-        }
-        window.addEventListener('DOMContentLoaded', (event) => {
-            const friends = JSON.parse(localStorage.getItem('friends')) || [];
-            document.querySelectorAll('.project').forEach(project => {
-                const name = project.querySelector('h3')?.textContent;
-                if (friends.find(f => f.name === name)) {
-                    updateToFriendState(project, name);
-                }
-            });
-        });
-        function filterSuggestions() {
-            const input = document.getElementById('search').value.toLowerCase();
-            const projects = document.querySelectorAll('.project');
-            let anyVisible = false;
-            projects.forEach(project => {
-                const name = project.querySelector('h3').textContent.toLowerCase();
-                if (name.includes(input)) {
-                    project.style.display = 'block';
-                    anyVisible = true;
-                } else {
-                    project.style.display = 'none';
-                }
-            });
-            if (!anyVisible) {
-                console.log("No matching friends found");
-            }
-        }
-        // adding animation
-        window.onload = function () {
-            setTimeout(function () {
-                document.getElementById('splash').classList.add('fade-out');
-                setTimeout(function () {
-                    document.getElementById('splash').style.display = 'none';
-                    document.getElementById('homepage').style.display = 'block';
-                    document.getElementById('homepage').classList.add('fade-in');
-                }, 1000); // Wait for fade-out to complete
-            }, 2000);
-        };       
-    </script>
-</body>
-
-</html> -->
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>HomePage</title>
     <!-- PWA -->
-  <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#d71920">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#007bff">
     <style>
         /* Basic Reset */
         body,
@@ -634,25 +16,28 @@
             padding: 0;
             height: 100%;
             font-family: Arial, sans-serif;
-            background: #f7f7f7;
+            background: #f0f2f5;
             overflow-x: hidden;
         }
 
-        /* Scene (Animation Part) */
+        /* Animation Scene */
         .scene {
-            position: relative;
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100vh;
-            background: #f7f7f7;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); /* Premium Dark Gradient */
             display: flex;
             justify-content: center;
             align-items: center;
-            overflow: hidden;
+            z-index: 1000;
         }
+
         .avatar {
             position: absolute;
-            width: 60px;
-            height: 60px;
+            width: 80px;
+            height: 80px;
             background-color: #00A0D1;
             border-radius: 50%;
             display: flex;
@@ -664,229 +49,255 @@
             animation: float 6s ease-in-out infinite;
         }
 
-        .avatar:nth-child(1) {
-            top: 20%;
-            left: 15%;
-            animation-delay: 0s;
-        }
-
-        .avatar:nth-child(2) {
-            top: 30%;
-            left: 60%;
-            animation-delay: 1s;
-        }
-
-        .avatar:nth-child(3) {
-            top: 60%;
-            left: 30%;
-            animation-delay: 2s;
-        }
-
-        .avatar:nth-child(4) {
-            top: 70%;
-            left: 80%;
-            animation-delay: 3s;
-        }
+        .avatar:nth-child(1) { top: 20%; left: 15%; animation-delay: 0s; }
+        .avatar:nth-child(2) { top: 30%; left: 60%; animation-delay: 1s; }
+        .avatar:nth-child(3) { top: 60%; left: 30%; animation-delay: 2s; }
+        .avatar:nth-child(4) { top: 70%; left: 80%; animation-delay: 3s; }
 
         @keyframes float {
-
-            0%,
-            100% {
-                transform: translateY(0);
-            }
-
-            50% {
-                transform: translateY(-20px);
-            }
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
         }
 
         .chat-bubble {
             position: absolute;
-            width: 200px;
             background-color: #f1f1f1;
             border-radius: 20px;
-            padding: 10px;
-            font-size: 14px;
+            padding: 15px 25px;
+            font-size: 16px;
             color: #333;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             animation: chat 4s ease-in-out infinite;
             opacity: 0;
         }
 
-        .chat-bubble:nth-child(5) {
-            top: 20%;
-            left: 40%;
-            animation-delay: 0.5s;
-        }
-
-        .chat-bubble:nth-child(6) {
-            top: 50%;
-            left: 70%;
-            animation-delay: 1.5s;
-        }
-
-        .chat-bubble:nth-child(7) {
-            top: 30%;
-            left: 20%;
-            animation-delay: 2.5s;
-        }
+        .chat-bubble:nth-child(5) { top: 20%; left: 40%; animation-delay: 0.5s; }
+        .chat-bubble:nth-child(6) { top: 50%; left: 70%; animation-delay: 1.5s; }
+        .chat-bubble:nth-child(7) { top: 30%; left: 20%; animation-delay: 2.5s; }
 
         @keyframes chat {
-
-            0%,
-            100% {
-                opacity: 0;
-                transform: translateY(0);
-            }
-
-            50% {
-                opacity: 1;
-                transform: translateY(-30px);
-            }
+            0%, 100% { opacity: 0; transform: translateY(0); }
+            50% { opacity: 1; transform: translateY(-30px); }
         }
 
         .icon {
             position: absolute;
-            font-size: 28px;
+            font-size: 32px;
             color: #ff4081;
             animation: pulse 3s ease-in-out infinite;
         }
 
-        .icon.like {
-            top: 10%;
-            left: 70%;
-            animation-delay: 1s;
-        }
-
-        .icon.comment {
-            top: 60%;
-            left: 20%;
-            animation-delay: 2s;
-        }
+        .icon.like { top: 10%; left: 70%; animation-delay: 1s; }
+        .icon.comment { top: 60%; left: 20%; animation-delay: 2s; }
 
         @keyframes pulse {
-            0% {
-                transform: scale(1);
-                opacity: 0.7;
-            }
-
-            50% {
-                transform: scale(1.5);
-                opacity: 1;
-            }
-
-            100% {
-                transform: scale(1);
-                opacity: 0.7;
-            }
+            0% { transform: scale(1); opacity: 0.7; }
+            50% { transform: scale(1.5); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.7; }
         }
 
-        /* Homepage Content */
-        /* #homepage {
+        /* Homepage Content (Hidden Initially) */
+        #homepage {
             display: none;
-            
-            padding-top: 20px;
-        } */
+            padding: 0;
+            min-height: 100vh;
+        }
 
         nav {
-            background-color: #333;
-            padding: 10px;
+            background: #000;
+            padding: 10px 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
-        }
-
-        nav a {
-            color: white;
-            text-decoration: none;
-            padding: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
         .logo img {
-            height: 50px;
-            width: auto;
-            mix-blend-mode: color-dodge;
+            height: 50px; /* Slightly larger */
+            object-fit: contain;
         }
 
         .search-container {
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
+            flex: 1;
+            margin: 0 30px;
+            max-width: 500px;
         }
 
         .search-container input[type="text"] {
-            padding: 10px;
-            border: none;
-            border-radius: 3px;
-            font-size: 16px;
-            width: 450px;
+            width: 100%;
+            padding: 12px 20px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.3s ease;
+            background: #fff;
         }
 
-        h1,
+        .search-container input[type="text"]:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 8px rgba(0, 123, 255, 0.2);
+        }
+
+        /* Kebab Menu (3 dots) */
+        .menu-container {
+            position: relative;
+        }
+
+        .menu-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 10px;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: none;
+            flex-direction: column;
+            min-width: 150px;
+            overflow: hidden;
+            z-index: 1000;
+        }
+
+        .dropdown-menu a, .dropdown-menu button {
+            padding: 12px 20px;
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            border: none;
+            background: none;
+            text-align: left;
+            cursor: pointer;
+            width: 100%;
+            font-size: 14px;
+        }
+
+        .dropdown-menu a:hover, .dropdown-menu button:hover {
+            background: #f0f2f5;
+        }
+
+        h1 {
+            text-align: center;
+            margin: 40px 0 20px;
+            font-size: 2.5rem;
+            color: #1a1a1a;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
         h2 {
             text-align: center;
-            margin: 20px 0;
+            color: #666;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 30px;
         }
 
         .project-grid {
-            display: flex;
-            gap: 1.5rem;
-            flex-wrap: wrap;
-            justify-content: center;
-            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            padding: 0 30px 50px;
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
         .project {
-            padding: 1rem;
-            border-radius: 8px;
+            position: relative;
+            background: white;
+            padding: 30px 20px;
+            border-radius: 20px;
             text-align: center;
-            background-color: #c9c3c3;
-            flex: 1 1 calc(25% - 1.5rem);
-            min-width: 200px;
-            animation: popUp 0.6s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: 0.3s;
+            border: 1px solid rgba(0, 0, 0, 0.02);
         }
 
-        .project img {
-            height: 120px;
-            width: 120px;
-            object-fit: cover;
+        .project:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .close-suggestion {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            cursor: pointer;
+            font-size: 18px;
+            color: #ccc;
+            transition: 0.3s;
+        }
+
+        .close-suggestion:hover {
+            color: #ff4d4d;
+        }
+
+        .avatar-placeholder {
+            width: 100px;
+            height: 100px;
             border-radius: 50%;
+            background: linear-gradient(135deg, #007bff, #00d2ff);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            font-weight: bold;
+            margin: 0 auto 20px;
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+        }
+
+        .project h3 {
+            margin: 0 0 10px;
+            font-size: 1.3rem;
+            color: #333;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+            width: 100%;
+            margin-top: 15px;
         }
 
         .project button {
-            width: 60%;
-            padding: 10px;
-            background-color: #3c923f;
-            color: white;
+            width: 80%;
+            height: 45px;
             border: none;
-            border-radius: 4px;
-            font-size: 16px;
+            border-radius: 10px;
+            font-weight: 600;
             cursor: pointer;
-            transition: transform 0.3s;
+            transition: 0.3s;
+            font-size: 14px;
         }
 
-        .project button:hover {
-            transform: scale(1.05);
-        }
-
-        @keyframes popUp {
-            from {
-                transform: scale(0.8);
-                opacity: 0;
+        @media (max-width: 768px) {
+            nav {
+                padding: 10px 15px;
             }
-
-            to {
-                transform: scale(1);
-                opacity: 1;
+            .search-container {
+                margin: 0 10px;
             }
         }
+
     </style>
 </head>
 
 <body>
-    <!-- Animation Section -->
     <div class="scene" id="animation-scene">
         <div class="avatar">A</div>
         <div class="avatar">B</div>
@@ -901,7 +312,6 @@
         <div class="icon comment">💬</div>
     </div>
 
-    <!-- Homepage Section -->
     <div id="homepage">
         <nav>
             <div class="logo">
@@ -909,6 +319,15 @@
             </div>
             <div class="search-container">
                 <input type="text" id="search" placeholder="Search..." oninput="filterSuggestions()">
+            </div>
+            <div class="menu-container">
+                <button class="menu-btn" onclick="toggleMenu()">⋮</button>
+                <div class="dropdown-menu" id="dropdownMenu">
+                    <a href="profile.html">My Profile</a>
+                    <a href="Chats.html">My Friends</a>
+                    <button id="installApp" onclick="installPWA()" style="display: block; background: #28a745; color: white; width: calc(100% - 20px); margin: 10px; border-radius: 5px;">Install App</button>
+                    <a href="/logout">Logout</a>
+                </div>
             </div>
         </nav>
         <h1>CHAT WITH ME</h1>
@@ -922,86 +341,206 @@
 
     <script>
         window.onload = async function () {
-            // 1. Fetch users from our new MySQL database API
+            // 1. Fetch current session to ensure we are logged in
+            let currentUser = null;
+            try {
+                const meRes = await fetch('/api/me');
+                if (meRes.ok) currentUser = await meRes.json();
+            } catch (err) { console.error("Session check failed"); }
+
+            // 2. Fetch users from our MySQL database API
             try {
                 const response = await fetch('/api/users');
                 const dbUsers = await response.json();
-                
+
                 const projectGrid = document.getElementById('projectGrid');
-                projectGrid.innerHTML = ''; 
-                
+                projectGrid.innerHTML = '';
+
+                const hiddenUsers = JSON.parse(localStorage.getItem('hiddenUsers')) || [];
+
                 dbUsers.forEach(user => {
+                    if (currentUser && user.email_id === currentUser.email) return;
+                    if (hiddenUsers.includes(user.email_id)) return;
+
                     const projectDiv = document.createElement('div');
                     projectDiv.className = 'project';
+                    projectDiv.dataset.email = user.email_id;
                     projectDiv.innerHTML = `
-                        <div style="width: 120px; height: 120px; border-radius: 50%; background-color: #007bff; color: white; display: flex; align-items: center; justify-content: center; font-size: 48px; font-weight: bold; margin: 0 auto 10px auto;">
+                        <span class="close-suggestion" onclick="hideSuggestion('${user.email_id}')">✕</span>
+                        <div class="avatar-placeholder">
                             ${user.UserName.charAt(0).toUpperCase()}
                         </div>
                         <h3>${user.UserName}</h3>
-                        <button onclick="handleFriendClick(this)">Add Friend</button>
+                        <p style="color: #888; font-size: 12px; margin-bottom: 5px;">${user.email_id}</p>
+                        <div class="btn-group">
+                            <button onclick="handleFriendClick(this)" style="background: #007bff; color: white;">Add Friend</button>
+                        </div>
                     `;
                     projectGrid.appendChild(projectDiv);
                 });
+
+                // 3. Sync friends from database to localStorage
+                const friendsRes = await fetch('/api/friends');
+                if (friendsRes.ok) {
+                    const dbFriends = await friendsRes.json();
+                    const friendsList = Array.isArray(dbFriends) ? dbFriends.map(f => ({ name: f.friend_name, email: f.friend_email })) : [];
+                    localStorage.setItem('friends', JSON.stringify(friendsList));
+
+                    // Update UI states based on synced friends
+                    document.querySelectorAll('.project').forEach(project => {
+                        const email = project.dataset.email;
+                        if (friendsList.some(f => f.email === email)) {
+                            updateToFriendState(project);
+                        }
+                    });
+                }
             } catch (error) {
                 console.error("Error fetching users from database:", error);
             }
-
-            // 2. Update button states based on localStorage
-            const friends = JSON.parse(localStorage.getItem('friends')) || [];
-            document.querySelectorAll('.project').forEach(project => {
-                const name = project.querySelector('h3')?.textContent;
-                if (friends.find(f => f.name === name)) {
-                    updateToFriendState(project, name);
-                }
-            });
-
-            // 3. Handle Animation Delay
-            setTimeout(function () {
-                document.getElementById('animation-scene').style.display = 'none';
-                document.getElementById('homepage').style.display = 'block';
-            }, 6000); // 6 seconds delay
         };
 
-        function handleFriendClick(button) {
+        // Animation sequence: Hide animation and show homepage after 5 seconds
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const scene = document.getElementById('animation-scene');
+                if (scene) {
+                    scene.style.opacity = '0';
+                    setTimeout(() => {
+                        scene.style.display = 'none';
+                        const homepage = document.getElementById('homepage');
+                        if (homepage) homepage.style.display = 'block';
+                    }, 500);
+                }
+            }, 5000); 
+        });
+
+        // Menu logic
+        function toggleMenu() {
+            const menu = document.getElementById('dropdownMenu');
+            menu.style.display = (menu.style.display === 'flex') ? 'none' : 'flex';
+        }
+
+        // Close menu when clicking outside
+        window.addEventListener('click', (e) => {
+            if (!e.target.matches('.menu-btn')) {
+                const menu = document.getElementById('dropdownMenu');
+                if (menu) menu.style.display = 'none';
+            }
+        });
+
+        function hideSuggestion(email) {
+            const hiddenUsers = JSON.parse(localStorage.getItem('hiddenUsers')) || [];
+            hiddenUsers.push(email);
+            localStorage.setItem('hiddenUsers', JSON.stringify(hiddenUsers));
+            const card = document.querySelector(`.project[data-email="${email}"]`);
+            if (card) card.remove();
+        }
+
+        // PWA Install logic
+        let deferredPrompt;
+        const installBtn = document.getElementById('installApp');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            if (installBtn) installBtn.style.display = 'block';
+        });
+
+        async function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                deferredPrompt = null;
+                if (installBtn) installBtn.style.display = 'none';
+            }
+        }
+
+        async function handleFriendClick(button) {
             const projectDiv = button.closest('.project');
             const friendName = projectDiv.querySelector('h3')?.textContent;
-            const imgEl = projectDiv.querySelector('img');
-            const img = imgEl ? imgEl.src : '';
-            const link = "New folder/" + friendName.split(' ')[0] + ".html";
+            const friendEmail = projectDiv.dataset.email;
+
             let friends = JSON.parse(localStorage.getItem('friends')) || [];
-            const isFriend = friends.some(f => f.name === friendName);
+            const isFriend = friends.some(f => f.email === friendEmail);
+
             if (!isFriend) {
                 const confirmed = confirm(`Are you sure you want to add ${friendName} as a friend?`);
                 if (confirmed) {
-                    friends.push({ name: friendName, image: img, link: link });
-                    localStorage.setItem('friends', JSON.stringify(friends));
-                    updateToFriendState(projectDiv, friendName);
-                    window.location.href = "Chats.html";
+                    try {
+                        const res = await fetch('/api/add-friend', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ friend_email: friendEmail, friend_name: friendName })
+                        });
+
+                        if (res.ok) {
+                            friends.push({ name: friendName, email: friendEmail });
+                            localStorage.setItem('friends', JSON.stringify(friends));
+                            updateToFriendState(projectDiv, friendName, friendEmail);
+                            window.location.href = `personal_chat.html?user=${encodeURIComponent(friendName)}&email=${encodeURIComponent(friendEmail)}`;
+                        }
+                    } catch (err) {
+                        alert("Error adding friend. Please try again.");
+                    }
                 }
             } else {
-                const confirmed = confirm(`Do you want to remove ${friendName} from your friends?`);
-                if (confirmed) {
-                    friends = friends.filter(f => f.name !== friendName);
-                    localStorage.setItem('friends', JSON.stringify(friends));
-                    updateToAddState(projectDiv, friendName);
+                alert("This user is already your friend!");
+            }
+        }
+
+        function updateToFriendState(projectDiv, friendName, friendEmail) {
+            if (!friendName) {
+                friendName = projectDiv.querySelector('h3')?.textContent;
+            }
+            if (!friendEmail) {
+                friendEmail = projectDiv.dataset.email;
+            }
+            const btnGroup = projectDiv.querySelector('.btn-group');
+            if (btnGroup) {
+                btnGroup.innerHTML = `
+                    <button onclick="window.location.href='personal_chat.html?user=${encodeURIComponent(friendName)}&email=${encodeURIComponent(friendEmail)}'" style="background: #28a745; color: white;">Chat</button>
+                    <button class="remove-btn" onclick="removeFriend(this)" style="background: #dc3545; color: white;">Remove Friend</button>
+                `;
+            }
+        }
+
+        async function removeFriend(button) {
+            const projectDiv = button.closest('.project');
+            const friendEmail = projectDiv.dataset.email;
+            const friendName = projectDiv.querySelector('h3').textContent;
+
+            if (confirm(`Remove ${friendName} from friends?`)) {
+                try {
+                    const res = await fetch('/api/remove-friend', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ friend_email: friendEmail })
+                    });
+
+                    if (res.ok) {
+                        let friends = JSON.parse(localStorage.getItem('friends')) || [];
+                        friends = friends.filter(f => f.email !== friendEmail);
+                        localStorage.setItem('friends', JSON.stringify(friends));
+                        
+                        const btnGroup = projectDiv.querySelector('.btn-group');
+                        if (btnGroup) {
+                            btnGroup.innerHTML = `<button onclick="handleFriendClick(this)" style="background: #007bff; color: white;">Add Friend</button>`;
+                        }
+                    } else {
+                        alert("Failed to remove friend from database.");
+                    }
+                } catch (err) {
+                    console.error("Error removing friend:", err);
+                    alert("Error removing friend. Please try again.");
                 }
             }
         }
-        function updateToFriendState(projectDiv, friendName) {
-            const button = projectDiv.querySelector('button');
-            button.textContent = 'Remove Friend';
-            button.style.backgroundColor = 'green';
-        }
-        function updateToAddState(projectDiv, friendName) {
-            const button = projectDiv.querySelector('button');
-            button.textContent = 'Add Friend';
-            button.disabled = false;
-            button.style.backgroundColor = '#3c923f';
-        }
+
         function filterSuggestions() {
             const input = document.getElementById('search').value.toLowerCase();
             const projects = document.querySelectorAll('.project');
             let anyVisible = false;
+
             projects.forEach(project => {
                 const name = project.querySelector('h3').textContent.toLowerCase();
                 if (name.includes(input)) {
@@ -1013,56 +552,24 @@
             });
 
             let noProfileMsg = document.getElementById('noProfileMsg');
-            if (!noProfileMsg) {
-                noProfileMsg = document.createElement('p');
-                noProfileMsg.id = 'noProfileMsg';
-                noProfileMsg.style.textAlign = 'center';
-                noProfileMsg.style.color = 'gray';
-                noProfileMsg.style.marginTop = '20px';
-                noProfileMsg.style.fontSize = '18px';
-                noProfileMsg.style.width = '100%';
-                noProfileMsg.textContent = 'No profile found';
-                document.getElementById('projectGrid').appendChild(noProfileMsg);
+            if (!anyVisible) {
+                if (!noProfileMsg) {
+                    noProfileMsg = document.createElement('div');
+                    noProfileMsg.id = 'noProfileMsg';
+                    noProfileMsg.style.cssText = 'grid-column: 1/-1; text-align: center; padding: 40px; color: #888;';
+                    noProfileMsg.innerHTML = `
+                        <div style="font-size: 48px; margin-bottom: 10px;">🔍</div>
+                        <p style="font-size: 18px;">No users found matching "${document.getElementById('search').value}"</p>
+                    `;
+                    document.getElementById('projectGrid').appendChild(noProfileMsg);
+                }
+                noProfileMsg.style.display = 'block';
+            } else if (noProfileMsg) {
+                noProfileMsg.style.display = 'none';
             }
-            noProfileMsg.style.display = anyVisible ? 'none' : 'block';
         }
 
-        // new script
-
-//         function handleFriendClick(button) {
-//     const projectDiv = button.closest('.project');
-//     const friendName = projectDiv.querySelector('h3')?.textContent;
-//     const img = projectDiv.querySelector('img').src;
-//     const link = "New folder/" + friendName.split(' ')[0] + ".html";
-
-//     if (button.textContent === "Add Friend") {
-//         if (confirm(`Add ${friendName} as a friend?`)) {
-//             fetch("add_friend.php", {
-//                 method: "POST",
-//                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
-//                 body: `name=${encodeURIComponent(friendName)}&image=${encodeURIComponent(img)}&link=${encodeURIComponent(link)}`
-//             }).then(() => {
-//                 button.textContent = "Remove Friend";
-//                 button.style.backgroundColor = "green";
-//                 window.location.href = "Chats.html";
-//             });
-//         }
-//     } else {
-//         if (confirm(`Remove ${friendName} from your friends?`)) {
-//             fetch("remove_friend.php", {
-//                 method: "POST",
-//                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
-//                 body: `name=${encodeURIComponent(friendName)}`
-//             }).then(() => {
-//                 button.textContent = "Add Friend";
-//                 button.style.backgroundColor = "#3c923f";
-//             });
-//         }
-//     }
-// }
-
     </script>
-
 </body>
 
 </html>

@@ -1,30 +1,16 @@
-const cacheName = "chat-app-v1";
+const cacheName = "chat-app-cache-v3";
 
 const filesToCache = [
   "./",
-  "./signup.html",
-  "./viwes/Login.html",
+  "./signup",
+  "./login",
   "./forgot.html",
   "./animation.html",
   "./Chats.html",
   "./homepage.html",
-  "./s.html",
-  "./Abhijeet.html",
-  "./Abhishek.html",
-  "./Hankuni.html",
-  "./Mahesh.html",
-  "./Monika.html",
-  "./Nagesh.html",
-  "./Nikita.html",
-  "./NIVEDITA.html",
-  "./Prince.html",
-  "./Ranjita.html",
-  "./Sachin.html",
-  "./Sangamesh.html",
   "./style.css",
-  "./index.js",
-  "./icon-192.png",
-  "./icon-512.png"
+  "./icons/icon-192.png",
+  "./icons/icon-512.png"
 ];
 
 self.addEventListener("install", (event) => {
@@ -49,8 +35,26 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
+  // Strategy: Network First, falling back to Cache
   event.respondWith(
-    caches.match(event.request)
-      .then((response) => response || fetch(event.request))
+    fetch(event.request)
+      .then((networkResponse) => {
+        // Check if we received a valid response
+        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+          return networkResponse;
+        }
+
+        // Clone the response to store it in cache
+        const responseToCache = networkResponse.clone();
+        caches.open(cacheName).then((cache) => {
+          cache.put(event.request, responseToCache);
+        });
+
+        return networkResponse;
+      })
+      .catch(() => {
+        // If network fails, try the cache
+        return caches.match(event.request);
+      })
   );
 });
