@@ -27,10 +27,10 @@ app.use(session({
 }));
 
 const dbConfig = {
-    host: process.env.HOST || process.env.DB_HOST || "127.0.0.1",
-    user: process.env.DB_USER || "root",
-    password: process.env.PASSWORD || process.env.DB_PASSWORD || "Sanket@123",
-    port: process.env.DB_PORT || 3306,
+    host: process.env.DB_HOST || process.env.HOST || "127.0.0.1",
+    user: process.env.DB_USER || process.env.USER || "root", // Added process.env.USER
+    password: process.env.DB_PASSWORD || process.env.PASSWORD || "Sanket@123",
+    port: process.env.DB_PORT || 3306, // Default to 3306 for MySQL
     database: process.env.DB_NAME || "test",
     waitForConnections: true,
     connectionLimit: 10,

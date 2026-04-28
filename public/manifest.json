@@ -1,6 +1,6 @@
 {
   "name": "ChatWithMe",
-  "short_name": "Chat App",
+  "short_name": "ChatWithMe",
   "start_url": "/login",
   "scope": "/",
   "display": "standalone",

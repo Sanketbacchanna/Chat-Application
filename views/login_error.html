@@ -1,134 +1,191 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<title>Login Failed</title>
-<style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: Arial, sans-serif;
-    }
+    <meta charset="UTF-8">
+    <title>Login Failed</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
 
-    body {
-        height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        overflow: hidden;
-        background: linear-gradient(-45deg, #667eea, #764ba2, #ff6a88, #ff99ac);
-        background-size: 400% 400%;
-        animation: gradientBG 10s ease infinite;
-    }
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            background: linear-gradient(-45deg, #667eea, #764ba2, #ff6a88, #ff99ac);
+            background-size: 400% 400%;
+            animation: gradientBG 10s ease infinite;
+        }
 
-    @keyframes gradientBG {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-    }
+        @keyframes gradientBG {
+            0% {
+                background-position: 0% 50%;
+            }
 
-    /* Floating bubbles */
-    .bubble {
-        position: absolute;
-        bottom: -100px;
-        width: 40px;
-        height: 40px;
-        background: rgba(255,255,255,0.2);
-        border-radius: 50%;
-        animation: rise 10s infinite ease-in;
-    }
+            50% {
+                background-position: 100% 50%;
+            }
 
-    .bubble:nth-child(1) { left: 10%; animation-duration: 12s; }
-    .bubble:nth-child(2) { left: 30%; animation-duration: 8s; width: 25px; height: 25px; }
-    .bubble:nth-child(3) { left: 60%; animation-duration: 10s; }
-    .bubble:nth-child(4) { left: 80%; animation-duration: 14s; width: 20px; height: 20px; }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
 
-    @keyframes rise {
-        0% { transform: translateY(0); opacity: 1; }
-        100% { transform: translateY(-110vh); opacity: 0; }
-    }
+        /* Floating bubbles */
+        .bubble {
+            position: absolute;
+            bottom: -100px;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            animation: rise 10s infinite ease-in;
+        }
 
-    /* Glass Card */
-    .container {
-        position: relative;
-        padding: 40px;
-        width: 450px;
-        text-align: center;
-        color: white;
-        border-radius: 20px;
-        background: rgba(255, 255, 255, 0.1);
-        -webkit-backdrop-filter: blur(15px);
-        backdrop-filter: blur(15px);
-        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-        animation: fadeIn 1.5s ease-in-out;
-    }
+        .bubble:nth-child(1) {
+            left: 10%;
+            animation-duration: 12s;
+        }
 
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(-30px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
+        .bubble:nth-child(2) {
+            left: 30%;
+            animation-duration: 8s;
+            width: 25px;
+            height: 25px;
+        }
 
-    /* Custom Sad Face */
-    .face {
-        font-size: 90px;
-        animation: bounce 2s infinite;
-    }
+        .bubble:nth-child(3) {
+            left: 60%;
+            animation-duration: 10s;
+        }
 
-    @keyframes bounce {
-        0%,100% { transform: translateY(0); }
-        50% { transform: translateY(-10px); }
-    }
+        .bubble:nth-child(4) {
+            left: 80%;
+            animation-duration: 14s;
+            width: 20px;
+            height: 20px;
+        }
 
-    h1 {
-        margin-top: 15px;
-        font-size: 24px;
-    }
+        @keyframes rise {
+            0% {
+                transform: translateY(0);
+                opacity: 1;
+            }
 
-    p {
-        margin-top: 10px;
-        font-size: 16px;
-        opacity: 0.9;
-    }
+            100% {
+                transform: translateY(-110vh);
+                opacity: 0;
+            }
+        }
 
-    .btn {
-        margin-top: 20px;
-        padding: 10px 25px;
-        border: none;
-        border-radius: 25px;
-        background: white;
-        color: #764ba2;
-        font-weight: bold;
-        cursor: pointer;
-        transition: 0.3s;
-    }
+        /* Glass Card */
+        .container {
+            position: relative;
+            padding: 40px;
+            width: 450px;
+            text-align: center;
+            color: white;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            -webkit-backdrop-filter: blur(15px);
+            backdrop-filter: blur(15px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 1.5s ease-in-out;
 
-    .btn:hover {
-        transform: scale(1.1);
-        background: #f1f1f1;
-    }
-</style>
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Custom Sad Face */
+        .face {
+            font-size: 90px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        h1 {
+            margin-top: 15px;
+            font-size: 24px;
+        }
+
+        p {
+            margin-top: 10px;
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .btn {
+            margin-top: 20px;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 25px;
+            background: white;
+            color: #764ba2;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        a {
+            text-decoration: none;
+            color: black;
+        }
+
+        .btn:hover {
+            transform: scale(1.1);
+            background: #f1f1f1;
+        }
+    </style>
 </head>
+
 <body>
 
-<!-- Background bubbles -->
-<div class="bubble"></div>
-<div class="bubble"></div>
-<div class="bubble"></div>
-<div class="bubble"></div>
+    <!-- Background bubbles -->
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
 
-<div class="container">
-    <div class="face">🥺</div>
-    <h1>Invalid Email or Password</h1>
-    <p>Please check your credentials and try again.</p>
-    <button class="btn" onclick="goBack()"><a href="Login.html">Try Again</a></button>
-</div>
+    <div class="container">
+        <div class="face">🥺</div>
+        <h1>Invalid Email or Password</h1>
+        <p>Please check your credentials and try again.</p>
+        <button class="btn" onclick="goBack()"><a href="Login.html">Try Again</a></button>
+    </div>
 
-<script>
-function goBack() {
-    window.history.back();
-}
-</script>
+    <script>
+        function goBack() {
+            window.history.back();
+        }
+    </script>
 
 </body>
+
 </html>
