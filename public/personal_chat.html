@@ -537,11 +537,17 @@
                     displayName: myUsername
                 },
                 configOverwrite: {
-                    prejoinPageEnabled: false, // Skip the "login"/setup screen
+                    prejoinPageEnabled: false,
+                    startWithAudioMuted: false,
+                    startWithVideoMuted: false,
+                    enableWelcomePage: false,
+                    enableLobbyChat: false,
                     disableDeepLinking: true
                 },
                 interfaceConfigOverwrite: {
-                    TILE_VIEW_MAX_COLUMNS: 8
+                    TILE_VIEW_MAX_COLUMNS: 8,
+                    SHOW_JITSI_WATERMARK: false,
+                    SHOW_WATERMARK_FOR_GUESTS: false
                 }
             };
             

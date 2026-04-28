@@ -39,7 +39,7 @@
             left: 0;
             width: 100%;
             height: 100vh;
-            background: var(--primary-gradient);
+            background: #000000; /* Sleek pure black */
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -67,17 +67,17 @@
             position: absolute;
             width: 60px;
             height: 60px;
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05); /* Very subtle white */
             -webkit-backdrop-filter: blur(5px);
             backdrop-filter: blur(5px);
-            border: 2px solid rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
             font-size: 20px;
-            color: white;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            color: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
         }
 
         .avatar-anim:nth-child(1) { top: 0; left: 70px; animation: orbit 4s linear infinite; }
