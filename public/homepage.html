@@ -591,14 +591,15 @@
                 const container = document.getElementById('friendRequestsContainer');
                 container.innerHTML = '';
                 requests.forEach(req => {
+                    const displayName = req.requester_name || req.requester_email.split('@')[0];
                     const div = document.createElement('div');
                     div.style.background = 'white';
                     div.style.border = '1px solid #edf2f7';
                     div.style.borderRadius = '12px';
                     div.style.padding = '12px';
                     div.style.marginBottom = '8px';
-                    div.innerHTML = `<strong>${req.requester_name}</strong> wants to be your friend.
-                        <button style="margin-left:8px;" onclick="acceptFriend('${req.requester_email}', '${req.requester_name}')">Accept</button>`;
+                    div.innerHTML = `<strong>${displayName}</strong> wants to be your friend.
+                        <button style="margin-left:8px;" onclick="acceptFriend('${req.requester_email}', '${displayName}')">Accept</button>`;
                     container.appendChild(div);
                 });
             } catch (e) { console.error('Error loading friend requests', e); }

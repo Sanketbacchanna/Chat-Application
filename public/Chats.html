@@ -212,17 +212,18 @@
                 }
 
                 friendList.forEach(friend => {
+                    const displayName = friend.friend_name || friend.friend_email.split('@')[0];
                     const card = document.createElement('div');
                     card.className = 'profile-card';
                     card.innerHTML = `
-                        <div class="avatar-box">${friend.friend_name.charAt(0).toUpperCase()}</div>
-                        <div class="profile-info" onclick="startChat('${friend.friend_name}', '${friend.friend_email}')">
-                            <h3>${friend.friend_name}</h3>
+                        <div class="avatar-box">${displayName.charAt(0).toUpperCase()}</div>
+                        <div class="profile-info" onclick="startChat('${displayName}', '${friend.friend_email}')">
+                            <h3>${displayName}</h3>
                             <p>${friend.friend_email}</p>
                         </div>
                         <div class="actions">
-                            <button class="btn btn-chat" onclick="startChat('${friend.friend_name}', '${friend.friend_email}')">Chat</button>
-                            <button class="btn btn-remove" onclick="removeFriend('${friend.friend_email}', '${friend.friend_name}')">✕</button>
+                            <button class="btn btn-chat" onclick="startChat('${displayName}', '${friend.friend_email}')">Chat</button>
+                            <button class="btn btn-remove" onclick="removeFriend('${friend.friend_email}', '${displayName}')">✕</button>
                         </div>
                     `;
                     profileList.appendChild(card);
