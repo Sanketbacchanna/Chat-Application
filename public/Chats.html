@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>ChatWithMe - My Friends</title>
     <!-- PWA -->
     <link rel="manifest" href="/manifest.json">
@@ -38,6 +38,7 @@
             display: flex;
             align-items: center;
             padding: 20px 0;
+            padding-top: calc(20px + env(safe-area-inset-top));
             margin-bottom: 20px;
         }
 
@@ -237,7 +238,7 @@
                     const res = await fetch('/api/remove-friend', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ friend_email: email })
+                        body: JSON.stringify({ friend_email: email, friend_name: name })
                     });
 
                     if (res.ok) {

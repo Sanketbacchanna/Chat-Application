@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>ChatWithMe - Private Chat</title>
     <!-- PWA -->
     <link rel="manifest" href="/manifest.json">
@@ -41,6 +41,7 @@
         .header {
             background: white;
             padding: 12px 20px;
+            padding-top: calc(12px + env(safe-area-inset-top));
             display: flex;
             align-items: center;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
@@ -185,6 +186,7 @@
         .input-area {
             background: white;
             padding: 15px 20px;
+            padding-bottom: calc(15px + env(safe-area-inset-bottom));
             display: flex;
             align-items: center;
             gap: 12px;
@@ -256,13 +258,25 @@
             bottom: 80px;
             left: 20px;
             background: white;
-            border-radius: 20px;
+            border-radius: 24px;
             padding: 15px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            grid-template-columns: repeat(6, 1fr);
-            gap: 10px;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 8px;
             z-index: 100;
             border: 1px solid #edf2f7;
+            max-height: 250px;
+            overflow-y: auto;
+            width: 320px;
+        }
+
+        #emojiPicker::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        #emojiPicker::-webkit-scrollbar-thumb {
+            background: #dfe6e9;
+            border-radius: 10px;
         }
 
         #emojiPicker span {
@@ -288,6 +302,33 @@
         }
 
         /* Responsive */
+        /* Video Call Modal */
+        #videoContainer {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            z-index: 10000;
+        }
+
+        #closeVideoBtn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 10001;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
         @media (max-width: 480px) {
             .header { padding: 10px; }
             #chatBox { padding: 15px; }
@@ -318,11 +359,56 @@
     </div>
 
     <div id="emojiPicker">
-        <span onclick="addEmoji('😀')">😀</span><span onclick="addEmoji('😂')">😂</span><span onclick="addEmoji('❤️')">❤️</span>
-        <span onclick="addEmoji('👍')">👍</span><span onclick="addEmoji('🙌')">🙌</span><span onclick="addEmoji('😊')">😊</span>
-        <span onclick="addEmoji('😍')">😍</span><span onclick="addEmoji('😭')">😭</span><span onclick="addEmoji('😎')">😎</span>
-        <span onclick="addEmoji('🤔')">🤔</span><span onclick="addEmoji('🔥')">🔥</span><span onclick="addEmoji('🎉')">🎉</span>
-        <span onclick="addEmoji('🙏')">🙏</span><span onclick="addEmoji('✨')">✨</span><span onclick="addEmoji('💯')">💯</span>
+        <span onclick="addEmoji('😀')">😀</span><span onclick="addEmoji('😃')">😃</span><span onclick="addEmoji('😄')">😄</span><span onclick="addEmoji('😁')">😁</span>
+        <span onclick="addEmoji('😆')">😆</span><span onclick="addEmoji('😅')">😅</span><span onclick="addEmoji('🤣')">🤣</span><span onclick="addEmoji('😂')">😂</span>
+        <span onclick="addEmoji('🙂')">🙂</span><span onclick="addEmoji('🙃')">🙃</span><span onclick="addEmoji('😉')">😉</span><span onclick="addEmoji('😊')">😊</span>
+        <span onclick="addEmoji('😇')">😇</span><span onclick="addEmoji('🥰')">🥰</span><span onclick="addEmoji('😍')">😍</span><span onclick="addEmoji('🤩')">🤩</span>
+        <span onclick="addEmoji('😘')">😘</span><span onclick="addEmoji('😗')">😗</span><span onclick="addEmoji('😚')">😚</span><span onclick="addEmoji('😙')">😙</span>
+        <span onclick="addEmoji('😋')">😋</span><span onclick="addEmoji('😛')">😛</span><span onclick="addEmoji('😜')">😜</span><span onclick="addEmoji('🤪')">🤪</span>
+        <span onclick="addEmoji('😝')">😝</span><span onclick="addEmoji('🤑')">🤑</span><span onclick="addEmoji('🤗')">🤗</span><span onclick="addEmoji('🤭')">🤭</span>
+        <span onclick="addEmoji('🤫')">🤫</span><span onclick="addEmoji('🤔')">🤔</span><span onclick="addEmoji('🤐')">🤐</span><span onclick="addEmoji('🤨')">🤨</span>
+        <span onclick="addEmoji('😐')">😐</span><span onclick="addEmoji('😑')">😑</span><span onclick="addEmoji('😶')">😶</span><span onclick="addEmoji('😏')">😏</span>
+        <span onclick="addEmoji('😒')">😒</span><span onclick="addEmoji('🙄')">🙄</span><span onclick="addEmoji('😬')">😬</span><span onclick="addEmoji('🤥')">🤥</span>
+        <span onclick="addEmoji('😌')">😌</span><span onclick="addEmoji('😔')">😔</span><span onclick="addEmoji('😪')">😪</span><span onclick="addEmoji('🤤')">🤤</span>
+        <span onclick="addEmoji('😴')">😴</span><span onclick="addEmoji('😷')">😷</span><span onclick="addEmoji('🤒')">🤒</span><span onclick="addEmoji('🤕')">🤕</span>
+        <span onclick="addEmoji('🤢')">🤢</span><span onclick="addEmoji('🤮')">🤮</span><span onclick="addEmoji('🤧')">🤧</span><span onclick="addEmoji('🥵')">🥵</span>
+        <span onclick="addEmoji('🥶')">🥶</span><span onclick="addEmoji('🥴')">🥴</span><span onclick="addEmoji('😵')">😵</span><span onclick="addEmoji('🤯')">🤯</span>
+        <span onclick="addEmoji('🤠')">🤠</span><span onclick="addEmoji('🥳')">🥳</span><span onclick="addEmoji('😎')">😎</span><span onclick="addEmoji('🤓')">🤓</span>
+        <span onclick="addEmoji('🧐')">🧐</span><span onclick="addEmoji('😕')">😕</span><span onclick="addEmoji('😟')">😟</span><span onclick="addEmoji('🙁')">🙁</span>
+        <span onclick="addEmoji('😮')">😮</span><span onclick="addEmoji('😯')">😯</span><span onclick="addEmoji('😲')">😲</span><span onclick="addEmoji('😳')">😳</span>
+        <span onclick="addEmoji('🥺')">🥺</span><span onclick="addEmoji('😧')">😧</span><span onclick="addEmoji('😨')">😨</span><span onclick="addEmoji('😰')">😰</span>
+        <span onclick="addEmoji('😥')">😥</span><span onclick="addEmoji('😢')">😢</span><span onclick="addEmoji('😭')">😭</span><span onclick="addEmoji('😱')">😱</span>
+        <span onclick="addEmoji('😖')">😖</span><span onclick="addEmoji('😣')">😣</span><span onclick="addEmoji('😞')">😞</span><span onclick="addEmoji('😓')">😓</span>
+        <span onclick="addEmoji('😩')">😩</span><span onclick="addEmoji('😫')">😫</span><span onclick="addEmoji('🥱')">🥱</span><span onclick="addEmoji('😤')">😤</span>
+        <span onclick="addEmoji('😡')">😡</span><span onclick="addEmoji('😠')">😠</span><span onclick="addEmoji('🤬')">🤬</span><span onclick="addEmoji('😈')">😈</span>
+        <span onclick="addEmoji('👿')">👿</span><span onclick="addEmoji('💀')">💀</span><span onclick="addEmoji('☠️')">☠️</span><span onclick="addEmoji('💩')">💩</span>
+        <span onclick="addEmoji('🤡')">🤡</span><span onclick="addEmoji('👹')">👹</span><span onclick="addEmoji('👺')">👺</span><span onclick="addEmoji('👻')">👻</span>
+        <span onclick="addEmoji('👽')">👽</span><span onclick="addEmoji('👾')">👾</span><span onclick="addEmoji('🤖')">🤖</span><span onclick="addEmoji('😺')">😺</span>
+        <span onclick="addEmoji('😸')">😸</span><span onclick="addEmoji('😹')">😹</span><span onclick="addEmoji('😻')">😻</span><span onclick="addEmoji('😼')">😼</span>
+        <span onclick="addEmoji('😽')">😽</span><span onclick="addEmoji('🙀')">🙀</span><span onclick="addEmoji('😿')">😿</span><span onclick="addEmoji('😾')">😾</span>
+        <span onclick="addEmoji('🙈')">🙈</span><span onclick="addEmoji('🙉')">🙉</span><span onclick="addEmoji('🙊')">🙊</span><span onclick="addEmoji('💋')">💋</span>
+        <span onclick="addEmoji('💌')">💌</span><span onclick="addEmoji('💘')">💘</span><span onclick="addEmoji('💝')">💝</span><span onclick="addEmoji('💖')">💖</span>
+        <span onclick="addEmoji('💗')">💗</span><span onclick="addEmoji('💓')">💓</span><span onclick="addEmoji('💞')">💞</span><span onclick="addEmoji('💕')">💕</span>
+        <span onclick="addEmoji('💟')">💟</span><span onclick="addEmoji('❣️')">❣️</span><span onclick="addEmoji('💔')">💔</span><span onclick="addEmoji('❤️')">❤️</span>
+        <span onclick="addEmoji('🧡')">🧡</span><span onclick="addEmoji('💛')">💛</span><span onclick="addEmoji('💚')">💚</span><span onclick="addEmoji('💙')">💙</span>
+        <span onclick="addEmoji('💜')">💜</span><span onclick="addEmoji('🤎')">🤎</span><span onclick="addEmoji('🖤')">🖤</span><span onclick="addEmoji('🤍')">🤍</span>
+        <span onclick="addEmoji('💯')">💯</span><span onclick="addEmoji('💢')">💢</span><span onclick="addEmoji('💥')">💥</span><span onclick="addEmoji('💫')">💫</span>
+        <span onclick="addEmoji('💦')">💦</span><span onclick="addEmoji('💨')">💨</span><span onclick="addEmoji('🕳️')">🕳️</span><span onclick="addEmoji('💣')">💣</span>
+        <span onclick="addEmoji('💬')">💬</span><span onclick="addEmoji('👁️‍🗨️')">👁️‍🗨️</span><span onclick="addEmoji('🗨️')">🗨️</span><span onclick="addEmoji('🗯️')">🗯️</span>
+        <span onclick="addEmoji('💭')">💭</span><span onclick="addEmoji('💤')">💤</span><span onclick="addEmoji('👋')">👋</span><span onclick="addEmoji('🤚')">🤚</span>
+        <span onclick="addEmoji('🖐️')">🖐️</span><span onclick="addEmoji('✋')">✋</span><span onclick="addEmoji('🖖')">🖖</span><span onclick="addEmoji('👌')">👌</span>
+        <span onclick="addEmoji('🤌')">🤌</span><span onclick="addEmoji('🤏')">🤏</span><span onclick="addEmoji('✌️')">✌️</span><span onclick="addEmoji('🤞')">🤞</span>
+        <span onclick="addEmoji('🤟')">🤟</span><span onclick="addEmoji('🤘')">🤘</span><span onclick="addEmoji('🤙')">🤙</span><span onclick="addEmoji('👈')">👈</span>
+        <span onclick="addEmoji('👉')">👉</span><span onclick="addEmoji('👆')">👆</span><span onclick="addEmoji('🖕')">🖕</span><span onclick="addEmoji('👇')">👇</span>
+        <span onclick="addEmoji('☝️')">☝️</span><span onclick="addEmoji('👍')">👍</span><span onclick="addEmoji('👎')">👎</span><span onclick="addEmoji('✊')">✊</span>
+        <span onclick="addEmoji('👊')">👊</span><span onclick="addEmoji('🤛')">🤛</span><span onclick="addEmoji('🤜')">🤜</span><span onclick="addEmoji('👏')">👏</span>
+        <span onclick="addEmoji('🙌')">🙌</span><span onclick="addEmoji('👐')">👐</span><span onclick="addEmoji('🤲')">🤲</span><span onclick="addEmoji('🤝')">🤝</span>
+        <span onclick="addEmoji('🙏')">🙏</span><span onclick="addEmoji('✍️')">✍️</span><span onclick="addEmoji('💅')">💅</span><span onclick="addEmoji('🤳')">🤳</span>
+        <span onclick="addEmoji('💪')">💪</span><span onclick="addEmoji('🦾')">🦾</span><span onclick="addEmoji('🦿')">🦿</span><span onclick="addEmoji('🦵')">🦵</span>
+        <span onclick="addEmoji('🦶')">🦶</span><span onclick="addEmoji('👂')">👂</span><span onclick="addEmoji('🦻')">🦻</span><span onclick="addEmoji('👃')">👃</span>
+        <span onclick="addEmoji('🧠')">🧠</span><span onclick="addEmoji('🦷')">🦷</span><span onclick="addEmoji('🦴')">🦴</span><span onclick="addEmoji('👀')">👀</span>
+        <span onclick="addEmoji('👁️')">👁️</span><span onclick="addEmoji('👅')">👅</span><span onclick="addEmoji('👄')">👄</span><span onclick="addEmoji('🔥')">🔥</span>
+        <span onclick="addEmoji('✨')">✨</span><span onclick="addEmoji('🎉')">🎉</span><span onclick="addEmoji('🎊')">🎊</span><span onclick="addEmoji('🎈')">🎈</span>
     </div>
 
     <div class="input-area">
@@ -335,6 +421,13 @@
         <button class="btn-send" onclick="sendMessage()">🚀</button>
     </div>
 
+    <!-- Video Call Container -->
+    <div id="videoContainer">
+        <button id="closeVideoBtn" onclick="endVideoCall()">✕</button>
+        <div id="jitsi-container" style="height: 100%; width: 100%;"></div>
+    </div>
+
+    <script src="https://meet.jit.si/external_api.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
@@ -375,7 +468,7 @@
             };
 
             socket.emit("chat message", msgData);
-            renderMessage({...msgData, timestamp: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}, true);
+            renderMessage({...msgData, timestamp: new Date().toISOString()}, true);
             input.value = "";
             input.focus();
         }
@@ -396,11 +489,15 @@
             const box = document.getElementById("chatBox");
             const side = (isMe || data.sender_email === myEmail) ? 'me' : 'other';
             
+            const timeString = data.timestamp 
+                ? new Date(data.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                : 'Just now';
+            
             const wrapper = document.createElement('div');
             wrapper.className = `msg-wrapper ${side}`;
             wrapper.innerHTML = `
                 <div class="msg-bubble">${data.text}</div>
-                <div class="msg-time">${data.timestamp || 'Just now'}</div>
+                <div class="msg-time">${timeString}</div>
             `;
             box.appendChild(wrapper);
             box.scrollTop = box.scrollHeight;
@@ -417,10 +514,53 @@
             toggleEmojiPicker();
         }
 
+        let jitsiApi = null;
         function startVideoCall() {
+            const container = document.getElementById('videoContainer');
+            container.style.display = 'block';
+
+            const domain = 'meet.jit.si';
+            const options = {
+                roomName: `CWM_${roomId}`,
+                width: '100%',
+                height: '100%',
+                parentNode: document.querySelector('#jitsi-container'),
+                userInfo: {
+                    displayName: myUsername
+                },
+                configOverwrite: {
+                    prejoinPageEnabled: false, // Skip the "login"/setup screen
+                    disableDeepLinking: true
+                },
+                interfaceConfigOverwrite: {
+                    TILE_VIEW_MAX_COLUMNS: 8
+                }
+            };
+            
+            jitsiApi = new JitsiMeetExternalAPI(domain, options);
+            
+            // Send the link to the other person too
             const link = `https://meet.jit.si/CWM_${roomId}`;
-            socket.emit("chat message", { room_id: roomId, sender_email: myEmail, username: myUsername, text: `📞 Video Call Started: <a href="${link}" target="_blank">Join Now</a>` });
-            window.open(link, '_blank');
+            socket.emit("chat message", { 
+                room_id: roomId, 
+                sender_email: myEmail, 
+                username: myUsername, 
+                text: `📞 Video Call Started. Click the camera icon above to join!` 
+            });
+
+            jitsiApi.addEventListeners({
+                readyToClose: endVideoCall,
+                videoConferenceLeft: endVideoCall
+            });
+        }
+
+        function endVideoCall() {
+            if (jitsiApi) {
+                jitsiApi.dispose();
+                jitsiApi = null;
+            }
+            document.getElementById('videoContainer').style.display = 'none';
+            document.getElementById('jitsi-container').innerHTML = '';
         }
 
         // Voice Recording (Basic)

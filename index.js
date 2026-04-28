@@ -101,6 +101,17 @@ database.getConnection((err, connection) => {
         else console.log("✅ Friends table is ready");
     });
 
+    database.query(`CREATE TABLE IF NOT EXISTS removed_friends (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_email VARCHAR(255) NOT NULL,
+        friend_email VARCHAR(255) NOT NULL,
+        friend_name VARCHAR(255) NOT NULL,
+        UNIQUE KEY unique_removal (user_email, friend_email)
+    )`, (err) => {
+        if (err) console.error("❌ Error creating removed_friends table:", err);
+        else console.log("✅ removed_friends table is ready");
+    });
+
     database.query(`CREATE TABLE IF NOT EXISTS messages (
         id INT AUTO_INCREMENT PRIMARY KEY,
         room_id VARCHAR(255) NOT NULL,
@@ -276,6 +287,20 @@ app.post('/api/add-friend', (req, res) => {
 
 
 
+// ✅ API to get sent friend requests
+app.get('/api/sent-requests', (req, res) => {
+    if (!req.session.user) return res.status(401).json({ error: "Unauthorized" });
+    const user_email = req.session.user.email;
+    const SQL_COMMAND = "SELECT receiver_email FROM friend_requests WHERE requester_email = ? AND status = 'pending'";
+    database.query(SQL_COMMAND, [user_email], (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: "Failed to fetch sent requests" });
+        }
+        res.json(results.map(r => r.receiver_email));
+    });
+});
+
 // ✅ API to get pending friend requests
 app.get('/api/friend-requests', (req, res) => {
     if (!req.session.user) return res.status(401).json({ error: "Unauthorized" });
@@ -308,18 +333,55 @@ app.get('/api/friends', (req, res) => {
 app.post('/api/remove-friend', (req, res) => {
     if (!req.session.user) return res.status(401).json({ error: "Unauthorized" });
 
-    const { friend_email } = req.body;
+    const { friend_email, friend_name } = req.body;
     const user_email = req.session.user.email;
 
     console.log(`👤 User ${user_email} is removing friend ${friend_email}`);
 
-    const SQL_COMMAND = "DELETE FROM friends WHERE user_email = ? AND friend_email = ?";
-    database.query(SQL_COMMAND, [user_email, friend_email], (err, result) => {
+    // First, get the friend's name if not provided (though it usually is)
+    const removeSQL = "DELETE FROM friends WHERE user_email = ? AND friend_email = ?";
+    database.query(removeSQL, [user_email, friend_email], (err, result) => {
         if (err) {
             console.error("❌ DB Error removing friend:", err);
             return res.status(500).json({ error: "Failed to remove friend" });
         }
-        console.log("✅ Friend removed successfully from DB");
+        
+        // Also remove reciprocal
+        database.query("DELETE FROM friends WHERE user_email = ? AND friend_email = ?", [friend_email, user_email]);
+        
+        // Add to removed_friends list
+        const logSQL = "INSERT IGNORE INTO removed_friends (user_email, friend_email, friend_name) VALUES (?, ?, ?)";
+        database.query(logSQL, [user_email, friend_email, friend_name || 'User'], (err2) => {
+            if (err2) console.error("❌ Error logging removal:", err2);
+            console.log("✅ Friend removed and logged successfully");
+            res.json({ success: true });
+        });
+    });
+});
+
+// ✅ API to get removed friends
+app.get('/api/removed-friends', (req, res) => {
+    if (!req.session.user) return res.status(401).json({ error: "Unauthorized" });
+    const user_email = req.session.user.email;
+    const SQL_COMMAND = "SELECT friend_email, friend_name FROM removed_friends WHERE user_email = ?";
+    database.query(SQL_COMMAND, [user_email], (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: "Failed to fetch removed friends" });
+        }
+        res.json(results);
+    });
+});
+
+// ✅ API to restore/re-add a removed friend
+app.post('/api/restore-friend', (req, res) => {
+    if (!req.session.user) return res.status(401).json({ error: "Unauthorized" });
+    const { friend_email } = req.body;
+    const user_email = req.session.user.email;
+    
+    const SQL_COMMAND = "DELETE FROM removed_friends WHERE user_email = ? AND friend_email = ?";
+    database.query(SQL_COMMAND, [user_email, friend_email], (err) => {
+        if (err) return res.status(500).json({ error: "Failed to restore" });
         res.json({ success: true });
     });
 });
@@ -400,7 +462,7 @@ io.on('connection', (socket) => {
                 }
                 const history = results.map(msg => ({
                     ...msg,
-                    timestamp: new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    timestamp: msg.timestamp // Send raw DB timestamp (ISO/Date object)
                 }));
                 socket.emit('chat history', history);
             });
@@ -427,10 +489,7 @@ io.on('connection', (socket) => {
                 text: text,
                 username: username,
                 sender_email: sender_email,
-                timestamp: new Date().toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                })
+                timestamp: new Date().toISOString() // Send raw ISO string
             });
         }
     });

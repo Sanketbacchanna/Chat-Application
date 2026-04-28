@@ -3,13 +3,14 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>ChatWithMe - Discover</title>
     <!-- PWA -->
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#6b73ff">
     <link rel="icon" type="image/png" href="/icons/icon-192.png">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="/socket.io/socket.io.js"></script>
     <style>
         :root {
             --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -377,8 +378,111 @@
         @media (max-width: 768px) {
             nav { width: 96%; left: 2%; padding: 0 15px; height: 70px; top: 10px; border-radius: 20px; }
             .search-container { margin: 0 10px; }
-            header h1 { font-size: 32px; }
-            .project-grid { grid-template-columns: 1fr; }
+            .logo span { display: none; } /* Hide text logo on small screens to save space */
+            header h1 { font-size: 28px; }
+            .project-grid { 
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); 
+                gap: 15px;
+                padding: 0 15px 100px;
+            }
+            .project { padding: 20px 15px; }
+            .avatar-placeholder { width: 70px; height: 70px; font-size: 24px; }
+        }
+
+        @media (max-width: 480px) {
+            header h1 { font-size: 24px; }
+            .project-grid { 
+                grid-template-columns: 1fr; 
+            }
+            .dropdown-menu { width: calc(100vw - 40px); right: -10px; }
+        }
+
+        /* PWA Install Banner */
+        .pwa-banner {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #ff8c00 0%, #ff4500 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(255, 69, 0, 0.3);
+            display: none; /* Hidden by default */
+            z-index: 9999;
+            width: 350px;
+            animation: slideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(100px) scale(0.8); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        .pwa-banner-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .pwa-icon {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-radius: 12px;
+            font-size: 24px;
+        }
+
+        .pwa-title {
+            flex: 1;
+        }
+
+        .pwa-title h2 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .pwa-title p {
+            margin: 5px 0 0;
+            font-size: 13px;
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+
+        .close-pwa {
+            cursor: pointer;
+            font-size: 20px;
+            opacity: 0.7;
+            transition: 0.2s;
+        }
+
+        .close-pwa:hover { opacity: 1; }
+
+        .pwa-btn {
+            background: white;
+            color: #ff4500;
+            border: none;
+            padding: 14px;
+            width: 100%;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .pwa-btn:hover {
+            background: #fff5f0;
+            transform: scale(1.02);
+        }
+
+        @media (max-width: 480px) {
+            .pwa-banner {
+                bottom: 20px;
+                right: 20px;
+                left: 20px;
+                width: auto;
+            }
         }
     </style>
 </head>
@@ -410,6 +514,10 @@
                     <div class="dropdown-menu" id="dropdownMenu">
                         <a href="profile.html">👤 My Profile</a>
                         <a href="Chats.html">💬 My Friends</a>
+                        <div id="removedFriendsSection" style="padding: 10px; border-top: 1px solid #edf2f7; display:none;">
+                            <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; font-weight: 700;">Removed Friends</p>
+                            <div id="removedFriendsList"></div>
+                        </div>
                         <button id="installApp" onclick="installPWA()" style="display: none;">📲 Install App</button>
                         <hr style="border: 0; border-top: 1px solid #edf2f7; margin: 8px 0; width: 100%;">
                         <a href="/logout" style="color: #f56565;">🚪 Logout</a>
@@ -426,13 +534,28 @@
         <section id="projects">
             <div class="project-grid" id="projectGrid">
                 <!-- Users will be dynamically loaded here -->
-            </div>
-            <div id="friendRequestsContainer" style="position:fixed;top:90px;right:20px;z-index:2000;max-width:300px;">
+        </div>
+        <div id="friendRequestsContainer" style="position:fixed;top:90px;right:20px;z-index:2000;max-width:300px;">
             <!-- Friend request notifications will be injected here -->
+        </div>
+
+        <!-- PWA Install Banner -->
+        <div id="pwaBanner" class="pwa-banner">
+            <div class="pwa-banner-header">
+                <div class="pwa-icon">📥</div>
+                <div class="pwa-title">
+                    <h2>Install Our App</h2>
+                    <p>Get quick access and stay connected with your friends faster!</p>
+                </div>
+                <div class="close-pwa" onclick="closePWABanner()">✕</div>
+            </div>
+            <button class="pwa-btn" onclick="installPWA()">Install Now</button>
         </div>
     </div>
 
     <script>
+        const socket = io();
+
         // Smooth transition from loader
         window.addEventListener('load', () => {
             setTimeout(() => {
@@ -508,10 +631,22 @@
         });
         async function loadUsers() {
             let currentUser = null;
+            let friends = [];
+            let sentRequests = [];
+            let removedFriends = [];
             try {
-                const meRes = await fetch('/api/me');
+                const [meRes, friendsRes, sentRes, removedRes] = await Promise.all([
+                    fetch('/api/me'),
+                    fetch('/api/friends'),
+                    fetch('/api/sent-requests'),
+                    fetch('/api/removed-friends')
+                ]);
+                
                 if (meRes.ok) currentUser = await meRes.json();
-            } catch (err) { console.error("Session check failed"); }
+                if (friendsRes.ok) friends = await friendsRes.json();
+                if (sentRes.ok) sentRequests = await sentRes.json();
+                if (removedRes.ok) removedFriends = await removedRes.json();
+            } catch (err) { console.error("Session/Friends check failed", err); }
 
             try {
                 const response = await fetch('/api/users');
@@ -521,27 +656,36 @@
                 projectGrid.innerHTML = '';
 
                 const hiddenUsers = JSON.parse(localStorage.getItem('hiddenUsers')) || [];
-                const friends = JSON.parse(localStorage.getItem('friends')) || [];
+                const removedEmails = removedFriends.map(f => f.friend_email);
 
                 dbUsers.forEach(user => {
                     if (currentUser && user.email_id === currentUser.email) return;
                     if (hiddenUsers.includes(user.email_id)) return;
+                    if (removedEmails.includes(user.email_id)) return; // Exclude removed friends from main grid
 
-                    const isFriend = friends.some(f => f.email === user.email_id);
+                    const isFriend = friends.some(f => f.friend_email === user.email_id);
+                    const isPending = sentRequests.includes(user.email_id);
                     
                     const projectDiv = document.createElement('div');
                     projectDiv.className = 'project';
                     projectDiv.dataset.email = user.email_id;
+                    
+                    let buttonHTML = '';
+                    if (isFriend) {
+                        buttonHTML = `<button class="btn-chat" onclick="goToChat('${user.UserName}', '${user.email_id}')">Start Chat</button>`;
+                    } else if (isPending) {
+                        buttonHTML = `<button class="btn-add" style="background:#b2bec3;cursor:default;" disabled>Request Sent</button>`;
+                    } else {
+                        buttonHTML = `<button class="btn-add" onclick="handleAddFriend(this)">Add Friend</button>`;
+                    }
+
                     projectDiv.innerHTML = `
                         <span class="close-suggestion" onclick="hideSuggestion('${user.email_id}')">✕</span>
                         <div class="avatar-placeholder">${user.UserName.charAt(0).toUpperCase()}</div>
                         <h3>${user.UserName}</h3>
                         <p class="email">${user.email_id}</p>
                         <div class="btn-group">
-                            ${isFriend 
-                                ? `<button class="btn-chat" onclick="goToChat('${user.UserName}', '${user.email_id}')">Start Chat</button>`
-                                : `<button class="btn-add" onclick="handleAddFriend(this)">Add Friend</button>`
-                            }
+                            ${buttonHTML}
                         </div>
                     `;
                     projectGrid.appendChild(projectDiv);
@@ -553,7 +697,44 @@
 
         function toggleMenu() {
             const menu = document.getElementById('dropdownMenu');
-            menu.style.display = (menu.style.display === 'flex') ? 'none' : 'flex';
+            const isOpening = menu.style.display !== 'flex';
+            menu.style.display = isOpening ? 'flex' : 'none';
+            if (isOpening) loadRemovedFriends();
+        }
+
+        async function loadRemovedFriends() {
+            try {
+                const res = await fetch('/api/removed-friends');
+                const removed = await res.json();
+                const section = document.getElementById('removedFriendsSection');
+                const list = document.getElementById('removedFriendsList');
+                
+                if (removed.length > 0) {
+                    section.style.display = 'block';
+                    list.innerHTML = removed.map(u => `
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding: 5px 0;">
+                            <span style="font-size:13px;">${u.friend_name}</span>
+                            <button onclick="restoreFriend('${u.friend_email}')" style="background:none; border:none; color:var(--accent-color); font-size:11px; cursor:pointer;">Restore</button>
+                        </div>
+                    `).join('');
+                } else {
+                    section.style.display = 'none';
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function restoreFriend(email) {
+            try {
+                const res = await fetch('/api/restore-friend', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ friend_email: email })
+                });
+                if (res.ok) {
+                    loadRemovedFriends();
+                    loadUsers();
+                }
+            } catch (e) { console.error(e); }
         }
 
         window.addEventListener('click', (e) => {
@@ -615,7 +796,7 @@
             });
         }
 
-        // PWA - Service Worker registration and install handling
+// PWA - Service Worker registration and install handling
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js')
@@ -623,20 +804,42 @@ if ('serviceWorker' in navigator) {
             .catch(err => console.error('SW registration failed', err));
     });
 }
+
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
+    // Prevent the mini-infobar from appearing on mobile
     e.preventDefault();
+    // Stash the event so it can be triggered later.
     deferredPrompt = e;
-    document.getElementById('installApp').style.display = 'flex';
+    // Update UI notify the user they can install the PWA
+    const banner = document.getElementById('pwaBanner');
+    const menuBtn = document.getElementById('installApp');
+    if (banner && !localStorage.getItem('pwaDismissed')) {
+        banner.style.display = 'block';
+    }
+    if (menuBtn) {
+        menuBtn.style.display = 'flex';
+    }
 });
+
 async function installPWA() {
     if (deferredPrompt) {
+        // Show the install prompt
         deferredPrompt.prompt();
+        // Wait for the user to respond to the prompt
         const { outcome } = await deferredPrompt.userChoice;
-        console.log('User response to the install prompt:', outcome);
+        console.log(`User response to the install prompt: ${outcome}`);
+        // We've used the prompt, and can't use it again, throw it away
         deferredPrompt = null;
-        document.getElementById('installApp').style.display = 'none';
+        // Hide the banner
+        document.getElementById('pwaBanner').style.display = 'none';
     }
+}
+
+function closePWABanner() {
+    document.getElementById('pwaBanner').style.display = 'none';
+    // Remember the user dismissed it so we don't show it every time
+    localStorage.setItem('pwaDismissed', 'true');
 }
 
     </script>
