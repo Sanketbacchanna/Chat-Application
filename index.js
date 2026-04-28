@@ -18,13 +18,14 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use(session({
+const sessionMiddleware = session({
     store: new FileStore({ path: './sessions' }),
     secret: 'chat-app-secret-123',
     resave: false,
     saveUninitialized: false,
     cookie: { maxAge: 24 * 60 * 60 * 1000 } // 24 hours
-}));
+});
+app.use(sessionMiddleware);
 
 const dbConfig = {
     host: process.env.DB_HOST || process.env.HOST || "127.0.0.1",
@@ -44,6 +45,25 @@ const dbConfig = {
 console.log(`📡 Attempting to connect to database at ${dbConfig.host}:${dbConfig.port} as user ${dbConfig.user}...`);
 
 const database = mysql2.createPool(dbConfig);
+const server = http.createServer(app);
+const io = new Server(server);
+const userSockets = {};
+
+io.use((socket, next) => {
+    sessionMiddleware(socket.request, {}, next);
+});
+
+io.on('connection', (socket) => {
+    if (socket.request.session.user) {
+        const email = socket.request.session.user.email;
+        userSockets[email] = socket.id;
+    }
+    socket.on('disconnect', () => {
+        if (socket.request.session.user) {
+            delete userSockets[socket.request.session.user.email];
+        }
+    });
+});
 
 // Test the connection
 database.getConnection((err, connection) => {
@@ -54,7 +74,7 @@ database.getConnection((err, connection) => {
     console.log("✅ MySQL database pool is connected...");
     connection.release();
 
-    // Ensure tables exist (we don't need to CREATE DATABASE if it's already specified in the pool config)
+    // Ensure tables exist
     database.query(`CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY,
         UserName VARCHAR(255) NOT NULL,
@@ -63,6 +83,17 @@ database.getConnection((err, connection) => {
     )`, (err) => {
         if (err) console.error("❌ Error creating users table:", err);
         else console.log("✅ Users table is ready");
+    });
+
+    database.query(`CREATE TABLE IF NOT EXISTS friend_requests (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        requester_email VARCHAR(255) NOT NULL,
+        receiver_email VARCHAR(255) NOT NULL,
+        status ENUM('pending','accepted') DEFAULT 'pending',
+        UNIQUE KEY unique_request (requester_email, receiver_email)
+    )`, (err) => {
+        if (err) console.error("❌ Error creating friend_requests table:", err);
+        else console.log("✅ friend_requests table is ready");
     });
 
     database.query(`CREATE TABLE IF NOT EXISTS friends (
@@ -179,6 +210,53 @@ app.get('/logout', (req, res) => {
 });
 
 // ✅ API to add a friend (using database)
+app.post('/api/request-friend', async (req, res) => {
+    if (!req.session.user) {
+        console.error("❌ Request friend failed: No session user");
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+    const { friend_email, friend_name } = req.body;
+    const requester_email = req.session.user.email;
+    // Insert request if not exists
+    const insertSQL = "INSERT IGNORE INTO friend_requests (requester_email, receiver_email) VALUES (?, ?)";
+    database.query(insertSQL, [requester_email, friend_email], (err, result) => {
+        if (err) {
+            console.error("❌ DB Error inserting friend request:", err);
+            return res.status(500).json({ error: "Failed to request friend" });
+        }
+        console.log(`✅ Friend request from ${requester_email} to ${friend_email}`);
+        // Notify receiver if online via socket
+        const socketId = userSockets[friend_email];
+        if (socketId) {
+            io.to(socketId).emit('friend request', { from: requester_email, name: req.session.user.username });
+        }
+        res.json({ success: true });
+    });
+});
+
+app.post('/api/accept-friend', (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+    const { requester_email, requester_name } = req.body;
+    const receiver_email = req.session.user.email;
+    // Update request status
+    const updateSQL = "UPDATE friend_requests SET status='accepted' WHERE requester_email=? AND receiver_email=?";
+    database.query(updateSQL, [requester_email, receiver_email], (err) => {
+        if (err) return res.status(500).json({ error: "Failed to accept" });
+        // Insert into friends table for both sides
+        const insertFriend = "INSERT IGNORE INTO friends (user_email, friend_email, friend_name) VALUES (?, ?, ?), (?, ?, ?)";
+        database.query(insertFriend, [requester_email, receiver_email, req.session.user.username, receiver_email, requester_email, requester_name], (err2) => {
+            if (err2) return res.status(500).json({ error: "Failed to add friend" });
+            // Notify requester if online
+            const socketId = userSockets[requester_email];
+            if (socketId) {
+                io.to(socketId).emit('friend accepted', { by: receiver_email });
+            }
+            res.json({ success: true });
+        });
+    });
+});
 app.post('/api/add-friend', (req, res) => {
     if (!req.session.user) {
         console.error("❌ Add friend failed: No session user found");
@@ -200,8 +278,41 @@ app.post('/api/add-friend', (req, res) => {
         res.json({ success: true });
     });
 });
+console.error("❌ Add friend failed: No session user found");
+return res.status(401).json({ error: "Unauthorized" });
 
-// ✅ API to get friends list
+
+const { friend_email, friend_name } = req.body;
+const user_email = req.session.user.email;
+
+console.log(`👤 User ${user_email} is adding friend ${friend_email} (${friend_name})`);
+
+const checkSQL = "INSERT IGNORE INTO friends (user_email, friend_email, friend_name) VALUES (?, ?, ?)";
+database.query(checkSQL, [user_email, friend_email, friend_name], (err, result) => {
+    if (err) {
+        console.error("❌ DB Error adding friend:", err);
+        return res.status(500).json({ error: "Failed to add friend" });
+    }
+    console.log("✅ Friend added successfully to DB");
+    res.json({ success: true });
+});
+
+
+
+// ✅ API to get pending friend requests
+app.get('/api/friend-requests', (req, res) => {
+    if (!req.session.user) return res.status(401).json({ error: "Unauthorized" });
+    const user_email = req.session.user.email;
+    const SQL_COMMAND = "SELECT requester_email, requester_name FROM friend_requests WHERE receiver_email = ? AND status = 'pending'";
+    database.query(SQL_COMMAND, [user_email], (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: "Failed to fetch requests" });
+        }
+        res.json(results);
+    });
+});
+
 app.get('/api/friends', (req, res) => {
     if (!req.session.user) return res.status(401).json({ error: "Unauthorized" });
 
@@ -283,10 +394,10 @@ app.post('/reset-password', (req, res) => {
 // });
 
 // 🔥 Create HTTP server for socket.io
-const server = http.createServer(app);
+const httpServer = http.createServer(app);
 
 // 🔥 Attach socket.io
-const io = new Server(server, {
+const i = new Server(httpServer, {
     cors: {
         origin: "*"
     }
@@ -325,7 +436,7 @@ io.on('connection', (socket) => {
         let { room_id, sender_email, username, text } = msg;
         if (room_id) {
             room_id = room_id.trim().toLowerCase();
-            
+
             // Re-ensure the socket is in the room (prevents silent drops)
             socket.join(room_id);
 
@@ -355,6 +466,6 @@ io.on('connection', (socket) => {
 
 // 🔥 Start server
 const PORT = process.env.PORT || 3001;
-server.listen(PORT, '0.0.0.0', () => {
+httpServer.listen(PORT, '0.0.0.0', () => {
     console.log(`✅ Server is LIVE and running on port ${PORT}`);
 });

@@ -427,7 +427,9 @@
             <div class="project-grid" id="projectGrid">
                 <!-- Users will be dynamically loaded here -->
             </div>
-        </section>
+            <div id="friendRequestsContainer" style="position:fixed;top:90px;right:20px;z-index:2000;max-width:300px;">
+            <!-- Friend request notifications will be injected here -->
+        </div>
     </div>
 
     <script>
@@ -447,6 +449,63 @@
             }, 1800); // Reduced to 1.8s for better UX
         });
 
+        // Notifications
+        function showNotification(msg) {
+            const container = document.getElementById('notificationContainer');
+            const toast = document.createElement('div');
+            toast.style = "background: #333; color: white; padding: 10px 20px; border-radius: 8px; margin-top: 10px;";
+            toast.textContent = msg;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // Load pending friend requests
+        async function loadFriendRequests() {
+            try {
+                const res = await fetch('/api/friend-requests');
+                if (!res.ok) return;
+                const requests = await res.json();
+                const container = document.getElementById('friendRequestsContainer');
+                container.innerHTML = '';
+                requests.forEach(req => {
+                    const div = document.createElement('div');
+                    div.style.background = 'white';
+                    div.style.border = '1px solid #edf2f7';
+                    div.style.borderRadius = '12px';
+                    div.style.padding = '12px';
+                    div.style.marginBottom = '8px';
+                    div.innerHTML = `<strong>${req.requester_name}</strong> wants to be your friend.
+                        <button style="margin-left:8px;" onclick="acceptFriend('${req.requester_email}', '${req.requester_name}')">Accept</button>`;
+                    container.appendChild(div);
+                });
+            } catch (e) { console.error('Error loading friend requests', e); }
+        }
+        
+        async function acceptFriend(email, name) {
+            try {
+                const res = await fetch('/api/accept-friend', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ requester_email: email, requester_name: name })
+                });
+                if (res.ok) {
+                    alert('You are now friends with ' + name);
+                    loadFriendRequests();
+                } else {
+                    alert('Failed to accept friend');
+                }
+            } catch (e) { console.error(e); }
+        }
+        
+        // Initialize friend request loading and socket listeners
+        loadFriendRequests();
+        socket.on('friend request', data => {
+            alert(`${data.from} sent you a friend request`);
+            loadFriendRequests();
+        });
+        socket.on('friend accepted', data => {
+            alert(`${data.by} accepted your friend request`);
+        });
         async function loadUsers() {
             let currentUser = null;
             try {
@@ -517,33 +576,32 @@
         }
 
         async function handleAddFriend(button) {
-            const card = button.closest('.project');
-            const name = card.querySelector('h3').textContent;
-            const email = card.dataset.email;
+    const card = button.closest('.project');
+    const name = card.querySelector('h3').textContent;
+    const email = card.dataset.email;
 
-            button.disabled = true;
-            button.textContent = "Adding...";
+    button.disabled = true;
+    button.textContent = "Requesting...";
 
-            try {
-                const res = await fetch('/api/add-friend', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ friend_email: email, friend_name: name })
-                });
-
-                if (res.ok) {
-                    let friends = JSON.parse(localStorage.getItem('friends')) || [];
-                    friends.push({ name, email });
-                    localStorage.setItem('friends', JSON.stringify(friends));
-                    
-                    button.parentElement.innerHTML = `<button class="btn-chat" onclick="goToChat('${name}', '${email}')">Start Chat</button>`;
-                }
-            } catch (err) {
-                button.disabled = false;
-                button.textContent = "Add Friend";
-                alert("Connection failed. Try again.");
-            }
+    try {
+        const res = await fetch('/api/request-friend', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ friend_email: email, friend_name: name })
+        });
+        if (res.ok) {
+            button.parentElement.innerHTML = `<button class="btn-chat" onclick="goToChat('${name}', '${email}')">Start Chat</button>`;
+        } else {
+            button.disabled = false;
+            button.textContent = "Add Friend";
+            alert('Failed to send friend request');
         }
+    } catch (err) {
+        button.disabled = false;
+        button.textContent = "Add Friend";
+        alert('Connection error');
+    }
+}
 
         function goToChat(name, email) {
             window.location.href = `personal_chat.html?user=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}`;
@@ -557,21 +615,30 @@
             });
         }
 
-        // PWA
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            document.getElementById('installApp').style.display = 'flex';
-        });
+        // PWA - Service Worker registration and install handling
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+            .then(reg => console.log('Service Worker registered', reg))
+            .catch(err => console.error('SW registration failed', err));
+    });
+}
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    document.getElementById('installApp').style.display = 'flex';
+});
+async function installPWA() {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log('User response to the install prompt:', outcome);
+        deferredPrompt = null;
+        document.getElementById('installApp').style.display = 'none';
+    }
+}
 
-        async function installPWA() {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt = null;
-                document.getElementById('installApp').style.display = 'none';
-            }
-        }
     </script>
 </body>
 
