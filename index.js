@@ -88,7 +88,15 @@ database.getConnection((err, connection) => {
         UNIQUE KEY unique_request (requester_email, receiver_email)
     )`, (err) => {
         if (err) console.error("❌ Error creating friend_requests table:", err);
-        else console.log("✅ friend_requests table is ready");
+        else {
+            console.log("✅ friend_requests table is ready");
+            // Auto-fix for existing tables missing the requester_name column
+            database.query("ALTER TABLE friend_requests ADD COLUMN requester_name VARCHAR(255) NOT NULL AFTER requester_email", (err2) => {
+                if (err2 && err2.code !== 'ER_DUP_COLUMN_NAME' && err2.errno !== 1060) {
+                    // Ignore "duplicate column" errors
+                }
+            });
+        }
     });
 
     database.query(`CREATE TABLE IF NOT EXISTS friends (
