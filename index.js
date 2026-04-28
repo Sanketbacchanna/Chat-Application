@@ -82,6 +82,7 @@ database.getConnection((err, connection) => {
     database.query(`CREATE TABLE IF NOT EXISTS friend_requests (
         id INT AUTO_INCREMENT PRIMARY KEY,
         requester_email VARCHAR(255) NOT NULL,
+        requester_name VARCHAR(255) NOT NULL,
         receiver_email VARCHAR(255) NOT NULL,
         status ENUM('pending','accepted') DEFAULT 'pending',
         UNIQUE KEY unique_request (requester_email, receiver_email)
@@ -142,12 +143,12 @@ app.post('/handleform', (req, res) => {
         console.log(`📝 Signup attempt: ${UserName} (${email_id})`);
 
         const SQL_COMMAND = "INSERT INTO users(UserName, Passwords, email_id ) VALUES (?, ?, ?)";
-        database.query(SQL_COMMAND, [UserName, Passwords, email_id], (err, result) => {
+        database.query(SQL_COMMAND, [UserName, Passwords, email_id.toLowerCase()], (err, result) => {
             if (err) {
                 console.error("❌ Signup DB Error:", err);
                 return res.redirect("login_error.html");
             }
-            req.session.user = { id: result.insertId, username: UserName, email: email_id };
+            req.session.user = { id: result.insertId, username: UserName, email: email_id.toLowerCase() };
             console.log("✅ Signup successful, session created");
             res.redirect("homepage.html");
         });
@@ -176,14 +177,14 @@ app.post('/Login', (req, res) => {
         }
 
         const SQL_COMMAND = "SELECT * FROM users WHERE email_id = ? AND Passwords = ?";
-        database.query(SQL_COMMAND, [email_id, Passwords], (err, results) => {
+        database.query(SQL_COMMAND, [email_id.toLowerCase(), Passwords], (err, results) => {
             if (err) {
                 console.error("❌ Login DB Error:", err);
                 return res.redirect("login_error.html");
             }
             if (results.length > 0) {
                 const user = results[0];
-                req.session.user = { id: user.id, username: user.UserName, email: user.email_id };
+                req.session.user = { id: user.id, username: user.UserName, email: user.email_id.toLowerCase() };
                 console.log(`✅ Login successful for ${user.UserName}`);
                 res.redirect("/homepage.html");
             } else {
@@ -221,17 +222,20 @@ app.post('/api/request-friend', async (req, res) => {
         return res.status(401).json({ error: "Unauthorized" });
     }
     const { friend_email, friend_name } = req.body;
-    const requester_email = req.session.user.email;
+    const requester_email = req.session.user.email.toLowerCase();
+    const requester_name = req.session.user.username;
+    const target_email = friend_email.toLowerCase();
+
     // Insert request if not exists
-    const insertSQL = "INSERT IGNORE INTO friend_requests (requester_email, receiver_email) VALUES (?, ?)";
-    database.query(insertSQL, [requester_email, friend_email], (err, result) => {
+    const insertSQL = "INSERT IGNORE INTO friend_requests (requester_email, requester_name, receiver_email) VALUES (?, ?, ?)";
+    database.query(insertSQL, [requester_email, requester_name, target_email], (err, result) => {
         if (err) {
             console.error("❌ DB Error inserting friend request:", err);
             return res.status(500).json({ error: "Failed to request friend" });
         }
-        console.log(`✅ Friend request from ${requester_email} to ${friend_email}`);
+        console.log(`✅ Friend request from ${requester_email} to ${target_email}`);
         // Notify receiver if online via socket
-        const socketId = userSockets[friend_email];
+        const socketId = userSockets[target_email];
         if (socketId) {
             io.to(socketId).emit('friend request', { from: requester_email, name: req.session.user.username });
         }
@@ -243,16 +247,27 @@ app.post('/api/accept-friend', (req, res) => {
     if (!req.session.user) {
         return res.status(401).json({ error: "Unauthorized" });
     }
-    const { requester_email, requester_name } = req.body;
-    const receiver_email = req.session.user.email;
+    const requester_email = req.body.requester_email.toLowerCase();
+    const requester_name = req.body.requester_name;
+    const receiver_email = req.session.user.email.toLowerCase();
+    const receiver_name = req.session.user.username;
+
     // Update request status
     const updateSQL = "UPDATE friend_requests SET status='accepted' WHERE requester_email=? AND receiver_email=?";
     database.query(updateSQL, [requester_email, receiver_email], (err) => {
         if (err) return res.status(500).json({ error: "Failed to accept" });
+        
         // Insert into friends table for both sides
         const insertFriend = "INSERT IGNORE INTO friends (user_email, friend_email, friend_name) VALUES (?, ?, ?), (?, ?, ?)";
-        database.query(insertFriend, [requester_email, receiver_email, req.session.user.username, receiver_email, requester_email, requester_name], (err2) => {
-            if (err2) return res.status(500).json({ error: "Failed to add friend" });
+        database.query(insertFriend, [
+            requester_email, receiver_email, receiver_name, 
+            receiver_email, requester_email, requester_name
+        ], (err2) => {
+            if (err2) {
+                console.error("❌ Error adding to friends table:", err2);
+                return res.status(500).json({ error: "Failed to add friend" });
+            }
+            
             // Notify requester if online
             const socketId = userSockets[requester_email];
             if (socketId) {
@@ -438,7 +453,7 @@ app.post('/reset-password', (req, res) => {
 io.on('connection', (socket) => {
     // Session tracking
     if (socket.request.session && socket.request.session.user) {
-        const email = socket.request.session.user.email;
+        const email = socket.request.session.user.email.toLowerCase();
         userSockets[email] = socket.id;
         console.log(`👤 User ${email} connected with socket ${socket.id}`);
     } else {

@@ -623,11 +623,12 @@
         // Initialize friend request loading and socket listeners
         loadFriendRequests();
         socket.on('friend request', data => {
-            alert(`${data.from} sent you a friend request`);
+            showNotification(`${data.name || data.from} sent you a friend request`);
             loadFriendRequests();
         });
         socket.on('friend accepted', data => {
-            alert(`${data.by} accepted your friend request`);
+            showNotification(`${data.by} accepted your friend request`);
+            loadUsers();
         });
         async function loadUsers() {
             let currentUser = null;
