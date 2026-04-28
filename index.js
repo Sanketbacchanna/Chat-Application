@@ -46,24 +46,18 @@ console.log(`📡 Attempting to connect to database at ${dbConfig.host}:${dbConf
 
 const database = mysql2.createPool(dbConfig);
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+    cors: {
+        origin: "*"
+    }
+});
 const userSockets = {};
 
 io.use((socket, next) => {
     sessionMiddleware(socket.request, {}, next);
 });
 
-io.on('connection', (socket) => {
-    if (socket.request.session.user) {
-        const email = socket.request.session.user.email;
-        userSockets[email] = socket.id;
-    }
-    socket.on('disconnect', () => {
-        if (socket.request.session.user) {
-            delete userSockets[socket.request.session.user.email];
-        }
-    });
-});
+// Socket connection logic is at the bottom of the file
 
 // Test the connection
 database.getConnection((err, connection) => {
@@ -278,24 +272,7 @@ app.post('/api/add-friend', (req, res) => {
         res.json({ success: true });
     });
 });
-console.error("❌ Add friend failed: No session user found");
-return res.status(401).json({ error: "Unauthorized" });
 
-
-const { friend_email, friend_name } = req.body;
-const user_email = req.session.user.email;
-
-console.log(`👤 User ${user_email} is adding friend ${friend_email} (${friend_name})`);
-
-const checkSQL = "INSERT IGNORE INTO friends (user_email, friend_email, friend_name) VALUES (?, ?, ?)";
-database.query(checkSQL, [user_email, friend_email, friend_name], (err, result) => {
-    if (err) {
-        console.error("❌ DB Error adding friend:", err);
-        return res.status(500).json({ error: "Failed to add friend" });
-    }
-    console.log("✅ Friend added successfully to DB");
-    res.json({ success: true });
-});
 
 
 
@@ -393,19 +370,18 @@ app.post('/reset-password', (req, res) => {
 //     console.log('Server is running on port 3001');
 // });
 
-// 🔥 Create HTTP server for socket.io
-const httpServer = http.createServer(app);
 
-// 🔥 Attach socket.io
-const i = new Server(httpServer, {
-    cors: {
-        origin: "*"
-    }
-});
 
 // 🔥 Socket.io logic
 io.on('connection', (socket) => {
-    console.log('User connected:', socket.id);
+    // Session tracking
+    if (socket.request.session && socket.request.session.user) {
+        const email = socket.request.session.user.email;
+        userSockets[email] = socket.id;
+        console.log(`👤 User ${email} connected with socket ${socket.id}`);
+    } else {
+        console.log('User connected:', socket.id);
+    }
 
     // Join a private room
     socket.on('join room', (data) => {
@@ -460,12 +436,18 @@ io.on('connection', (socket) => {
     });
 
     socket.on('disconnect', () => {
-        console.log('User disconnected:', socket.id);
+        if (socket.request.session && socket.request.session.user) {
+            const email = socket.request.session.user.email;
+            delete userSockets[email];
+            console.log(`👤 User ${email} disconnected`);
+        } else {
+            console.log('User disconnected:', socket.id);
+        }
     });
 });
 
 // 🔥 Start server
 const PORT = process.env.PORT || 3001;
-httpServer.listen(PORT, '0.0.0.0', () => {
+server.listen(PORT, '0.0.0.0', () => {
     console.log(`✅ Server is LIVE and running on port ${PORT}`);
 });
