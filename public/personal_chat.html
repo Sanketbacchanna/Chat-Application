@@ -139,6 +139,7 @@
             /* Subtler background pattern */
             background-image: radial-gradient(rgba(0,0,0,0.03) 1px, transparent 1px);
             background-size: 24px 24px;
+            min-height: 0; /* Critical for flexbox shrinking on mobile */
         }
 
         .msg-wrapper {
@@ -197,6 +198,8 @@
             gap: 8px;
             box-shadow: 0 -5px 20px rgba(0,0,0,0.03);
             position: relative;
+            flex-shrink: 0; /* Prevent the input bar from being squeezed out */
+            z-index: 20;
         }
         
         .input-wrapper {
