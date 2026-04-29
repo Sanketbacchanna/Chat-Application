@@ -213,13 +213,13 @@
         /* Input Area */
         .input-area {
             background: white;
-            padding: 10px 15px;
-            padding-bottom: calc(10px + env(safe-area-inset-bottom));
+            padding: 8px 10px;
+            padding-bottom: calc(8px + env(safe-area-inset-bottom));
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.03);
-            z-index: 100;
+            z-index: 1000;
             flex-shrink: 0;
             min-height: 70px;
             position: fixed;
@@ -235,7 +235,8 @@
             border-radius: 24px;
             display: flex;
             align-items: center;
-            padding: 0 15px;
+            padding: 0 10px;
+            gap: 6px;
             border: 1px solid #edf2f7;
             min-width: 0;
         }
@@ -248,6 +249,12 @@
             font-size: 14px;
             outline: none;
             color: var(--text-main);
+            min-width: 0;
+            width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-height: 80px;
+            overflow-y: auto;
         }
 
         .btn-input {
