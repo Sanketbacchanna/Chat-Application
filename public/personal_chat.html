@@ -9,7 +9,8 @@
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#6b73ff">
     <link rel="icon" type="image/png" href="/icons/icon-192.png">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
     <style>
         :root {
             --primary-color: #6c5ce7;
@@ -29,12 +30,13 @@
             font-family: 'Poppins', sans-serif;
         }
 
-        html, body {
+        html,
+        body {
             height: 100%;
             width: 100%;
             margin: 0;
             padding: 0;
-            overflow: hidden;
+            /* overflow: hidden; */
             background-color: var(--bg-color);
         }
 
@@ -44,6 +46,7 @@
             height: 100dvh;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
 
         /* Header */
@@ -55,7 +58,7 @@
             padding-top: calc(10px + env(safe-area-inset-top));
             display: flex;
             align-items: center;
-            box-shadow: 0 1px 15px rgba(0,0,0,0.05);
+            box-shadow: 0 1px 15px rgba(0, 0, 0, 0.05);
             z-index: 100;
             height: 70px;
             flex-shrink: 0;
@@ -96,10 +99,22 @@
             box-shadow: 0 4px 8px rgba(108, 92, 231, 0.2);
         }
 
-        .user-details h2 { font-size: 16px; font-weight: 600; color: var(--text-main); }
-        .user-details span { font-size: 12px; color: #00b894; font-weight: 500; }
+        .user-details h2 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
 
-        .header-actions { display: flex; gap: 10px; }
+        .user-details span {
+            font-size: 12px;
+            color: #00b894;
+            font-weight: 500;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
 
         .action-icon {
             width: 40px;
@@ -125,15 +140,29 @@
             flex-direction: column;
             gap: 12px;
             background: #f8f9fd;
-            background-image: radial-gradient(rgba(0,0,0,0.03) 1px, transparent 1px);
+            background-image: radial-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px);
             background-size: 24px 24px;
             min-height: 0;
             scroll-behavior: smooth;
+            padding-bottom: 90px;
+            /* height of input bar */
         }
 
-        .msg-wrapper { display: flex; flex-direction: column; max-width: 80%; }
-        .msg-wrapper.me { align-self: flex-end; align-items: flex-end; }
-        .msg-wrapper.other { align-self: flex-start; align-items: flex-start; }
+        .msg-wrapper {
+            display: flex;
+            flex-direction: column;
+            max-width: 80%;
+        }
+
+        .msg-wrapper.me {
+            align-self: flex-end;
+            align-items: flex-end;
+        }
+
+        .msg-wrapper.other {
+            align-self: flex-start;
+            align-items: flex-start;
+        }
 
         .msg-bubble {
             padding: 10px 14px;
@@ -141,7 +170,7 @@
             font-size: 14px;
             line-height: 1.4;
             position: relative;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
             word-wrap: break-word;
             max-width: 100%;
         }
@@ -161,10 +190,25 @@
             text-decoration: underline;
         }
 
-        .me .msg-bubble { background: var(--primary-color); color: white; border-bottom-right-radius: 4px; }
-        .other .msg-bubble { background: white; color: var(--text-main); border-bottom-left-radius: 4px; border: 1px solid #edf2f7; }
+        .me .msg-bubble {
+            background: var(--primary-color);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
 
-        .msg-time { font-size: 10px; margin-top: 4px; color: var(--text-secondary); opacity: 0.7; }
+        .other .msg-bubble {
+            background: white;
+            color: var(--text-main);
+            border-bottom-left-radius: 4px;
+            border: 1px solid #edf2f7;
+        }
+
+        .msg-time {
+            font-size: 10px;
+            margin-top: 4px;
+            color: var(--text-secondary);
+            opacity: 0.7;
+        }
 
         /* Input Area */
         .input-area {
@@ -174,13 +218,17 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.03);
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.03);
             z-index: 100;
             flex-shrink: 0;
             min-height: 70px;
-            position: relative;
+            position: fixed;
+            /*i changed here */
+            bottom: 0;
+            left: 0;
+            right: 0;
         }
-        
+
         .input-wrapper {
             flex: 1;
             background: #f1f2f6;
@@ -239,7 +287,7 @@
             background: white;
             border-radius: 20px;
             padding: 15px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
             grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
             gap: 8px;
             z-index: 1000;
@@ -248,32 +296,190 @@
             overflow-y: auto;
         }
 
-        #emojiPicker span { font-size: 24px; cursor: pointer; text-align: center; }
+        #emojiPicker span {
+            font-size: 24px;
+            cursor: pointer;
+            text-align: center;
+        }
 
         /* Video/Call Modals - same as before */
-        #videoContainer { display: none; position: fixed; inset: 0; background: #1a1a1a; z-index: 10000; flex-direction: column; align-items: center; justify-content: center; }
-        #remoteVideo { width: 100%; height: 100%; object-fit: cover; }
-        #localVideo { position: absolute; top: 20px; right: 20px; width: 100px; height: 140px; border-radius: 12px; object-fit: cover; border: 2px solid rgba(255,255,255,0.2); z-index: 10001; }
-        .video-controls { position: absolute; bottom: 40px; display: flex; gap: 20px; z-index: 10002; }
-        .control-btn { width: 56px; height: 56px; border-radius: 50%; border: none; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); color: white; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .hangup-btn { background: #ff4757; }
-        .btn-off { background: rgba(255, 71, 87, 0.6) !important; }
-        .call-status { position: absolute; top: 40px; color: white; background: rgba(0,0,0,0.5); padding: 8px 16px; border-radius: 20px; font-size: 13px; z-index: 10002; animation: pulse-opacity 1.5s infinite; }
-        @keyframes pulse-opacity { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+        #videoContainer {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: #1a1a1a;
+            z-index: 10000;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
 
-        .incoming-call-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 11000; align-items: center; justify-content: center; }
-        .incoming-call-content { background: white; padding: 40px; border-radius: 32px; text-align: center; width: 85%; max-width: 320px; animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .caller-avatar { width: 80px; height: 80px; border-radius: 24px; background: var(--primary-gradient); color: white; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; margin: 0 auto 20px; }
-        .incoming-call-actions { display: flex; gap: 15px; margin-top: 30px; }
-        .accept-btn, .reject-btn { flex: 1; padding: 14px; border-radius: 16px; border: none; font-weight: 600; cursor: pointer; color: white; }
-        .accept-btn { background: #2ed573; } .reject-btn { background: #ff4757; }
-        
-        .recording-active { color: #ff7675 !important; animation: pulse-red 1.5s infinite; }
-        @keyframes pulse-red { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+        #remoteVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        #localVideo {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 100px;
+            height: 140px;
+            border-radius: 12px;
+            object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            z-index: 10001;
+        }
+
+        .video-controls {
+            position: absolute;
+            bottom: 40px;
+            display: flex;
+            gap: 20px;
+            z-index: 10002;
+        }
+
+        .control-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            color: white;
+            font-size: 22px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hangup-btn {
+            background: #ff4757;
+        }
+
+        .btn-off {
+            background: rgba(255, 71, 87, 0.6) !important;
+        }
+
+        .call-status {
+            position: absolute;
+            top: 40px;
+            color: white;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            z-index: 10002;
+            animation: pulse-opacity 1.5s infinite;
+        }
+
+        @keyframes pulse-opacity {
+
+            0%,
+            100% {
+                opacity: 0.6;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .incoming-call-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 11000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .incoming-call-content {
+            background: white;
+            padding: 40px;
+            border-radius: 32px;
+            text-align: center;
+            width: 85%;
+            max-width: 320px;
+            animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .caller-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 24px;
+            background: var(--primary-gradient);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 700;
+            margin: 0 auto 20px;
+        }
+
+        .incoming-call-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .accept-btn,
+        .reject-btn {
+            flex: 1;
+            padding: 14px;
+            border-radius: 16px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            color: white;
+        }
+
+        .accept-btn {
+            background: #2ed573;
+        }
+
+        .reject-btn {
+            background: #ff4757;
+        }
+
+        .recording-active {
+            color: #ff7675 !important;
+            animation: pulse-red 1.5s infinite;
+        }
+
+        @keyframes pulse-red {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.15);
+            }
+        }
 
         @media (max-width: 480px) {
-            .msg-wrapper { max-width: 90%; }
+            .msg-wrapper {
+                max-width: 90%;
+            }
         }
     </style>
 </head>
@@ -300,12 +506,18 @@
     </div>
 
     <div id="emojiPicker">
-        <span onclick="addEmoji('😀')">😀</span><span onclick="addEmoji('😃')">😃</span><span onclick="addEmoji('😄')">😄</span><span onclick="addEmoji('😁')">😁</span>
-        <span onclick="addEmoji('😆')">😆</span><span onclick="addEmoji('😅')">😅</span><span onclick="addEmoji('🤣')">🤣</span><span onclick="addEmoji('😂')">😂</span>
-        <span onclick="addEmoji('😊')">😊</span><span onclick="addEmoji('😇')">😇</span><span onclick="addEmoji('😍')">😍</span><span onclick="addEmoji('🥰')">🥰</span>
-        <span onclick="addEmoji('😘')">😘</span><span onclick="addEmoji('😋')">😋</span><span onclick="addEmoji('😛')">😛</span><span onclick="addEmoji('😜')">😜</span>
-        <span onclick="addEmoji('🤪')">🤪</span><span onclick="addEmoji('😎')">😎</span><span onclick="addEmoji('😏')">😏</span><span onclick="addEmoji('🥳')">🥳</span>
-        <span onclick="addEmoji('👍')">👍</span><span onclick="addEmoji('❤️')">❤️</span><span onclick="addEmoji('🔥')">🔥</span><span onclick="addEmoji('✨')">✨</span>
+        <span onclick="addEmoji('😀')">😀</span><span onclick="addEmoji('😃')">😃</span><span
+            onclick="addEmoji('😄')">😄</span><span onclick="addEmoji('😁')">😁</span>
+        <span onclick="addEmoji('😆')">😆</span><span onclick="addEmoji('😅')">😅</span><span
+            onclick="addEmoji('🤣')">🤣</span><span onclick="addEmoji('😂')">😂</span>
+        <span onclick="addEmoji('😊')">😊</span><span onclick="addEmoji('😇')">😇</span><span
+            onclick="addEmoji('😍')">😍</span><span onclick="addEmoji('🥰')">🥰</span>
+        <span onclick="addEmoji('😘')">😘</span><span onclick="addEmoji('😋')">😋</span><span
+            onclick="addEmoji('😛')">😛</span><span onclick="addEmoji('😜')">😜</span>
+        <span onclick="addEmoji('🤪')">🤪</span><span onclick="addEmoji('😎')">😎</span><span
+            onclick="addEmoji('😏')">😏</span><span onclick="addEmoji('🥳')">🥳</span>
+        <span onclick="addEmoji('👍')">👍</span><span onclick="addEmoji('❤️')">❤️</span><span
+            onclick="addEmoji('🔥')">🔥</span><span onclick="addEmoji('✨')">✨</span>
     </div>
 
     <div class="input-area">
@@ -313,7 +525,8 @@
         <button class="btn-input" id="recordBtn" onclick="toggleRecording()">🎤</button>
         <div class="input-wrapper">
             <input type="text" id="message" placeholder="Type your message..." onkeypress="handleKeyPress(event)">
-            <button class="btn-input" title="Attach File" onclick="document.getElementById('fileInput').click()">📎</button>
+            <button class="btn-input" title="Attach File"
+                onclick="document.getElementById('fileInput').click()">📎</button>
             <input type="file" id="fileInput" style="display: none;" onchange="handleFileSelect(event)">
         </div>
         <button class="btn-send" onclick="sendMessage()">🚀</button>
@@ -385,7 +598,7 @@
             if (!text || !roomId) return;
             const msgData = { room_id: roomId, sender_email: myEmail, username: myUsername, text: text };
             socket.emit("chat message", msgData);
-            renderMessage({...msgData, timestamp: new Date().toISOString()}, true);
+            renderMessage({ ...msgData, timestamp: new Date().toISOString() }, true);
             input.value = "";
             input.focus();
         }
@@ -397,25 +610,25 @@
             if (!file || !roomId) return;
 
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function (e) {
                 const base64Data = e.target.result;
                 let messageHtml = '';
-                
+
                 if (file.type.startsWith('image/')) {
                     messageHtml = `<img src="${base64Data}" alt="${file.name}">`;
                 } else {
                     messageHtml = `<a href="${base64Data}" download="${file.name}">📄 ${file.name}</a>`;
                 }
-                
+
                 const msgData = {
                     room_id: roomId,
                     sender_email: myEmail,
                     username: myUsername,
                     text: messageHtml
                 };
-                
+
                 socket.emit("chat message", msgData);
-                renderMessage({...msgData, timestamp: new Date().toISOString()}, true);
+                renderMessage({ ...msgData, timestamp: new Date().toISOString() }, true);
             };
             reader.readAsDataURL(file);
             event.target.value = ''; // Reset input
@@ -496,13 +709,28 @@
                         reader.onloadend = () => {
                             const audioHtml = `<audio controls src="${reader.result}" style="width: 200px; height: 30px;"></audio>`;
                             socket.emit("chat message", { room_id: roomId, sender_email: myEmail, username: myUsername, text: audioHtml });
-                            renderMessage({sender_email: myEmail, text: audioHtml}, true);
+                            renderMessage({ sender_email: myEmail, text: audioHtml }, true);
                         };
                         audioChunks = [];
                     };
                 } catch (err) { alert("Mic access denied"); }
             }
         }
+        // new added code by me
+        function fixViewport() {
+            document.body.style.height = window.innerHeight + "px";
+        }
+
+        window.addEventListener("resize", fixViewport);
+        window.addEventListener("load", fixViewport);
+
+        // ✅ ADD THIS BELOW
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener("resize", () => {
+                document.body.style.height = window.visualViewport.height + "px";
+            });
+        }
     </script>
 </body>
+
 </html>
