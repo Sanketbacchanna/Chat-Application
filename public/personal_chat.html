@@ -39,16 +39,16 @@
         }
 
         body {
-            display: flex;
-            flex-direction: column;
-            /* Support for mobile address bars */
+            position: relative;
             height: 100vh;
             height: 100dvh;
+            display: flex;
+            flex-direction: column;
         }
 
         /* Header */
         .header {
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             padding: 10px 15px;
@@ -57,7 +57,8 @@
             align-items: center;
             box-shadow: 0 1px 15px rgba(0,0,0,0.05);
             z-index: 100;
-            flex-shrink: 0; /* Header never shrinks */
+            height: 70px;
+            flex-shrink: 0;
         }
 
         .back-btn {
@@ -73,8 +74,6 @@
             border-radius: 50%;
             transition: background 0.2s;
         }
-
-        .back-btn:hover { background: #f1f2f6; }
 
         .user-info {
             display: flex;
@@ -117,8 +116,6 @@
             color: var(--text-secondary);
         }
 
-        .action-icon:hover { background: #f1f2f6; color: var(--primary-color); }
-
         /* Chat Area */
         #chatBox {
             flex: 1;
@@ -130,41 +127,58 @@
             background: #f8f9fd;
             background-image: radial-gradient(rgba(0,0,0,0.03) 1px, transparent 1px);
             background-size: 24px 24px;
-            min-height: 0; /* Allow shrinking */
+            min-height: 0;
             scroll-behavior: smooth;
         }
 
-        .msg-wrapper { display: flex; flex-direction: column; max-width: 75%; }
+        .msg-wrapper { display: flex; flex-direction: column; max-width: 80%; }
         .msg-wrapper.me { align-self: flex-end; align-items: flex-end; }
         .msg-wrapper.other { align-self: flex-start; align-items: flex-start; }
 
         .msg-bubble {
-            padding: 10px 16px;
+            padding: 10px 14px;
             border-radius: 18px;
-            font-size: 14.5px;
+            font-size: 14px;
             line-height: 1.4;
             position: relative;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
             word-wrap: break-word;
+            max-width: 100%;
+        }
+
+        .msg-bubble img {
+            max-width: 100%;
+            border-radius: 12px;
+            margin-top: 5px;
+            display: block;
+        }
+
+        .msg-bubble a {
+            color: inherit;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: underline;
         }
 
         .me .msg-bubble { background: var(--primary-color); color: white; border-bottom-right-radius: 4px; }
         .other .msg-bubble { background: white; color: var(--text-main); border-bottom-left-radius: 4px; border: 1px solid #edf2f7; }
 
-        .msg-time { font-size: 10px; margin-top: 5px; color: var(--text-secondary); opacity: 0.7; }
+        .msg-time { font-size: 10px; margin-top: 4px; color: var(--text-secondary); opacity: 0.7; }
 
         /* Input Area */
         .input-area {
             background: white;
-            padding: 12px;
-            padding-bottom: calc(12px + env(safe-area-inset-bottom));
+            padding: 10px 15px;
+            padding-bottom: calc(10px + env(safe-area-inset-bottom));
             display: flex;
             align-items: center;
             gap: 10px;
             box-shadow: 0 -5px 20px rgba(0,0,0,0.03);
             z-index: 100;
-            flex-shrink: 0; /* Never shrink the input bar */
+            flex-shrink: 0;
             min-height: 70px;
+            position: relative;
         }
         
         .input-wrapper {
@@ -194,13 +208,10 @@
             cursor: pointer;
             font-size: 22px;
             color: var(--text-secondary);
-            transition: color 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-
-        .btn-input:hover { color: var(--primary-color); }
 
         .btn-send {
             width: 46px;
@@ -216,10 +227,7 @@
             justify-content: center;
             font-size: 20px;
             box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
-            transition: 0.2s;
         }
-
-        .btn-send:hover { transform: scale(1.05); }
 
         /* Emoji Picker */
         #emojiPicker {
@@ -236,154 +244,36 @@
             gap: 8px;
             z-index: 1000;
             border: 1px solid #edf2f7;
-            max-height: 250px;
+            max-height: 200px;
             overflow-y: auto;
         }
 
-        #emojiPicker span { font-size: 24px; cursor: pointer; text-align: center; transition: transform 0.2s; }
-        #emojiPicker span:hover { transform: scale(1.2); }
+        #emojiPicker span { font-size: 24px; cursor: pointer; text-align: center; }
 
-        /* Video Call UI */
-        #videoContainer {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #1a1a1a;
-            z-index: 10000;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-
+        /* Video/Call Modals - same as before */
+        #videoContainer { display: none; position: fixed; inset: 0; background: #1a1a1a; z-index: 10000; flex-direction: column; align-items: center; justify-content: center; }
         #remoteVideo { width: 100%; height: 100%; object-fit: cover; }
-
-        #localVideo {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 120px;
-            height: 160px;
-            background: #000;
-            border-radius: 12px;
-            object-fit: cover;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-            border: 2px solid rgba(255,255,255,0.2);
-            z-index: 10001;
-        }
-
-        .video-controls {
-            position: absolute;
-            bottom: 40px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 20px;
-            z-index: 10002;
-        }
-
-        .control-btn {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            border: none;
-            background: rgba(255,255,255,0.2);
-            backdrop-filter: blur(10px);
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: 0.3s;
-        }
-
+        #localVideo { position: absolute; top: 20px; right: 20px; width: 100px; height: 140px; border-radius: 12px; object-fit: cover; border: 2px solid rgba(255,255,255,0.2); z-index: 10001; }
+        .video-controls { position: absolute; bottom: 40px; display: flex; gap: 20px; z-index: 10002; }
+        .control-btn { width: 56px; height: 56px; border-radius: 50%; border: none; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); color: white; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .hangup-btn { background: #ff4757; }
         .btn-off { background: rgba(255, 71, 87, 0.6) !important; }
-
-        .call-status {
-            position: absolute;
-            top: 40px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: white;
-            background: rgba(0,0,0,0.5);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 14px;
-            z-index: 10002;
-            animation: pulse-opacity 1.5s infinite;
-        }
-
+        .call-status { position: absolute; top: 40px; color: white; background: rgba(0,0,0,0.5); padding: 8px 16px; border-radius: 20px; font-size: 13px; z-index: 10002; animation: pulse-opacity 1.5s infinite; }
         @keyframes pulse-opacity { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
 
-        /* Incoming Call Modal */
-        .incoming-call-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(5px);
-            z-index: 11000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .incoming-call-content {
-            background: white;
-            padding: 40px;
-            border-radius: 32px;
-            text-align: center;
-            width: 90%;
-            max-width: 340px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
+        .incoming-call-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 11000; align-items: center; justify-content: center; }
+        .incoming-call-content { background: white; padding: 40px; border-radius: 32px; text-align: center; width: 85%; max-width: 320px; animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-        .caller-avatar {
-            width: 80px;
-            height: 80px;
-            border-radius: 28px;
-            background: var(--primary-gradient);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            font-weight: 700;
-            margin: 0 auto 20px;
-        }
-
+        .caller-avatar { width: 80px; height: 80px; border-radius: 24px; background: var(--primary-gradient); color: white; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; margin: 0 auto 20px; }
         .incoming-call-actions { display: flex; gap: 15px; margin-top: 30px; }
-
-        .accept-btn, .reject-btn {
-            flex: 1;
-            padding: 14px;
-            border-radius: 16px;
-            border: none;
-            font-weight: 600;
-            cursor: pointer;
-            color: white;
-        }
-
-        .accept-btn { background: #2ed573; }
-        .reject-btn { background: #ff4757; }
-
+        .accept-btn, .reject-btn { flex: 1; padding: 14px; border-radius: 16px; border: none; font-weight: 600; cursor: pointer; color: white; }
+        .accept-btn { background: #2ed573; } .reject-btn { background: #ff4757; }
+        
         .recording-active { color: #ff7675 !important; animation: pulse-red 1.5s infinite; }
-
-        @keyframes pulse-red { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+        @keyframes pulse-red { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
 
         @media (max-width: 480px) {
-            .header { padding: 10px; }
-            #chatBox { padding: 15px; }
-            .msg-wrapper { max-width: 85%; }
+            .msg-wrapper { max-width: 90%; }
         }
     </style>
 </head>
@@ -412,54 +302,10 @@
     <div id="emojiPicker">
         <span onclick="addEmoji('😀')">😀</span><span onclick="addEmoji('😃')">😃</span><span onclick="addEmoji('😄')">😄</span><span onclick="addEmoji('😁')">😁</span>
         <span onclick="addEmoji('😆')">😆</span><span onclick="addEmoji('😅')">😅</span><span onclick="addEmoji('🤣')">🤣</span><span onclick="addEmoji('😂')">😂</span>
-        <span onclick="addEmoji('🙂')">🙂</span><span onclick="addEmoji('🙃')">🙃</span><span onclick="addEmoji('😉')">😉</span><span onclick="addEmoji('😊')">😊</span>
-        <span onclick="addEmoji('😇')">😇</span><span onclick="addEmoji('🥰')">🥰</span><span onclick="addEmoji('😍')">😍</span><span onclick="addEmoji('🤩')">🤩</span>
-        <span onclick="addEmoji('😘')">😘</span><span onclick="addEmoji('😗')">😗</span><span onclick="addEmoji('😚')">😚</span><span onclick="addEmoji('😙')">😙</span>
-        <span onclick="addEmoji('😋')">😋</span><span onclick="addEmoji('😛')">😛</span><span onclick="addEmoji('😜')">😜</span><span onclick="addEmoji('🤪')">🤪</span>
-        <span onclick="addEmoji('😝')">😝</span><span onclick="addEmoji('🤑')">🤑</span><span onclick="addEmoji('🤗')">🤗</span><span onclick="addEmoji('🤭')">🤭</span>
-        <span onclick="addEmoji('🤫')">🤫</span><span onclick="addEmoji('🤔')">🤔</span><span onclick="addEmoji('🤐')">🤐</span><span onclick="addEmoji('🤨')">🤨</span>
-        <span onclick="addEmoji('😐')">😐</span><span onclick="addEmoji('😑')">😑</span><span onclick="addEmoji('😶')">😶</span><span onclick="addEmoji('😏')">😏</span>
-        <span onclick="addEmoji('😒')">😒</span><span onclick="addEmoji('🙄')">🙄</span><span onclick="addEmoji('😬')">😬</span><span onclick="addEmoji('🤥')">🤥</span>
-        <span onclick="addEmoji('😌')">😌</span><span onclick="addEmoji('😔')">😔</span><span onclick="addEmoji('😪')">😪</span><span onclick="addEmoji('🤤')">🤤</span>
-        <span onclick="addEmoji('😴')">😴</span><span onclick="addEmoji('😷')">😷</span><span onclick="addEmoji('🤒')">🤒</span><span onclick="addEmoji('🤕')">🤕</span>
-        <span onclick="addEmoji('🤢')">🤢</span><span onclick="addEmoji('🤮')">🤮</span><span onclick="addEmoji('🤧')">🤧</span><span onclick="addEmoji('🥵')">🥵</span>
-        <span onclick="addEmoji('🥶')">🥶</span><span onclick="addEmoji('🥴')">🥴</span><span onclick="addEmoji('😵')">😵</span><span onclick="addEmoji('🤯')">🤯</span>
-        <span onclick="addEmoji('🤠')">🤠</span><span onclick="addEmoji('🥳')">🥳</span><span onclick="addEmoji('😎')">😎</span><span onclick="addEmoji('🤓')">🤓</span>
-        <span onclick="addEmoji('🧐')">🧐</span><span onclick="addEmoji('😕')">😕</span><span onclick="addEmoji('😟')">😟</span><span onclick="addEmoji('🙁')">🙁</span>
-        <span onclick="addEmoji('😮')">😮</span><span onclick="addEmoji('😯')">😯</span><span onclick="addEmoji('😲')">😲</span><span onclick="addEmoji('😳')">😳</span>
-        <span onclick="addEmoji('🥺')">🥺</span><span onclick="addEmoji('😧')">😧</span><span onclick="addEmoji('😨')">😨</span><span onclick="addEmoji('😰')">😰</span>
-        <span onclick="addEmoji('😥')">😥</span><span onclick="addEmoji('😢')">😢</span><span onclick="addEmoji('😭')">😭</span><span onclick="addEmoji('😱')">😱</span>
-        <span onclick="addEmoji('😖')">😖</span><span onclick="addEmoji('😣')">😣</span><span onclick="addEmoji('😞')">😞</span><span onclick="addEmoji('😓')">😓</span>
-        <span onclick="addEmoji('😩')">😩</span><span onclick="addEmoji('😫')">😫</span><span onclick="addEmoji('🥱')">🥱</span><span onclick="addEmoji('😤')">😤</span>
-        <span onclick="addEmoji('😡')">😡</span><span onclick="addEmoji('😠')">😠</span><span onclick="addEmoji('🤬')">🤬</span><span onclick="addEmoji('😈')">😈</span>
-        <span onclick="addEmoji('👿')">👿</span><span onclick="addEmoji('💀')">💀</span><span onclick="addEmoji('☠️')">☠️</span><span onclick="addEmoji('💩')">💩</span>
-        <span onclick="addEmoji('🤡')">🤡</span><span onclick="addEmoji('👹')">👹</span><span onclick="addEmoji('👺')">👺</span><span onclick="addEmoji('👻')">👻</span>
-        <span onclick="addEmoji('👽')">👽</span><span onclick="addEmoji('👾')">👾</span><span onclick="addEmoji('🤖')">🤖</span><span onclick="addEmoji('😺')">😺</span>
-        <span onclick="addEmoji('😸')">😸</span><span onclick="addEmoji('😹')">😹</span><span onclick="addEmoji('😻')">😻</span><span onclick="addEmoji('😼')">😼</span>
-        <span onclick="addEmoji('😽')">😽</span><span onclick="addEmoji('🙀')">🙀</span><span onclick="addEmoji('😿')">😿</span><span onclick="addEmoji('😾')">😾</span>
-        <span onclick="addEmoji('🙈')">🙈</span><span onclick="addEmoji('🙉')">🙉</span><span onclick="addEmoji('🙊')">🙊</span><span onclick="addEmoji('💋')">💋</span>
-        <span onclick="addEmoji('💌')">💌</span><span onclick="addEmoji('💘')">💘</span><span onclick="addEmoji('💝')">💝</span><span onclick="addEmoji('💖')">💖</span>
-        <span onclick="addEmoji('💗')">💗</span><span onclick="addEmoji('💓')">💓</span><span onclick="addEmoji('💞')">💞</span><span onclick="addEmoji('💕')">💕</span>
-        <span onclick="addEmoji('💟')">💟</span><span onclick="addEmoji('❣️')">❣️</span><span onclick="addEmoji('💔')">💔</span><span onclick="addEmoji('❤️')">❤️</span>
-        <span onclick="addEmoji('🧡')">🧡</span><span onclick="addEmoji('💛')">💛</span><span onclick="addEmoji('💚')">💚</span><span onclick="addEmoji('💙')">💙</span>
-        <span onclick="addEmoji('💜')">💜</span><span onclick="addEmoji('🤎')">🤎</span><span onclick="addEmoji('🖤')">🖤</span><span onclick="addEmoji('🤍')">🤍</span>
-        <span onclick="addEmoji('💯')">💯</span><span onclick="addEmoji('💢')">💢</span><span onclick="addEmoji('💥')">💥</span><span onclick="addEmoji('💫')">💫</span>
-        <span onclick="addEmoji('💦')">💦</span><span onclick="addEmoji('💨')">💨</span><span onclick="addEmoji('🕳️')">🕳️</span><span onclick="addEmoji('💣')">💣</span>
-        <span onclick="addEmoji('💬')">💬</span><span onclick="addEmoji('👁️‍🗨️')">👁️‍🗨️</span><span onclick="addEmoji('🗨️')">🗨️</span><span onclick="addEmoji('🗯️')">🗯️</span>
-        <span onclick="addEmoji('💭')">💭</span><span onclick="addEmoji('💤')">💤</span><span onclick="addEmoji('👋')">👋</span><span onclick="addEmoji('🤚')">🤚</span>
-        <span onclick="addEmoji('🖐️')">🖐️</span><span onclick="addEmoji('✋')">✋</span><span onclick="addEmoji('🖖')">🖖</span><span onclick="addEmoji('👌')">👌</span>
-        <span onclick="addEmoji('🤌')">🤌</span><span onclick="addEmoji('🤏')">🤏</span><span onclick="addEmoji('✌️')">✌️</span><span onclick="addEmoji('🤞')">🤞</span>
-        <span onclick="addEmoji('🤟')">🤟</span><span onclick="addEmoji('🤘')">🤘</span><span onclick="addEmoji('🤙')">🤙</span><span onclick="addEmoji('👈')">👈</span>
-        <span onclick="addEmoji('👉')">👉</span><span onclick="addEmoji('👆')">👆</span><span onclick="addEmoji('🖕')">🖕</span><span onclick="addEmoji('👇')">👇</span>
-        <span onclick="addEmoji('☝️')">☝️</span><span onclick="addEmoji('👍')">👍</span><span onclick="addEmoji('👎')">👎</span><span onclick="addEmoji('✊')">✊</span>
-        <span onclick="addEmoji('👊')">👊</span><span onclick="addEmoji('🤛')">🤛</span><span onclick="addEmoji('🤜')">🤜</span><span onclick="addEmoji('👏')">👏</span>
-        <span onclick="addEmoji('🙌')">🙌</span><span onclick="addEmoji('👐')">👐</span><span onclick="addEmoji('🤲')">🤲</span><span onclick="addEmoji('🤝')">🤝</span>
-        <span onclick="addEmoji('🙏')">🙏</span><span onclick="addEmoji('✍️')">✍️</span><span onclick="addEmoji('💅')">💅</span><span onclick="addEmoji('🤳')">🤳</span>
-        <span onclick="addEmoji('💪')">💪</span><span onclick="addEmoji('🦾')">🦾</span><span onclick="addEmoji('🦿')">🦿</span><span onclick="addEmoji('🦵')">🦵</span>
-        <span onclick="addEmoji('🦶')">🦶</span><span onclick="addEmoji('👂')">👂</span><span onclick="addEmoji('🦻')">🦻</span><span onclick="addEmoji('👃')">👃</span>
-        <span onclick="addEmoji('🧠')">🧠</span><span onclick="addEmoji('🦷')">🦷</span><span onclick="addEmoji('🦴')">🦴</span><span onclick="addEmoji('👀')">👀</span>
-        <span onclick="addEmoji('👁️')">👁️</span><span onclick="addEmoji('👅')">👅</span><span onclick="addEmoji('👄')">👄</span><span onclick="addEmoji('🔥')">🔥</span>
-        <span onclick="addEmoji('✨')">✨</span><span onclick="addEmoji('🎉')">🎉</span><span onclick="addEmoji('🎊')">🎊</span><span onclick="addEmoji('🎈')">🎈</span>
+        <span onclick="addEmoji('😊')">😊</span><span onclick="addEmoji('😇')">😇</span><span onclick="addEmoji('😍')">😍</span><span onclick="addEmoji('🥰')">🥰</span>
+        <span onclick="addEmoji('😘')">😘</span><span onclick="addEmoji('😋')">😋</span><span onclick="addEmoji('😛')">😛</span><span onclick="addEmoji('😜')">😜</span>
+        <span onclick="addEmoji('🤪')">🤪</span><span onclick="addEmoji('😎')">😎</span><span onclick="addEmoji('😏')">😏</span><span onclick="addEmoji('🥳')">🥳</span>
+        <span onclick="addEmoji('👍')">👍</span><span onclick="addEmoji('❤️')">❤️</span><span onclick="addEmoji('🔥')">🔥</span><span onclick="addEmoji('✨')">✨</span>
     </div>
 
     <div class="input-area">
@@ -467,7 +313,8 @@
         <button class="btn-input" id="recordBtn" onclick="toggleRecording()">🎤</button>
         <div class="input-wrapper">
             <input type="text" id="message" placeholder="Type your message..." onkeypress="handleKeyPress(event)">
-            <button class="btn-input" title="Attach File">📎</button>
+            <button class="btn-input" title="Attach File" onclick="document.getElementById('fileInput').click()">📎</button>
+            <input type="file" id="fileInput" style="display: none;" onchange="handleFileSelect(event)">
         </div>
         <button class="btn-send" onclick="sendMessage()">🚀</button>
     </div>
@@ -516,7 +363,6 @@
         let remoteStream;
         let peerConnection;
         let incomingCallData = null;
-
         const servers = { iceServers: [{ urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }] };
 
         // Session & Room Setup
@@ -546,6 +392,35 @@
 
         function handleKeyPress(e) { if (e.key === 'Enter') sendMessage(); }
 
+        async function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file || !roomId) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64Data = e.target.result;
+                let messageHtml = '';
+                
+                if (file.type.startsWith('image/')) {
+                    messageHtml = `<img src="${base64Data}" alt="${file.name}">`;
+                } else {
+                    messageHtml = `<a href="${base64Data}" download="${file.name}">📄 ${file.name}</a>`;
+                }
+                
+                const msgData = {
+                    room_id: roomId,
+                    sender_email: myEmail,
+                    username: myUsername,
+                    text: messageHtml
+                };
+                
+                socket.emit("chat message", msgData);
+                renderMessage({...msgData, timestamp: new Date().toISOString()}, true);
+            };
+            reader.readAsDataURL(file);
+            event.target.value = ''; // Reset input
+        }
+
         socket.on('chat history', (history) => {
             const box = document.getElementById("chatBox");
             box.innerHTML = '';
@@ -568,7 +443,7 @@
             box.scrollTop = box.scrollHeight;
         }
 
-        // WebRTC Logic
+        // --- WebRTC Logic (Keep existing) ---
         async function startVideoCall() {
             try {
                 document.getElementById('videoContainer').style.display = 'flex';
@@ -593,42 +468,14 @@
             peerConnection.oniceconnectionstatechange = () => { if (peerConnection.iceConnectionState === 'disconnected') endVideoCall(); };
         }
 
-        socket.on('video-offer', async (data) => {
-            incomingCallData = data;
-            document.getElementById('callerName').innerText = data.name + " is calling...";
-            document.getElementById('callerAvatar').innerText = data.name.charAt(0).toUpperCase();
-            document.getElementById('incomingCallModal').style.display = 'flex';
-        });
-
-        async function acceptCall() {
-            document.getElementById('incomingCallModal').style.display = 'none';
-            document.getElementById('videoContainer').style.display = 'flex';
-            try {
-                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                document.getElementById('localVideo').srcObject = localStream;
-                createPeerConnection();
-                localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-                await peerConnection.setRemoteDescription(new RTCSessionDescription(incomingCallData.offer));
-                const answer = await peerConnection.createAnswer();
-                await peerConnection.setLocalDescription(answer);
-                socket.emit('make-answer', { to: incomingCallData.from, answer: answer });
-            } catch (err) { console.error(err); alert("Error answering call"); endVideoCall(); }
-        }
-
+        socket.on('video-offer', async (data) => { incomingCallData = data; document.getElementById('callerName').innerText = data.name + " is calling..."; document.getElementById('callerAvatar').innerText = data.name.charAt(0).toUpperCase(); document.getElementById('incomingCallModal').style.display = 'flex'; });
+        async function acceptCall() { document.getElementById('incomingCallModal').style.display = 'none'; document.getElementById('videoContainer').style.display = 'flex'; try { localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true }); document.getElementById('localVideo').srcObject = localStream; createPeerConnection(); localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream)); await peerConnection.setRemoteDescription(new RTCSessionDescription(incomingCallData.offer)); const answer = await peerConnection.createAnswer(); await peerConnection.setLocalDescription(answer); socket.emit('make-answer', { to: incomingCallData.from, answer: answer }); } catch (err) { console.error(err); alert("Error answering call"); endVideoCall(); } }
         function rejectCall() { document.getElementById('incomingCallModal').style.display = 'none'; socket.emit('reject-call', { to: incomingCallData.from }); incomingCallData = null; }
         socket.on('video-answer', async (data) => { await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer)); });
         socket.on('ice-candidate', async (data) => { if (peerConnection) { try { await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate)); } catch (e) { console.warn(e); } } });
         socket.on('call-rejected', () => { alert("Call rejected"); endVideoCall(); });
         socket.on('video-hangup', () => { endVideoCall(); });
-
-        function endVideoCall() {
-            if (peerConnection) { peerConnection.close(); peerConnection = null; }
-            if (localStream) { localStream.getTracks().forEach(track => track.stop()); localStream = null; }
-            socket.emit('hangup', { to: contactEmail });
-            document.getElementById('videoContainer').style.display = 'none';
-            document.getElementById('incomingCallModal').style.display = 'none';
-        }
-
+        function endVideoCall() { if (peerConnection) { peerConnection.close(); peerConnection = null; } if (localStream) { localStream.getTracks().forEach(track => track.stop()); localStream = null; } socket.emit('hangup', { to: contactEmail }); document.getElementById('videoContainer').style.display = 'none'; document.getElementById('incomingCallModal').style.display = 'none'; }
         function toggleMic() { const audioTrack = localStream.getAudioTracks()[0]; audioTrack.enabled = !audioTrack.enabled; document.querySelector('.toggle-mic').classList.toggle('btn-off', !audioTrack.enabled); }
         function toggleVideo() { const videoTrack = localStream.getVideoTracks()[0]; videoTrack.enabled = !videoTrack.enabled; document.querySelector('.toggle-video').classList.toggle('btn-off', !videoTrack.enabled); }
         function toggleEmojiPicker() { const p = document.getElementById('emojiPicker'); p.style.display = p.style.display === 'grid' ? 'none' : 'grid'; }
