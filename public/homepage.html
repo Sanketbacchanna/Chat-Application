@@ -631,6 +631,16 @@
             showNotification(`${data.by} accepted your friend request`);
             loadUsers();
         });
+
+        // --- Global Video Call Listener ---
+        socket.on('video-offer', (data) => {
+            const accept = confirm(`📞 Incoming video call from ${data.name}. Answer?`);
+            if (accept) {
+                window.location.href = `personal_chat.html?user=${encodeURIComponent(data.name)}&email=${encodeURIComponent(data.from)}&acceptCall=true`;
+            } else {
+                socket.emit('reject-call', { to: data.from });
+            }
+        });
         async function loadUsers() {
             let currentUser = null;
             let friends = [];

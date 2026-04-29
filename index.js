@@ -517,6 +517,59 @@ io.on('connection', (socket) => {
         }
     });
 
+    // --- WebRTC Signaling ---
+    socket.on('call-user', (data) => {
+        const { to, offer, from, name } = data;
+        const targetSocketId = userSockets[to.toLowerCase()];
+        if (targetSocketId) {
+            io.to(targetSocketId).emit('video-offer', {
+                offer: offer,
+                from: from,
+                name: name
+            });
+        }
+    });
+
+    socket.on('make-answer', (data) => {
+        const { to, answer } = data;
+        const targetSocketId = userSockets[to.toLowerCase()];
+        if (targetSocketId) {
+            io.to(targetSocketId).emit('video-answer', {
+                answer: answer,
+                from: socket.request.session.user.email
+            });
+        }
+    });
+
+    socket.on('reject-call', (data) => {
+        const { to } = data;
+        const targetSocketId = userSockets[to.toLowerCase()];
+        if (targetSocketId) {
+            io.to(targetSocketId).emit('call-rejected', {
+                from: socket.request.session.user.email
+            });
+        }
+    });
+
+    socket.on('ice-candidate', (data) => {
+        const { to, candidate } = data;
+        const targetSocketId = userSockets[to.toLowerCase()];
+        if (targetSocketId) {
+            io.to(targetSocketId).emit('ice-candidate', {
+                candidate: candidate,
+                from: socket.request.session.user.email
+            });
+        }
+    });
+
+    socket.on('hangup', (data) => {
+        const { to } = data;
+        const targetSocketId = userSockets[to.toLowerCase()];
+        if (targetSocketId) {
+            io.to(targetSocketId).emit('video-hangup');
+        }
+    });
+
     socket.on('disconnect', () => {
         if (socket.request.session && socket.request.session.user) {
             const email = socket.request.session.user.email;

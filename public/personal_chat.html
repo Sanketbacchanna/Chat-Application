@@ -142,6 +142,16 @@
             min-height: 0; /* Critical for flexbox shrinking on mobile */
         }
 
+        .call-status.calling {
+            animation: pulse-opacity 1.5s infinite;
+        }
+
+        @keyframes pulse-opacity {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+
         .msg-wrapper {
             display: flex;
             flex-direction: column;
@@ -432,19 +442,209 @@
         <button class="btn-send" onclick="sendMessage()">🚀</button>
     </div>
 
-    <!-- Video Call Container -->
+    <!-- Video Call UI -->
     <div id="videoContainer">
-        <button id="closeVideoBtn" onclick="endVideoCall()">✕</button>
-        <div id="jitsi-container" style="height: 100%; width: 100%;"></div>
+        <video id="remoteVideo" autoplay playsinline></video>
+        <video id="localVideo" autoplay playsinline muted></video>
+        
+        <div class="video-controls">
+            <button class="control-btn toggle-mic" onclick="toggleMic()">🎤</button>
+            <button class="control-btn toggle-video" onclick="toggleVideo()">📹</button>
+            <button class="control-btn hangup-btn" onclick="endVideoCall()">📞</button>
+        </div>
+
+        <div id="callStatus" class="call-status">Connecting...</div>
     </div>
 
-    <script src="https://meet.jit.si/external_api.js"></script>
+    <!-- Incoming Call Modal -->
+    <div id="incomingCallModal" class="incoming-call-modal">
+        <div class="incoming-call-content">
+            <div class="caller-avatar" id="callerAvatar">?</div>
+            <h3 id="callerName">Incoming Call...</h3>
+            <div class="incoming-call-actions">
+                <button class="accept-btn" onclick="acceptCall()">Accept</button>
+                <button class="reject-btn" onclick="rejectCall()">Reject</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Video Container Styles */
+        #videoContainer {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #1a1a1a;
+            z-index: 10000;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #remoteVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        #localVideo {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 120px;
+            height: 160px;
+            background: #000;
+            border-radius: 12px;
+            object-fit: cover;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            border: 2px solid rgba(255,255,255,0.2);
+            z-index: 10001;
+        }
+
+        .video-controls {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 10002;
+        }
+
+        .control-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+        }
+
+        .control-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.1);
+        }
+
+        .hangup-btn {
+            background: #ff4757;
+            transform: rotate(135deg);
+        }
+
+        .hangup-btn:hover {
+            background: #ff6b81;
+        }
+
+        .call-status {
+            position: absolute;
+            top: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            background: rgba(0,0,0,0.5);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            z-index: 10002;
+        }
+
+        /* Incoming Call Modal */
+        .incoming-call-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            z-index: 11000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .incoming-call-content {
+            background: white;
+            padding: 40px;
+            border-radius: 32px;
+            text-align: center;
+            width: 90%;
+            max-width: 340px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .caller-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 28px;
+            background: var(--primary-gradient);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 700;
+            margin: 0 auto 20px;
+            box-shadow: 0 8px 20px rgba(108, 92, 231, 0.3);
+        }
+
+        .incoming-call-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .accept-btn, .reject-btn {
+            flex: 1;
+            padding: 14px;
+            border-radius: 16px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 16px;
+            transition: 0.2s;
+        }
+
+        .accept-btn {
+            background: #2ed573;
+            color: white;
+        }
+
+        .reject-btn {
+            background: #ff4757;
+            color: white;
+        }
+
+        .accept-btn:hover { background: #26af5a; }
+        .reject-btn:hover { background: #ff6b81; }
+
+        .btn-off {
+            background: rgba(255, 71, 87, 0.6) !important;
+        }
+    </style>
+
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
         const urlParams = new URLSearchParams(window.location.search);
         const contactName = urlParams.get('user') || 'Contact';
         const contactEmail = urlParams.get('email');
+        const autoAccept = urlParams.get('acceptCall') === 'true';
 
         document.getElementById('chatHeader').innerText = contactName;
         document.getElementById('userAvatar').innerText = contactName.charAt(0).toUpperCase();
@@ -452,6 +652,18 @@
         let myEmail = "";
         let myUsername = "";
         let roomId = "";
+
+        // WebRTC Variables
+        let localStream;
+        let remoteStream;
+        let peerConnection;
+        let incomingCallData = null;
+
+        const servers = {
+            iceServers: [
+                { urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }
+            ]
+        };
 
         // Session & Room Setup
         fetch('/api/me').then(res => res.json()).then(user => {
@@ -461,6 +673,13 @@
                 if (contactEmail) {
                     roomId = [myEmail, contactEmail.toLowerCase()].sort().join('_');
                     socket.emit('join room', { room_id: roomId });
+                    
+                    if (autoAccept) {
+                        // Wait a bit for everything to init
+                        setTimeout(() => {
+                            acceptCall();
+                        }, 1000);
+                    }
                 }
             }
         });
@@ -514,6 +733,149 @@
             box.scrollTop = box.scrollHeight;
         }
 
+        // --- WebRTC Logic ---
+
+        async function startVideoCall() {
+            try {
+                document.getElementById('videoContainer').style.display = 'flex';
+                document.getElementById('callStatus').innerText = "Requesting camera...";
+                
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                document.getElementById('localVideo').srcObject = localStream;
+
+                createPeerConnection();
+                localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+                const offer = await peerConnection.createOffer();
+                await peerConnection.setLocalDescription(offer);
+
+                socket.emit('call-user', {
+                    to: contactEmail,
+                    offer: offer,
+                    from: myEmail,
+                    name: myUsername
+                });
+
+                document.getElementById('callStatus').innerText = "Calling " + contactName + "...";
+            } catch (err) {
+                console.error(err);
+                alert("Could not access camera/mic");
+                endVideoCall();
+            }
+        }
+
+        function createPeerConnection() {
+            peerConnection = new RTCPeerConnection(servers);
+            remoteStream = new MediaStream();
+            document.getElementById('remoteVideo').srcObject = remoteStream;
+
+            peerConnection.ontrack = (event) => {
+                event.streams[0].getTracks().forEach(track => remoteStream.addTrack(track));
+                document.getElementById('callStatus').innerText = "In Call";
+            };
+
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    socket.emit('ice-candidate', {
+                        to: contactEmail,
+                        candidate: event.candidate
+                    });
+                }
+            };
+            
+            peerConnection.oniceconnectionstatechange = () => {
+                if (peerConnection.iceConnectionState === 'disconnected') {
+                    endVideoCall();
+                }
+            };
+        }
+
+        socket.on('video-offer', async (data) => {
+            incomingCallData = data;
+            document.getElementById('callerName').innerText = data.name + " is calling...";
+            document.getElementById('callerAvatar').innerText = data.name.charAt(0).toUpperCase();
+            document.getElementById('incomingCallModal').style.display = 'flex';
+        });
+
+        async function acceptCall() {
+            document.getElementById('incomingCallModal').style.display = 'none';
+            document.getElementById('videoContainer').style.display = 'flex';
+            
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                document.getElementById('localVideo').srcObject = localStream;
+
+                createPeerConnection();
+                localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(incomingCallData.offer));
+                const answer = await peerConnection.createAnswer();
+                await peerConnection.setLocalDescription(answer);
+
+                socket.emit('make-answer', {
+                    to: incomingCallData.from,
+                    answer: answer
+                });
+            } catch (err) {
+                console.error(err);
+                alert("Error answering call");
+                endVideoCall();
+            }
+        }
+
+        function rejectCall() {
+            document.getElementById('incomingCallModal').style.display = 'none';
+            socket.emit('reject-call', { to: incomingCallData.from });
+            incomingCallData = null;
+        }
+
+        socket.on('video-answer', async (data) => {
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+        });
+
+        socket.on('ice-candidate', async (data) => {
+            if (peerConnection) {
+                try {
+                    await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+                } catch (e) { console.warn("Error adding ice candidate", e); }
+            }
+        });
+
+        socket.on('call-rejected', () => {
+            alert("Call rejected");
+            endVideoCall();
+        });
+
+        socket.on('video-hangup', () => {
+            endVideoCall();
+        });
+
+        function endVideoCall() {
+            if (peerConnection) {
+                peerConnection.close();
+                peerConnection = null;
+            }
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+            socket.emit('hangup', { to: contactEmail });
+            document.getElementById('videoContainer').style.display = 'none';
+            document.getElementById('incomingCallModal').style.display = 'none';
+        }
+
+        function toggleMic() {
+            const audioTrack = localStream.getAudioTracks()[0];
+            audioTrack.enabled = !audioTrack.enabled;
+            document.querySelector('.toggle-mic').classList.toggle('btn-off', !audioTrack.enabled);
+        }
+
+        function toggleVideo() {
+            const videoTrack = localStream.getVideoTracks()[0];
+            videoTrack.enabled = !videoTrack.enabled;
+            document.querySelector('.toggle-video').classList.toggle('btn-off', !videoTrack.enabled);
+        }
+
         // Features
         function toggleEmojiPicker() {
             const p = document.getElementById('emojiPicker');
@@ -523,61 +885,6 @@
         function addEmoji(e) {
             document.getElementById('message').value += e;
             toggleEmojiPicker();
-        }
-
-        let jitsiApi = null;
-        function startVideoCall() {
-            const container = document.getElementById('videoContainer');
-            container.style.display = 'block';
-
-            const domain = 'meet.jit.si';
-            const options = {
-                roomName: `CWM_${roomId}`,
-                width: '100%',
-                height: '100%',
-                parentNode: document.querySelector('#jitsi-container'),
-                userInfo: {
-                    displayName: myUsername
-                },
-                configOverwrite: {
-                    prejoinPageEnabled: false,
-                    startWithAudioMuted: false,
-                    startWithVideoMuted: false,
-                    enableWelcomePage: false,
-                    enableLobbyChat: false,
-                    disableDeepLinking: true
-                },
-                interfaceConfigOverwrite: {
-                    TILE_VIEW_MAX_COLUMNS: 8,
-                    SHOW_JITSI_WATERMARK: false,
-                    SHOW_WATERMARK_FOR_GUESTS: false
-                }
-            };
-            
-            jitsiApi = new JitsiMeetExternalAPI(domain, options);
-            
-            // Send the link to the other person too
-            const link = `https://meet.jit.si/CWM_${roomId}`;
-            socket.emit("chat message", { 
-                room_id: roomId, 
-                sender_email: myEmail, 
-                username: myUsername, 
-                text: `📞 Video Call Started. Click the camera icon above to join!` 
-            });
-
-            jitsiApi.addEventListeners({
-                readyToClose: endVideoCall,
-                videoConferenceLeft: endVideoCall
-            });
-        }
-
-        function endVideoCall() {
-            if (jitsiApi) {
-                jitsiApi.dispose();
-                jitsiApi = null;
-            }
-            document.getElementById('videoContainer').style.display = 'none';
-            document.getElementById('jitsi-container').innerHTML = '';
         }
 
         // Voice Recording (Basic)
