@@ -35,16 +35,22 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
-  // Strategy: Network First, falling back to Cache
+  const url = new URL(event.request.url);
+  
+  // Strategy: Network Only for API calls to ensure data freshless
+  if (url.pathname.includes('/api/')) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
+  // Strategy: Network First, falling back to Cache for static assets
   event.respondWith(
     fetch(event.request)
       .then((networkResponse) => {
-        // Check if we received a valid response
         if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
           return networkResponse;
         }
 
-        // Clone the response to store it in cache
         const responseToCache = networkResponse.clone();
         caches.open(cacheName).then((cache) => {
           cache.put(event.request, responseToCache);
@@ -53,7 +59,6 @@ self.addEventListener("fetch", (event) => {
         return networkResponse;
       })
       .catch(() => {
-        // If network fails, try the cache
         return caches.match(event.request);
       })
   );

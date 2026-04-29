@@ -724,9 +724,9 @@
                 if (removed.length > 0) {
                     section.style.display = 'block';
                     list.innerHTML = removed.map(u => `
-                        <div style="display:flex; justify-content:space-between; align-items:center; padding: 5px 0;">
-                            <span style="font-size:13px;">${u.friend_name}</span>
-                            <button onclick="restoreFriend('${u.friend_email}')" style="background:none; border:none; color:var(--accent-color); font-size:11px; cursor:pointer;">Restore</button>
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding: 12px 8px; border-bottom: 1px solid #f8f9fd;">
+                            <span style="font-size:13px; font-weight:500;">${u.friend_name}</span>
+                            <button onclick="restoreFriend(event, '${u.friend_email}')" style="background:var(--accent-color); border:none; color:white; font-size:11px; padding:6px 12px; border-radius:8px; cursor:pointer; font-weight:600;">Restore</button>
                         </div>
                     `).join('');
                 } else {
@@ -735,7 +735,8 @@
             } catch (e) { console.error(e); }
         }
 
-        async function restoreFriend(email) {
+        async function restoreFriend(event, email) {
+            if (event) event.stopPropagation();
             try {
                 const res = await fetch('/api/restore-friend', {
                     method: 'POST',
@@ -743,6 +744,7 @@
                     body: JSON.stringify({ friend_email: email })
                 });
                 if (res.ok) {
+                    showNotification("Friend restored!");
                     loadRemovedFriends();
                     loadUsers();
                 }
@@ -750,9 +752,12 @@
         }
 
         window.addEventListener('click', (e) => {
-            if (!e.target.matches('.menu-btn')) {
-                const menu = document.getElementById('dropdownMenu');
-                if (menu) menu.style.display = 'none';
+            const menu = document.getElementById('dropdownMenu');
+            const menuBtn = document.querySelector('.menu-btn');
+            if (menu && menu.style.display === 'flex') {
+                if (!menu.contains(e.target) && !e.target.closest('.menu-btn')) {
+                    menu.style.display = 'none';
+                }
             }
         });
 
