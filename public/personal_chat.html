@@ -29,13 +29,21 @@
             font-family: 'Poppins', sans-serif;
         }
 
-        body {
+        html, body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
             background-color: var(--bg-color);
-            height: 100vh;
-            height: 100dvh;
+        }
+
+        body {
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            /* Support for mobile address bars */
+            height: 100vh;
+            height: 100dvh;
         }
 
         /* Header */
@@ -48,7 +56,8 @@
             display: flex;
             align-items: center;
             box-shadow: 0 1px 15px rgba(0,0,0,0.05);
-            z-index: 10;
+            z-index: 100;
+            flex-shrink: 0; /* Header never shrinks */
         }
 
         .back-btn {
@@ -65,9 +74,7 @@
             transition: background 0.2s;
         }
 
-        .back-btn:hover {
-            background: #f1f2f6;
-        }
+        .back-btn:hover { background: #f1f2f6; }
 
         .user-info {
             display: flex;
@@ -90,22 +97,10 @@
             box-shadow: 0 4px 8px rgba(108, 92, 231, 0.2);
         }
 
-        .user-details h2 {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text-main);
-        }
+        .user-details h2 { font-size: 16px; font-weight: 600; color: var(--text-main); }
+        .user-details span { font-size: 12px; color: #00b894; font-weight: 500; }
 
-        .user-details span {
-            font-size: 12px;
-            color: #00b894;
-            font-weight: 500;
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 10px;
-        }
+        .header-actions { display: flex; gap: 10px; }
 
         .action-icon {
             width: 40px;
@@ -122,10 +117,7 @@
             color: var(--text-secondary);
         }
 
-        .action-icon:hover {
-            background: #f1f2f6;
-            color: var(--primary-color);
-        }
+        .action-icon:hover { background: #f1f2f6; color: var(--primary-color); }
 
         /* Chat Area */
         #chatBox {
@@ -136,37 +128,15 @@
             flex-direction: column;
             gap: 12px;
             background: #f8f9fd;
-            /* Subtler background pattern */
             background-image: radial-gradient(rgba(0,0,0,0.03) 1px, transparent 1px);
             background-size: 24px 24px;
-            min-height: 0; /* Critical for flexbox shrinking on mobile */
+            min-height: 0; /* Allow shrinking */
+            scroll-behavior: smooth;
         }
 
-        .call-status.calling {
-            animation: pulse-opacity 1.5s infinite;
-        }
-
-        @keyframes pulse-opacity {
-            0% { opacity: 0.6; }
-            50% { opacity: 1; }
-            100% { opacity: 0.6; }
-        }
-
-        .msg-wrapper {
-            display: flex;
-            flex-direction: column;
-            max-width: 75%;
-        }
-
-        .msg-wrapper.me {
-            align-self: flex-end;
-            align-items: flex-end;
-        }
-
-        .msg-wrapper.other {
-            align-self: flex-start;
-            align-items: flex-start;
-        }
+        .msg-wrapper { display: flex; flex-direction: column; max-width: 75%; }
+        .msg-wrapper.me { align-self: flex-end; align-items: flex-end; }
+        .msg-wrapper.other { align-self: flex-start; align-items: flex-start; }
 
         .msg-bubble {
             padding: 10px 16px;
@@ -178,38 +148,23 @@
             word-wrap: break-word;
         }
 
-        .me .msg-bubble {
-            background: var(--primary-color);
-            color: white;
-            border-bottom-right-radius: 4px;
-        }
+        .me .msg-bubble { background: var(--primary-color); color: white; border-bottom-right-radius: 4px; }
+        .other .msg-bubble { background: white; color: var(--text-main); border-bottom-left-radius: 4px; border: 1px solid #edf2f7; }
 
-        .other .msg-bubble {
-            background: white;
-            color: var(--text-main);
-            border-bottom-left-radius: 4px;
-            border: 1px solid #edf2f7;
-        }
-
-        .msg-time {
-            font-size: 10px;
-            margin-top: 5px;
-            color: var(--text-secondary);
-            opacity: 0.7;
-        }
+        .msg-time { font-size: 10px; margin-top: 5px; color: var(--text-secondary); opacity: 0.7; }
 
         /* Input Area */
         .input-area {
             background: white;
-            padding: 10px 12px;
-            padding-bottom: calc(10px + env(safe-area-inset-bottom));
+            padding: 12px;
+            padding-bottom: calc(12px + env(safe-area-inset-bottom));
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             box-shadow: 0 -5px 20px rgba(0,0,0,0.03);
-            position: relative;
-            flex-shrink: 0; /* Prevent the input bar from being squeezed out */
-            z-index: 20;
+            z-index: 100;
+            flex-shrink: 0; /* Never shrink the input bar */
+            min-height: 70px;
         }
         
         .input-wrapper {
@@ -218,9 +173,9 @@
             border-radius: 24px;
             display: flex;
             align-items: center;
-            padding: 0 12px;
+            padding: 0 15px;
             border: 1px solid #edf2f7;
-            min-width: 0; /* Important for flex-shrink */
+            min-width: 0;
         }
 
         #message {
@@ -237,7 +192,7 @@
             background: none;
             border: none;
             cursor: pointer;
-            font-size: 20px;
+            font-size: 22px;
             color: var(--text-secondary);
             transition: color 0.2s;
             display: flex;
@@ -245,13 +200,11 @@
             justify-content: center;
         }
 
-        .btn-input:hover {
-            color: var(--primary-color);
-        }
+        .btn-input:hover { color: var(--primary-color); }
 
         .btn-send {
-            width: 44px;
-            height: 44px;
+            width: 46px;
+            height: 46px;
             flex-shrink: 0;
             border-radius: 14px;
             background: var(--primary-gradient);
@@ -261,15 +214,12 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            font-size: 20px;
             box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
             transition: 0.2s;
         }
 
-        .btn-send:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 15px rgba(108, 92, 231, 0.4);
-        }
+        .btn-send:hover { transform: scale(1.05); }
 
         /* Emoji Picker */
         #emojiPicker {
@@ -282,48 +232,18 @@
             border-radius: 20px;
             padding: 15px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            grid-template-columns: repeat(8, 1fr);
+            grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
             gap: 8px;
-            z-index: 100;
+            z-index: 1000;
             border: 1px solid #edf2f7;
             max-height: 250px;
             overflow-y: auto;
-            width: auto;
         }
 
-        #emojiPicker::-webkit-scrollbar {
-            width: 5px;
-        }
+        #emojiPicker span { font-size: 24px; cursor: pointer; text-align: center; transition: transform 0.2s; }
+        #emojiPicker span:hover { transform: scale(1.2); }
 
-        #emojiPicker::-webkit-scrollbar-thumb {
-            background: #dfe6e9;
-            border-radius: 10px;
-        }
-
-        #emojiPicker span {
-            font-size: 24px;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        #emojiPicker span:hover {
-            transform: scale(1.2);
-        }
-
-        /* Recording UI */
-        .recording-active {
-            color: #ff7675 !important;
-            animation: pulse-red 1.5s infinite;
-        }
-
-        @keyframes pulse-red {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
-        }
-
-        /* Responsive */
-        /* Video Call Modal */
+        /* Video Call UI */
         #videoContainer {
             display: none;
             position: fixed;
@@ -331,24 +251,134 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: black;
+            background: #1a1a1a;
             z-index: 10000;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
 
-        #closeVideoBtn {
+        #remoteVideo { width: 100%; height: 100%; object-fit: cover; }
+
+        #localVideo {
             position: absolute;
             top: 20px;
             right: 20px;
+            width: 120px;
+            height: 160px;
+            background: #000;
+            border-radius: 12px;
+            object-fit: cover;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            border: 2px solid rgba(255,255,255,0.2);
             z-index: 10001;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 20px;
         }
+
+        .video-controls {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 10002;
+        }
+
+        .control-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+        }
+
+        .hangup-btn { background: #ff4757; }
+        .btn-off { background: rgba(255, 71, 87, 0.6) !important; }
+
+        .call-status {
+            position: absolute;
+            top: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            background: rgba(0,0,0,0.5);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            z-index: 10002;
+            animation: pulse-opacity 1.5s infinite;
+        }
+
+        @keyframes pulse-opacity { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+
+        /* Incoming Call Modal */
+        .incoming-call-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            z-index: 11000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .incoming-call-content {
+            background: white;
+            padding: 40px;
+            border-radius: 32px;
+            text-align: center;
+            width: 90%;
+            max-width: 340px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .caller-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 28px;
+            background: var(--primary-gradient);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 700;
+            margin: 0 auto 20px;
+        }
+
+        .incoming-call-actions { display: flex; gap: 15px; margin-top: 30px; }
+
+        .accept-btn, .reject-btn {
+            flex: 1;
+            padding: 14px;
+            border-radius: 16px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            color: white;
+        }
+
+        .accept-btn { background: #2ed573; }
+        .reject-btn { background: #ff4757; }
+
+        .recording-active { color: #ff7675 !important; animation: pulse-red 1.5s infinite; }
+
+        @keyframes pulse-red { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
 
         @media (max-width: 480px) {
             .header { padding: 10px; }
@@ -446,13 +476,11 @@
     <div id="videoContainer">
         <video id="remoteVideo" autoplay playsinline></video>
         <video id="localVideo" autoplay playsinline muted></video>
-        
         <div class="video-controls">
             <button class="control-btn toggle-mic" onclick="toggleMic()">🎤</button>
             <button class="control-btn toggle-video" onclick="toggleVideo()">📹</button>
             <button class="control-btn hangup-btn" onclick="endVideoCall()">📞</button>
         </div>
-
         <div id="callStatus" class="call-status">Connecting...</div>
     </div>
 
@@ -467,176 +495,6 @@
             </div>
         </div>
     </div>
-
-    <style>
-        /* Video Container Styles */
-        #videoContainer {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #1a1a1a;
-            z-index: 10000;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-
-        #remoteVideo {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        #localVideo {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 120px;
-            height: 160px;
-            background: #000;
-            border-radius: 12px;
-            object-fit: cover;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-            border: 2px solid rgba(255,255,255,0.2);
-            z-index: 10001;
-        }
-
-        .video-controls {
-            position: absolute;
-            bottom: 40px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 20px;
-            z-index: 10002;
-        }
-
-        .control-btn {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            border: none;
-            background: rgba(255,255,255,0.2);
-            backdrop-filter: blur(10px);
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: 0.3s;
-        }
-
-        .control-btn:hover {
-            background: rgba(255,255,255,0.3);
-            transform: scale(1.1);
-        }
-
-        .hangup-btn {
-            background: #ff4757;
-            transform: rotate(135deg);
-        }
-
-        .hangup-btn:hover {
-            background: #ff6b81;
-        }
-
-        .call-status {
-            position: absolute;
-            top: 40px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: white;
-            background: rgba(0,0,0,0.5);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 14px;
-            z-index: 10002;
-        }
-
-        /* Incoming Call Modal */
-        .incoming-call-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(5px);
-            z-index: 11000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .incoming-call-content {
-            background: white;
-            padding: 40px;
-            border-radius: 32px;
-            text-align: center;
-            width: 90%;
-            max-width: 340px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        @keyframes slideUp {
-            from { transform: translateY(50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .caller-avatar {
-            width: 80px;
-            height: 80px;
-            border-radius: 28px;
-            background: var(--primary-gradient);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            font-weight: 700;
-            margin: 0 auto 20px;
-            box-shadow: 0 8px 20px rgba(108, 92, 231, 0.3);
-        }
-
-        .incoming-call-actions {
-            display: flex;
-            gap: 15px;
-            margin-top: 30px;
-        }
-
-        .accept-btn, .reject-btn {
-            flex: 1;
-            padding: 14px;
-            border-radius: 16px;
-            border: none;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 16px;
-            transition: 0.2s;
-        }
-
-        .accept-btn {
-            background: #2ed573;
-            color: white;
-        }
-
-        .reject-btn {
-            background: #ff4757;
-            color: white;
-        }
-
-        .accept-btn:hover { background: #26af5a; }
-        .reject-btn:hover { background: #ff6b81; }
-
-        .btn-off {
-            background: rgba(255, 71, 87, 0.6) !important;
-        }
-    </style>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
@@ -659,11 +517,7 @@
         let peerConnection;
         let incomingCallData = null;
 
-        const servers = {
-            iceServers: [
-                { urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }
-            ]
-        };
+        const servers = { iceServers: [{ urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }] };
 
         // Session & Room Setup
         fetch('/api/me').then(res => res.json()).then(user => {
@@ -673,13 +527,7 @@
                 if (contactEmail) {
                     roomId = [myEmail, contactEmail.toLowerCase()].sort().join('_');
                     socket.emit('join room', { room_id: roomId });
-                    
-                    if (autoAccept) {
-                        // Wait a bit for everything to init
-                        setTimeout(() => {
-                            acceptCall();
-                        }, 1000);
-                    }
+                    if (autoAccept) { setTimeout(() => { acceptCall(); }, 1000); }
                 }
             }
         });
@@ -689,14 +537,7 @@
             const input = document.getElementById("message");
             const text = input.value.trim();
             if (!text || !roomId) return;
-
-            const msgData = {
-                room_id: roomId,
-                sender_email: myEmail,
-                username: myUsername,
-                text: text
-            };
-
+            const msgData = { room_id: roomId, sender_email: myEmail, username: myUsername, text: text };
             socket.emit("chat message", msgData);
             renderMessage({...msgData, timestamp: new Date().toISOString()}, true);
             input.value = "";
@@ -709,6 +550,7 @@
             const box = document.getElementById("chatBox");
             box.innerHTML = '';
             history.forEach(msg => renderMessage(msg));
+            box.scrollTop = box.scrollHeight;
         });
 
         socket.on("chat message", (data) => {
@@ -718,76 +560,37 @@
         function renderMessage(data, isMe = false) {
             const box = document.getElementById("chatBox");
             const side = (isMe || data.sender_email === myEmail) ? 'me' : 'other';
-            
-            const timeString = data.timestamp 
-                ? new Date(data.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                : 'Just now';
-            
+            const timeString = data.timestamp ? new Date(data.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now';
             const wrapper = document.createElement('div');
             wrapper.className = `msg-wrapper ${side}`;
-            wrapper.innerHTML = `
-                <div class="msg-bubble">${data.text}</div>
-                <div class="msg-time">${timeString}</div>
-            `;
+            wrapper.innerHTML = `<div class="msg-bubble">${data.text}</div><div class="msg-time">${timeString}</div>`;
             box.appendChild(wrapper);
             box.scrollTop = box.scrollHeight;
         }
 
-        // --- WebRTC Logic ---
-
+        // WebRTC Logic
         async function startVideoCall() {
             try {
                 document.getElementById('videoContainer').style.display = 'flex';
                 document.getElementById('callStatus').innerText = "Requesting camera...";
-                
                 localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                 document.getElementById('localVideo').srcObject = localStream;
-
                 createPeerConnection();
                 localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-
                 const offer = await peerConnection.createOffer();
                 await peerConnection.setLocalDescription(offer);
-
-                socket.emit('call-user', {
-                    to: contactEmail,
-                    offer: offer,
-                    from: myEmail,
-                    name: myUsername
-                });
-
+                socket.emit('call-user', { to: contactEmail, offer: offer, from: myEmail, name: myUsername });
                 document.getElementById('callStatus').innerText = "Calling " + contactName + "...";
-            } catch (err) {
-                console.error(err);
-                alert("Could not access camera/mic");
-                endVideoCall();
-            }
+            } catch (err) { console.error(err); alert("Could not access camera/mic"); endVideoCall(); }
         }
 
         function createPeerConnection() {
             peerConnection = new RTCPeerConnection(servers);
             remoteStream = new MediaStream();
             document.getElementById('remoteVideo').srcObject = remoteStream;
-
-            peerConnection.ontrack = (event) => {
-                event.streams[0].getTracks().forEach(track => remoteStream.addTrack(track));
-                document.getElementById('callStatus').innerText = "In Call";
-            };
-
-            peerConnection.onicecandidate = (event) => {
-                if (event.candidate) {
-                    socket.emit('ice-candidate', {
-                        to: contactEmail,
-                        candidate: event.candidate
-                    });
-                }
-            };
-            
-            peerConnection.oniceconnectionstatechange = () => {
-                if (peerConnection.iceConnectionState === 'disconnected') {
-                    endVideoCall();
-                }
-            };
+            peerConnection.ontrack = (event) => { event.streams[0].getTracks().forEach(track => remoteStream.addTrack(track)); document.getElementById('callStatus').innerText = "In Call"; };
+            peerConnection.onicecandidate = (event) => { if (event.candidate) { socket.emit('ice-candidate', { to: contactEmail, candidate: event.candidate }); } };
+            peerConnection.oniceconnectionstatechange = () => { if (peerConnection.iceConnectionState === 'disconnected') endVideoCall(); };
         }
 
         socket.on('video-offer', async (data) => {
@@ -800,112 +603,49 @@
         async function acceptCall() {
             document.getElementById('incomingCallModal').style.display = 'none';
             document.getElementById('videoContainer').style.display = 'flex';
-            
             try {
                 localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                 document.getElementById('localVideo').srcObject = localStream;
-
                 createPeerConnection();
                 localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-
                 await peerConnection.setRemoteDescription(new RTCSessionDescription(incomingCallData.offer));
                 const answer = await peerConnection.createAnswer();
                 await peerConnection.setLocalDescription(answer);
-
-                socket.emit('make-answer', {
-                    to: incomingCallData.from,
-                    answer: answer
-                });
-            } catch (err) {
-                console.error(err);
-                alert("Error answering call");
-                endVideoCall();
-            }
+                socket.emit('make-answer', { to: incomingCallData.from, answer: answer });
+            } catch (err) { console.error(err); alert("Error answering call"); endVideoCall(); }
         }
 
-        function rejectCall() {
-            document.getElementById('incomingCallModal').style.display = 'none';
-            socket.emit('reject-call', { to: incomingCallData.from });
-            incomingCallData = null;
-        }
-
-        socket.on('video-answer', async (data) => {
-            await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
-        });
-
-        socket.on('ice-candidate', async (data) => {
-            if (peerConnection) {
-                try {
-                    await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
-                } catch (e) { console.warn("Error adding ice candidate", e); }
-            }
-        });
-
-        socket.on('call-rejected', () => {
-            alert("Call rejected");
-            endVideoCall();
-        });
-
-        socket.on('video-hangup', () => {
-            endVideoCall();
-        });
+        function rejectCall() { document.getElementById('incomingCallModal').style.display = 'none'; socket.emit('reject-call', { to: incomingCallData.from }); incomingCallData = null; }
+        socket.on('video-answer', async (data) => { await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer)); });
+        socket.on('ice-candidate', async (data) => { if (peerConnection) { try { await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate)); } catch (e) { console.warn(e); } } });
+        socket.on('call-rejected', () => { alert("Call rejected"); endVideoCall(); });
+        socket.on('video-hangup', () => { endVideoCall(); });
 
         function endVideoCall() {
-            if (peerConnection) {
-                peerConnection.close();
-                peerConnection = null;
-            }
-            if (localStream) {
-                localStream.getTracks().forEach(track => track.stop());
-                localStream = null;
-            }
+            if (peerConnection) { peerConnection.close(); peerConnection = null; }
+            if (localStream) { localStream.getTracks().forEach(track => track.stop()); localStream = null; }
             socket.emit('hangup', { to: contactEmail });
             document.getElementById('videoContainer').style.display = 'none';
             document.getElementById('incomingCallModal').style.display = 'none';
         }
 
-        function toggleMic() {
-            const audioTrack = localStream.getAudioTracks()[0];
-            audioTrack.enabled = !audioTrack.enabled;
-            document.querySelector('.toggle-mic').classList.toggle('btn-off', !audioTrack.enabled);
-        }
+        function toggleMic() { const audioTrack = localStream.getAudioTracks()[0]; audioTrack.enabled = !audioTrack.enabled; document.querySelector('.toggle-mic').classList.toggle('btn-off', !audioTrack.enabled); }
+        function toggleVideo() { const videoTrack = localStream.getVideoTracks()[0]; videoTrack.enabled = !videoTrack.enabled; document.querySelector('.toggle-video').classList.toggle('btn-off', !videoTrack.enabled); }
+        function toggleEmojiPicker() { const p = document.getElementById('emojiPicker'); p.style.display = p.style.display === 'grid' ? 'none' : 'grid'; }
+        function addEmoji(e) { document.getElementById('message').value += e; toggleEmojiPicker(); }
 
-        function toggleVideo() {
-            const videoTrack = localStream.getVideoTracks()[0];
-            videoTrack.enabled = !videoTrack.enabled;
-            document.querySelector('.toggle-video').classList.toggle('btn-off', !videoTrack.enabled);
-        }
-
-        // Features
-        function toggleEmojiPicker() {
-            const p = document.getElementById('emojiPicker');
-            p.style.display = p.style.display === 'grid' ? 'none' : 'grid';
-        }
-
-        function addEmoji(e) {
-            document.getElementById('message').value += e;
-            toggleEmojiPicker();
-        }
-
-        // Voice Recording (Basic)
-        let mediaRecorder;
-        let audioChunks = [];
+        let mediaRecorder; let audioChunks = [];
         async function toggleRecording() {
             const btn = document.getElementById('recordBtn');
-            if (btn.classList.contains('recording-active')) {
-                mediaRecorder.stop();
-                btn.classList.remove('recording-active');
-            } else {
+            if (btn.classList.contains('recording-active')) { mediaRecorder.stop(); btn.classList.remove('recording-active'); }
+            else {
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    mediaRecorder = new MediaRecorder(stream);
-                    mediaRecorder.start();
-                    btn.classList.add('recording-active');
+                    mediaRecorder = new MediaRecorder(stream); mediaRecorder.start(); btn.classList.add('recording-active');
                     mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
                     mediaRecorder.onstop = () => {
                         const blob = new Blob(audioChunks, { type: 'audio/webm' });
-                        const reader = new FileReader();
-                        reader.readAsDataURL(blob);
+                        const reader = new FileReader(); reader.readAsDataURL(blob);
                         reader.onloadend = () => {
                             const audioHtml = `<audio controls src="${reader.result}" style="width: 200px; height: 30px;"></audio>`;
                             socket.emit("chat message", { room_id: roomId, sender_email: myEmail, username: myUsername, text: audioHtml });
@@ -918,5 +658,4 @@
         }
     </script>
 </body>
-
 </html>
