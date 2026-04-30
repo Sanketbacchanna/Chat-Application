@@ -579,6 +579,22 @@
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
+
+        socket.on('video-answer', async (data) => {
+            if (!peerConnection) return;
+
+            try {
+                await peerConnection.setRemoteDescription(
+                    new RTCSessionDescription(data.answer)
+                );
+
+                stopOutgoingRing();
+            } catch (e) {
+                console.error("Answer error:", e);
+            }
+        });
+
+
         document.addEventListener('click', () => {
             document.getElementById('outgoingRing').play().then(() => {
                 document.getElementById('outgoingRing').pause();
@@ -704,59 +720,44 @@
         //     } catch (err) { console.error(err); alert("Could not access camera/mic"); endVideoCall(); }
         // }
 
-        function startVideoCall() {
+        async function startVideoCall() {
             try {
                 document.getElementById('videoContainer').style.display = 'flex';
                 document.getElementById('callStatus').innerText = "Requesting camera...";
 
-                // 🔊 START OUTGOING RING
-                document.getElementById('outgoingRing').play();
+                playOutgoingRing(); // 🔊 ONLY CALLER
 
-                navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-                    .then(stream => {
-                        localStream = stream;
-                        document.getElementById('localVideo').srcObject = localStream;
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    video: true,
+                    audio: true
+                });
 
-                        createPeerConnection();
-                        localStream.getTracks().forEach(track =>
-                            peerConnection.addTrack(track, localStream)
-                        );
+                document.getElementById('localVideo').srcObject = localStream;
 
-                        return peerConnection.createOffer();
-                    })
-                    .then(offer => {
-                        return peerConnection.setLocalDescription(offer).then(() => offer);
-                    })
-                    .then(offer => {
-                        socket.emit('call-user', {
-                            to: contactEmail,
-                            offer: offer,
-                            from: myEmail,
-                            name: myUsername
-                        });
+                createPeerConnection();
 
-                        document.getElementById('callStatus').innerText =
-                            "Calling " + contactName + "...";
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        alert("Could not access camera/mic");
-                        endVideoCall();
-                    });
+                localStream.getTracks().forEach(track =>
+                    peerConnection.addTrack(track, localStream)
+                );
+
+                const offer = await peerConnection.createOffer();
+                await peerConnection.setLocalDescription(offer);
+
+                socket.emit('call-user', {
+                    to: contactEmail,
+                    offer,
+                    from: myEmail,
+                    name: myUsername
+                });
+
+                document.getElementById('callStatus').innerText =
+                    "Calling " + contactName + "...";
 
             } catch (err) {
                 console.error(err);
+                alert("Camera/Mic error");
+                endVideoCall();
             }
-            socket.on('video-answer', async (data) => {
-                await peerConnection.setRemoteDescription(
-                    new RTCSessionDescription(data.answer)
-                );
-
-                // 🔇 STOP OUTGOING RING (CALL CONNECTED)
-                const outgoing = document.getElementById('outgoingRing');
-                outgoing.pause();
-                outgoing.currentTime = 0;
-            });
         }
 
         // function createPeerConnection() {
@@ -774,21 +775,14 @@
         // peerConnection.oniceconnectionstatechange = () => { if (peerConnection.iceConnectionState === 'disconnected') endVideoCall(); };
 
         function createPeerConnection() {
-
             if (peerConnection) {
-                try { peerConnection.close(); } catch (e) { }
-                peerConnection = null;
+                peerConnection.close();
             }
 
             peerConnection = new RTCPeerConnection(servers);
 
-            remoteStream = new MediaStream();
-            document.getElementById('remoteVideo').srcObject = remoteStream;
-
             peerConnection.ontrack = (event) => {
-                event.streams[0].getTracks().forEach(track => {
-                    remoteStream.addTrack(track);
-                });
+                document.getElementById('remoteVideo').srcObject = event.streams[0];
                 document.getElementById('callStatus').innerText = "In Call";
             };
 
@@ -802,15 +796,18 @@
             };
 
             peerConnection.oniceconnectionstatechange = () => {
-                if (peerConnection.iceConnectionState === 'disconnected') {
+                if (
+                    peerConnection.iceConnectionState === 'disconnected' ||
+                    peerConnection.iceConnectionState === 'failed'
+                ) {
                     endVideoCall();
                 }
             };
         }
 
-
         socket.on('video-offer', async (data) => {
-            if (data.to !== myEmail) return; // 🔥 ONLY RECEIVER
+            if (data.to !== myEmail) return;
+
             incomingCallData = data;
 
             document.getElementById('callerName').innerText =
@@ -820,8 +817,7 @@
 
             document.getElementById('incomingCallModal').style.display = 'flex';
 
-            // 🔊 PLAY INCOMING RING
-            document.getElementById('incomingRing').play();
+            playIncomingRing(); // 🔊 ONLY RECEIVER
         });
         // socket.on('video-offer', async (data) => { incomingCallData = data; document.getElementById('callerName').innerText = data.name + " is calling..."; document.getElementById('callerAvatar').innerText = data.name.charAt(0).toUpperCase(); document.getElementById('incomingCallModal').style.display = 'flex'; });
         // async function acceptCall() {
@@ -831,16 +827,19 @@
         //     }
         // }
         async function acceptCall() {
-            // 🔇 STOP INCOMING RING
-            const incoming = document.getElementById('incomingRing');
-            incoming.pause();
-            incoming.currentTime = 0;
+            if (!incomingCallData) return;
+
+            stopIncomingRing();
 
             document.getElementById('incomingCallModal').style.display = 'none';
             document.getElementById('videoContainer').style.display = 'flex';
 
             try {
-                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    video: true,
+                    audio: true
+                });
+
                 document.getElementById('localVideo').srcObject = localStream;
 
                 createPeerConnection();
@@ -858,7 +857,7 @@
 
                 socket.emit('make-answer', {
                     to: incomingCallData.from,
-                    answer: answer
+                    answer
                 });
 
             } catch (err) {
@@ -867,6 +866,7 @@
                 endVideoCall();
             }
         }
+
         function rejectCall() { // 🔇 STOP ALL RINGING
             document.getElementById('outgoingRing').pause();
             document.getElementById('outgoingRing').currentTime = 0;
@@ -876,68 +876,41 @@
             document.getElementById('incomingCallModal').style.display = 'none'; socket.emit('reject-call', { to: incomingCallData.from }); incomingCallData = null;
         }
         // socket.on('video-answer', async (data) => { await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer)); });
-        socket.on('video-answer', async (data) => {
-            await peerConnection.setRemoteDescription(
-                new RTCSessionDescription(data.answer)
-            );
+        // socket.on('video-answer', async (data) => {
+        //     await peerConnection.setRemoteDescription(
+        //         new RTCSessionDescription(data.answer)
+        //     );
 
-            // 🔇 STOP OUTGOING RING
-            document.getElementById('outgoingRing').pause();
-            document.getElementById('outgoingRing').currentTime = 0;
-        });
+        //     // 🔇 STOP OUTGOING RING
+        //     document.getElementById('outgoingRing').pause();
+        //     document.getElementById('outgoingRing').currentTime = 0;
+        // });
         socket.on('ice-candidate', async (data) => { if (peerConnection) { try { await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate)); } catch (e) { console.warn(e); } } });
         socket.on('call-rejected', () => { alert("Call rejected"); endVideoCall(); });
         socket.on('video-hangup', () => { endVideoCall(); });
 
         // function endVideoCall() { if (peerConnection) { peerConnection.close(); peerConnection = null; } if (localStream) { localStream.getTracks().forEach(track => track.stop()); localStream = null; } socket.emit('hangup', { to: contactEmail }); document.getElementById('videoContainer').style.display = 'none'; document.getElementById('incomingCallModal').style.display = 'none'; }
         function endVideoCall() {
-            console.log("Cleaning call");
-
-
-            // 🔇 STOP ALL SOUNDS
-            const outgoing = document.getElementById('outgoingRing');
-            const incoming = document.getElementById('incomingRing');
-
-            if (outgoing) {
-                outgoing.pause();
-                outgoing.currentTime = 0;
-            }
-
-            if (incoming) {
-                incoming.pause();
-                incoming.currentTime = 0;
-            }
+            stopOutgoingRing();
+            stopIncomingRing();
 
             if (peerConnection) {
-                peerConnection.ontrack = null;
-                peerConnection.onicecandidate = null;
-                peerConnection.oniceconnectionstatechange = null;
-
-                peerConnection.getSenders().forEach(sender => {
-                    if (sender.track) sender.track.stop();
-                });
-
                 peerConnection.close();
                 peerConnection = null;
             }
 
             if (localStream) {
-                localStream.getTracks().forEach(track => track.stop());
+                localStream.getTracks().forEach(t => t.stop());
                 localStream = null;
-            }
-
-            if (remoteStream) {
-                remoteStream.getTracks().forEach(track => track.stop());
-                remoteStream = null;
             }
 
             document.getElementById('localVideo').srcObject = null;
             document.getElementById('remoteVideo').srcObject = null;
 
-            socket.emit('hangup', { to: contactEmail });
-
             document.getElementById('videoContainer').style.display = 'none';
             document.getElementById('incomingCallModal').style.display = 'none';
+
+            socket.emit('hangup', { to: contactEmail });
         }
         // function toggleMic() { const audioTrack = localStream.getAudioTracks()[0]; audioTrack.enabled = !audioTrack.enabled; document.querySelector('.toggle-mic').classList.toggle('btn-off', !audioTrack.enabled); }
         function toggleMic() {
@@ -998,14 +971,70 @@
                 document.body.style.height = window.visualViewport.height + "px";
             });
         }
-        function startAudioCall() {
-            alert("Audio call feature not implemented yet");
-            // You can reuse WebRTC without video here
+        async function startAudioCall() {
+            try {
+                document.getElementById('videoContainer').style.display = 'flex';
+                document.getElementById('callStatus').innerText = "Calling (Audio)...";
+
+                playOutgoingRing();
+
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    audio: true,
+                    video: false
+                });
+
+                // Hide local video
+                document.getElementById('localVideo').style.display = 'none';
+
+                createPeerConnection();
+
+                localStream.getTracks().forEach(track =>
+                    peerConnection.addTrack(track, localStream)
+                );
+
+                const offer = await peerConnection.createOffer();
+                await peerConnection.setLocalDescription(offer);
+
+                socket.emit('call-user', {
+                    to: contactEmail,
+                    offer,
+                    from: myEmail,
+                    name: myUsername,
+                    type: "audio"
+                });
+
+            } catch (err) {
+                console.error(err);
+                alert("Mic error");
+                endVideoCall();
+            }
         }
 
         function openUserInfo() {
-            alert("User info panel coming soon");
-            // Open modal or redirect
+            alert(`Name: ${contactName}\nEmail: ${contactEmail}`);
+        }
+        function playOutgoingRing() {
+            const audio = document.getElementById('outgoingRing');
+            audio.currentTime = 0;
+            audio.play().catch(() => { });
+        }
+
+        function stopOutgoingRing() {
+            const audio = document.getElementById('outgoingRing');
+            audio.pause();
+            audio.currentTime = 0;
+        }
+
+        function playIncomingRing() {
+            const audio = document.getElementById('incomingRing');
+            audio.currentTime = 0;
+            audio.play().catch(() => { });
+        }
+
+        function stopIncomingRing() {
+            const audio = document.getElementById('incomingRing');
+            audio.pause();
+            audio.currentTime = 0;
         }
     </script>
 </body>
