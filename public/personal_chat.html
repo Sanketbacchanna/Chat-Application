@@ -568,10 +568,24 @@
             </div>
         </div>
     </div>
+    <audio id="outgoingRing" loop>
+        <source src="https://actions.google.com/sounds/v1/alarms/phone_alerts_and_rings.ogg" type="audio/ogg">
+    </audio>
+
+    <audio id="incomingRing" loop>
+        <source src="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg" type="audio/ogg">
+    </audio>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
+        document.addEventListener('click', () => {
+            document.getElementById('outgoingRing').play().then(() => {
+                document.getElementById('outgoingRing').pause();
+                document.getElementById('outgoingRing').currentTime = 0;
+            }).catch(() => { });
+        }, { once: true });
+
         const urlParams = new URLSearchParams(window.location.search);
         const contactName = urlParams.get('user') || 'Contact';
         const contactEmail = urlParams.get('email');
@@ -589,7 +603,12 @@
         let remoteStream;
         let peerConnection;
         let incomingCallData = null;
-        const servers = { iceServers: [{ urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }] };
+        // const servers = { vers: [{ urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }] };
+        const servers = {
+            iceServers: [
+                { urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }
+            ]
+        };
 
         // Session & Room Setup
         fetch('/api/me').then(res => res.json()).then(user => {
@@ -670,40 +689,241 @@
         }
 
         // --- WebRTC Logic (Keep existing) ---
-        async function startVideoCall() {
+        // async function startVideoCall() {
+        //     try {
+        //         document.getElementById('videoContainer').style.display = 'flex';
+        //         document.getElementById('callStatus').innerText = "Requesting camera...";
+        //         localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        //         document.getElementById('localVideo').srcObject = localStream;
+        //         createPeerConnection();
+        //         localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+        //         const offer = await peerConnection.createOffer();
+        //         await peerConnection.setLocalDescription(offer);
+        //         socket.emit('call-user', { to: contactEmail, offer: offer, from: myEmail, name: myUsername });
+        //         document.getElementById('callStatus').innerText = "Calling " + contactName + "...";
+        //     } catch (err) { console.error(err); alert("Could not access camera/mic"); endVideoCall(); }
+        // }
+
+        function startVideoCall() {
             try {
                 document.getElementById('videoContainer').style.display = 'flex';
                 document.getElementById('callStatus').innerText = "Requesting camera...";
-                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                document.getElementById('localVideo').srcObject = localStream;
-                createPeerConnection();
-                localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-                const offer = await peerConnection.createOffer();
-                await peerConnection.setLocalDescription(offer);
-                socket.emit('call-user', { to: contactEmail, offer: offer, from: myEmail, name: myUsername });
-                document.getElementById('callStatus').innerText = "Calling " + contactName + "...";
-            } catch (err) { console.error(err); alert("Could not access camera/mic"); endVideoCall(); }
+
+                // 🔊 START OUTGOING RING
+                document.getElementById('outgoingRing').play();
+
+                navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                    .then(stream => {
+                        localStream = stream;
+                        document.getElementById('localVideo').srcObject = localStream;
+
+                        createPeerConnection();
+                        localStream.getTracks().forEach(track =>
+                            peerConnection.addTrack(track, localStream)
+                        );
+
+                        return peerConnection.createOffer();
+                    })
+                    .then(offer => {
+                        return peerConnection.setLocalDescription(offer).then(() => offer);
+                    })
+                    .then(offer => {
+                        socket.emit('call-user', {
+                            to: contactEmail,
+                            offer: offer,
+                            from: myEmail,
+                            name: myUsername
+                        });
+
+                        document.getElementById('callStatus').innerText =
+                            "Calling " + contactName + "...";
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert("Could not access camera/mic");
+                        endVideoCall();
+                    });
+
+            } catch (err) {
+                console.error(err);
+            }
         }
+
+        // function createPeerConnection() {
+        //     peerConnection = new RTCPeerConnection(servers);
+        //     remoteStream = new MediaStream();
+        //     document.getElementById('remoteVideo').srcObject = remoteStream;
+        //     // peerConnection.ontrack = (event) => { event.streams[0].getTracks().forEach(track => remoteStream.addTrack(track));
+        //     peerConnection.ontrack = (event) => {
+        //         document.getElementById('remoteVideo').srcObject = event.streams[0];
+        //         document.getElementById('callStatus').innerText = "In Call";
+        //     };
+        //     document.getElementById('callStatus').innerText = "In Call";
+        // };
+        // peerConnection.onicecandidate = (event) => { if (event.candidate) { socket.emit('ice-candidate', { to: contactEmail, candidate: event.candidate }); } };
+        // peerConnection.oniceconnectionstatechange = () => { if (peerConnection.iceConnectionState === 'disconnected') endVideoCall(); };
 
         function createPeerConnection() {
             peerConnection = new RTCPeerConnection(servers);
+
             remoteStream = new MediaStream();
             document.getElementById('remoteVideo').srcObject = remoteStream;
-            peerConnection.ontrack = (event) => { event.streams[0].getTracks().forEach(track => remoteStream.addTrack(track)); document.getElementById('callStatus').innerText = "In Call"; };
-            peerConnection.onicecandidate = (event) => { if (event.candidate) { socket.emit('ice-candidate', { to: contactEmail, candidate: event.candidate }); } };
-            peerConnection.oniceconnectionstatechange = () => { if (peerConnection.iceConnectionState === 'disconnected') endVideoCall(); };
+
+            peerConnection.ontrack = (event) => {
+                event.streams[0].getTracks().forEach(track => {
+                    remoteStream.addTrack(track);
+                });
+                document.getElementById('callStatus').innerText = "In Call";
+            };
+
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    socket.emit('ice-candidate', {
+                        to: contactEmail,
+                        candidate: event.candidate
+                    });
+                }
+            };
+
+            peerConnection.oniceconnectionstatechange = () => {
+                if (peerConnection.iceConnectionState === 'disconnected') {
+                    endVideoCall();
+                }
+            };
         }
 
-        socket.on('video-offer', async (data) => { incomingCallData = data; document.getElementById('callerName').innerText = data.name + " is calling..."; document.getElementById('callerAvatar').innerText = data.name.charAt(0).toUpperCase(); document.getElementById('incomingCallModal').style.display = 'flex'; });
-        async function acceptCall() { document.getElementById('incomingCallModal').style.display = 'none'; document.getElementById('videoContainer').style.display = 'flex'; try { localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true }); document.getElementById('localVideo').srcObject = localStream; createPeerConnection(); localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream)); await peerConnection.setRemoteDescription(new RTCSessionDescription(incomingCallData.offer)); const answer = await peerConnection.createAnswer(); await peerConnection.setLocalDescription(answer); socket.emit('make-answer', { to: incomingCallData.from, answer: answer }); } catch (err) { console.error(err); alert("Error answering call"); endVideoCall(); } }
-        function rejectCall() { document.getElementById('incomingCallModal').style.display = 'none'; socket.emit('reject-call', { to: incomingCallData.from }); incomingCallData = null; }
-        socket.on('video-answer', async (data) => { await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer)); });
+
+        socket.on('video-offer', async (data) => {
+            incomingCallData = data;
+
+            document.getElementById('callerName').innerText =
+                data.name + " is calling...";
+            document.getElementById('callerAvatar').innerText =
+                data.name.charAt(0).toUpperCase();
+
+            document.getElementById('incomingCallModal').style.display = 'flex';
+
+            // 🔊 PLAY INCOMING RING
+            document.getElementById('incomingRing').play();
+        });
+        // socket.on('video-offer', async (data) => { incomingCallData = data; document.getElementById('callerName').innerText = data.name + " is calling..."; document.getElementById('callerAvatar').innerText = data.name.charAt(0).toUpperCase(); document.getElementById('incomingCallModal').style.display = 'flex'; });
+        // async function acceptCall() {
+        //     document.getElementById('incomingCallModal').style.display = 'none'; document.getElementById('videoContainer').style.display = 'flex'; try { localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true }); document.getElementById('localVideo').srcObject = localStream; createPeerConnection(); localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream)); await peerConnection.setRemoteDescription(new RTCSessionDescription(incomingCallData.offer)); const answer = await peerConnection.createAnswer(); await peerConnection.setLocalDescription(answer); socket.emit('make-answer', { to: incomingCallData.from, answer: answer }); } catch (err) {
+        //         console.error(err); alert("Error answering call"); endVideoCall(); document.getElementById('incomingRing').pause();
+        //         document.getElementById('incomingRing').currentTime = 0;
+        //     }
+        // }
+        async function acceptCall() {
+            // 🔇 STOP INCOMING RING
+            document.getElementById('incomingRing').pause();
+            document.getElementById('incomingRing').currentTime = 0;
+
+            document.getElementById('incomingCallModal').style.display = 'none';
+            document.getElementById('videoContainer').style.display = 'flex';
+
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                document.getElementById('localVideo').srcObject = localStream;
+
+                createPeerConnection();
+                localStream.getTracks().forEach(track =>
+                    peerConnection.addTrack(track, localStream)
+                );
+
+                await peerConnection.setRemoteDescription(
+                    new RTCSessionDescription(incomingCallData.offer)
+                );
+
+                const answer = await peerConnection.createAnswer();
+                await peerConnection.setLocalDescription(answer);
+
+                socket.emit('make-answer', {
+                    to: incomingCallData.from,
+                    answer: answer
+                });
+
+            } catch (err) {
+                console.error(err);
+                alert("Error answering call");
+                endVideoCall();
+            }
+        }
+        function rejectCall() { // 🔇 STOP ALL RINGING
+            document.getElementById('outgoingRing').pause();
+            document.getElementById('outgoingRing').currentTime = 0;
+
+            document.getElementById('incomingRing').pause();
+            document.getElementById('incomingRing').currentTime = 0;
+            document.getElementById('incomingCallModal').style.display = 'none'; socket.emit('reject-call', { to: incomingCallData.from }); incomingCallData = null;
+        }
+        // socket.on('video-answer', async (data) => { await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer)); });
+        socket.on('video-answer', async (data) => {
+            await peerConnection.setRemoteDescription(
+                new RTCSessionDescription(data.answer)
+            );
+
+            // 🔇 STOP OUTGOING RING
+            document.getElementById('outgoingRing').pause();
+            document.getElementById('outgoingRing').currentTime = 0;
+        });
         socket.on('ice-candidate', async (data) => { if (peerConnection) { try { await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate)); } catch (e) { console.warn(e); } } });
         socket.on('call-rejected', () => { alert("Call rejected"); endVideoCall(); });
         socket.on('video-hangup', () => { endVideoCall(); });
-        function endVideoCall() { if (peerConnection) { peerConnection.close(); peerConnection = null; } if (localStream) { localStream.getTracks().forEach(track => track.stop()); localStream = null; } socket.emit('hangup', { to: contactEmail }); document.getElementById('videoContainer').style.display = 'none'; document.getElementById('incomingCallModal').style.display = 'none'; }
-        function toggleMic() { const audioTrack = localStream.getAudioTracks()[0]; audioTrack.enabled = !audioTrack.enabled; document.querySelector('.toggle-mic').classList.toggle('btn-off', !audioTrack.enabled); }
-        function toggleVideo() { const videoTrack = localStream.getVideoTracks()[0]; videoTrack.enabled = !videoTrack.enabled; document.querySelector('.toggle-video').classList.toggle('btn-off', !videoTrack.enabled); }
+        // function endVideoCall() { if (peerConnection) { peerConnection.close(); peerConnection = null; } if (localStream) { localStream.getTracks().forEach(track => track.stop()); localStream = null; } socket.emit('hangup', { to: contactEmail }); document.getElementById('videoContainer').style.display = 'none'; document.getElementById('incomingCallModal').style.display = 'none'; }
+        function endVideoCall() {
+            console.log("Cleaning call");
+
+            if (peerConnection) {
+                peerConnection.ontrack = null;
+                peerConnection.onicecandidate = null;
+                peerConnection.oniceconnectionstatechange = null;
+
+                peerConnection.getSenders().forEach(sender => {
+                    if (sender.track) sender.track.stop();
+                });
+
+                peerConnection.close();
+                peerConnection = null;
+            }
+
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+
+            if (remoteStream) {
+                remoteStream.getTracks().forEach(track => track.stop());
+                remoteStream = null;
+            }
+
+            document.getElementById('localVideo').srcObject = null;
+            document.getElementById('remoteVideo').srcObject = null;
+
+            socket.emit('hangup', { to: contactEmail });
+
+            document.getElementById('videoContainer').style.display = 'none';
+            document.getElementById('incomingCallModal').style.display = 'none';
+        }
+        // function toggleMic() { const audioTrack = localStream.getAudioTracks()[0]; audioTrack.enabled = !audioTrack.enabled; document.querySelector('.toggle-mic').classList.toggle('btn-off', !audioTrack.enabled); }
+        function toggleMic() {
+            if (!localStream) return;
+            const audioTrack = localStream.getAudioTracks()[0];
+            if (!audioTrack) return;
+
+            audioTrack.enabled = !audioTrack.enabled;
+            document.querySelector('.toggle-mic')
+                .classList.toggle('btn-off', !audioTrack.enabled);
+        }
+        // function toggleVideo() { const videoTrack = localStream.getVideoTracks()[0]; videoTrack.enabled = !videoTrack.enabled; document.querySelector('.toggle-video').classList.toggle('btn-off', !videoTrack.enabled); }
+        function toggleVideo() {
+            if (!localStream) return;
+            const videoTrack = localStream.getVideoTracks()[0];
+            if (!videoTrack) return;
+
+            videoTrack.enabled = !videoTrack.enabled;
+            document.querySelector('.toggle-video')
+                .classList.toggle('btn-off', !videoTrack.enabled);
+        }
         function toggleEmojiPicker() { const p = document.getElementById('emojiPicker'); p.style.display = p.style.display === 'grid' ? 'none' : 'grid'; }
         function addEmoji(e) { document.getElementById('message').value += e; toggleEmojiPicker(); }
 
