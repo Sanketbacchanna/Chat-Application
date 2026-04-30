@@ -747,6 +747,16 @@
             } catch (err) {
                 console.error(err);
             }
+            socket.on('video-answer', async (data) => {
+                await peerConnection.setRemoteDescription(
+                    new RTCSessionDescription(data.answer)
+                );
+
+                // 🔇 STOP OUTGOING RING (CALL CONNECTED)
+                const outgoing = document.getElementById('outgoingRing');
+                outgoing.pause();
+                outgoing.currentTime = 0;
+            });
         }
 
         // function createPeerConnection() {
@@ -764,6 +774,12 @@
         // peerConnection.oniceconnectionstatechange = () => { if (peerConnection.iceConnectionState === 'disconnected') endVideoCall(); };
 
         function createPeerConnection() {
+
+            if (peerConnection) {
+                try { peerConnection.close(); } catch (e) { }
+                peerConnection = null;
+            }
+
             peerConnection = new RTCPeerConnection(servers);
 
             remoteStream = new MediaStream();
@@ -794,6 +810,7 @@
 
 
         socket.on('video-offer', async (data) => {
+            if (data.to !== myEmail) return; // 🔥 ONLY RECEIVER
             incomingCallData = data;
 
             document.getElementById('callerName').innerText =
@@ -815,8 +832,9 @@
         // }
         async function acceptCall() {
             // 🔇 STOP INCOMING RING
-            document.getElementById('incomingRing').pause();
-            document.getElementById('incomingRing').currentTime = 0;
+            const incoming = document.getElementById('incomingRing');
+            incoming.pause();
+            incoming.currentTime = 0;
 
             document.getElementById('incomingCallModal').style.display = 'none';
             document.getElementById('videoContainer').style.display = 'flex';
@@ -826,6 +844,7 @@
                 document.getElementById('localVideo').srcObject = localStream;
 
                 createPeerConnection();
+
                 localStream.getTracks().forEach(track =>
                     peerConnection.addTrack(track, localStream)
                 );
@@ -869,9 +888,25 @@
         socket.on('ice-candidate', async (data) => { if (peerConnection) { try { await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate)); } catch (e) { console.warn(e); } } });
         socket.on('call-rejected', () => { alert("Call rejected"); endVideoCall(); });
         socket.on('video-hangup', () => { endVideoCall(); });
+
         // function endVideoCall() { if (peerConnection) { peerConnection.close(); peerConnection = null; } if (localStream) { localStream.getTracks().forEach(track => track.stop()); localStream = null; } socket.emit('hangup', { to: contactEmail }); document.getElementById('videoContainer').style.display = 'none'; document.getElementById('incomingCallModal').style.display = 'none'; }
         function endVideoCall() {
             console.log("Cleaning call");
+
+
+            // 🔇 STOP ALL SOUNDS
+            const outgoing = document.getElementById('outgoingRing');
+            const incoming = document.getElementById('incomingRing');
+
+            if (outgoing) {
+                outgoing.pause();
+                outgoing.currentTime = 0;
+            }
+
+            if (incoming) {
+                incoming.pause();
+                incoming.currentTime = 0;
+            }
 
             if (peerConnection) {
                 peerConnection.ontrack = null;
