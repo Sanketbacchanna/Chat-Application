@@ -59,7 +59,10 @@
             display: flex;
             align-items: center;
             box-shadow: 0 1px 15px rgba(0, 0, 0, 0.05);
-            z-index: 100;
+            position: relative;
+            z-index: 2000;
+
+            /*changed by me */
             height: 70px;
             flex-shrink: 0;
         }
@@ -145,6 +148,8 @@
             min-height: 0;
             scroll-behavior: smooth;
             padding-bottom: 90px;
+            position: relative;
+            z-index: 1;
             /* height of input bar */
         }
 
@@ -227,6 +232,7 @@
             bottom: 0;
             left: 0;
             right: 0;
+            pointer-events: auto;
         }
 
         .input-wrapper {
@@ -503,8 +509,8 @@
         </div>
         <div class="header-actions">
             <button class="action-icon" onclick="startVideoCall()" title="Video Call">📹</button>
-            <button class="action-icon" title="Call">📞</button>
-            <button class="action-icon" title="More Info">ℹ️</button>
+            <button class="action-icon" onclick="startAudioCall()" title="Call">📞</button>
+            <button class="action-icon" onclick="openUserInfo()" title="More Info">ℹ️</button>
         </div>
     </div>
 
@@ -736,6 +742,15 @@
             window.visualViewport.addEventListener("resize", () => {
                 document.body.style.height = window.visualViewport.height + "px";
             });
+        }
+        function startAudioCall() {
+            alert("Audio call feature not implemented yet");
+            // You can reuse WebRTC without video here
+        }
+
+        function openUserInfo() {
+            alert("User info panel coming soon");
+            // Open modal or redirect
         }
     </script>
 </body>
