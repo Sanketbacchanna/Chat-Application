@@ -601,6 +601,7 @@
                     <div class="dropdown-menu" id="dropdownMenu">
                         <a href="profile.html">👤 My Profile</a>
                         <a href="Chats.html">💬 My Friends</a>
+                        <p id="user-email"></p>
                         <div id="removedFriendsSection"
                             style="padding: 10px; border-top: 1px solid #edf2f7; display:none;">
                             <p
@@ -610,7 +611,8 @@
                         </div>
                         <button id="installApp" onclick="installPWA()" style="display: none;">📲 Install App</button>
                         <hr style="border: 0; border-top: 1px solid #edf2f7; margin: 8px 0; width: 100%;">
-                        <a href="/logout" style="color: #f56565;">🚪 Logout</a>
+                        <a href="/logout" onclick="logout()" style="color: #f56565;">🚪 Logout</a>
+
                     </div>
                 </div>
             </div>
@@ -645,7 +647,23 @@
 
     <script>
         const socket = io();
+        // Add this to homepage.html
 
+        const savedUser = localStorage.getItem("chatUser");
+
+        if (!savedUser) {
+            window.location.href = "/login.html";
+        }
+
+        const userDisplay = document.getElementById("user-email");
+        if (userDisplay) {
+            userDisplay.textContent = "Logged in as: " + savedUser;
+        }
+
+        function logout() {
+            localStorage.removeItem("chatUser");
+            window.location.href = "/login.html";
+        }
         // Smooth transition from loader
         window.addEventListener('load', () => {
             setTimeout(() => {

@@ -235,6 +235,7 @@
         }
 
         // Replace your current form submit script with this:
+        // REPLACE your current login success block with this improved version
 
         document.querySelector("form").addEventListener("submit", async function (e) {
             e.preventDefault();
@@ -254,19 +255,18 @@
                     })
                 });
 
-                // If login successful, server may redirect
-                if (response.redirected) {
+                if (response.ok) {
+                    // Save user session
                     localStorage.setItem("chatUser", email);
-                    window.location.href = response.url;
-                } else {
-                    const text = await response.text();
 
-                    if (text.includes("Invalid") || text.includes("error")) {
-                        alert("Invalid email or password");
+                    // Redirect properly
+                    if (response.redirected) {
+                        window.location.href = response.url;
                     } else {
-                        localStorage.setItem("chatUser", email);
                         window.location.href = "/homepage.html";
                     }
+                } else {
+                    alert("Invalid email or password");
                 }
 
             } catch (error) {
