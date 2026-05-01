@@ -231,7 +231,7 @@
         const savedUser = localStorage.getItem("chatUser");
 
         if (savedUser) {
-            window.location.href = "/homepage";
+            window.location.href = "/homepage.html";
         }
 
         // Replace your current form submit script with this:
@@ -265,7 +265,7 @@
                         alert("Invalid email or password");
                     } else {
                         localStorage.setItem("chatUser", email);
-                        window.location.href = "/homepage";
+                        window.location.href = "/homepage.html";
                     }
                 }
 
