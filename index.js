@@ -264,18 +264,18 @@ app.post('/api/accept-friend', (req, res) => {
     const updateSQL = "UPDATE friend_requests SET status='accepted' WHERE requester_email=? AND receiver_email=?";
     database.query(updateSQL, [requester_email, receiver_email], (err) => {
         if (err) return res.status(500).json({ error: "Failed to accept" });
-        
+
         // Insert into friends table for both sides
         const insertFriend = "INSERT IGNORE INTO friends (user_email, friend_email, friend_name) VALUES (?, ?, ?), (?, ?, ?)";
         database.query(insertFriend, [
-            requester_email, receiver_email, receiver_name, 
+            requester_email, receiver_email, receiver_name,
             receiver_email, requester_email, requester_name
         ], (err2) => {
             if (err2) {
                 console.error("❌ Error adding to friends table:", err2);
                 return res.status(500).json({ error: "Failed to add friend" });
             }
-            
+
             // Notify requester if online
             const socketId = userSockets[requester_email];
             if (socketId) {
@@ -368,10 +368,10 @@ app.post('/api/remove-friend', (req, res) => {
             console.error("❌ DB Error removing friend:", err);
             return res.status(500).json({ error: "Failed to remove friend" });
         }
-        
+
         // Also remove reciprocal
         database.query("DELETE FROM friends WHERE user_email = ? AND friend_email = ?", [friend_email, user_email]);
-        
+
         // Add to removed_friends list
         const logSQL = "INSERT IGNORE INTO removed_friends (user_email, friend_email, friend_name) VALUES (?, ?, ?)";
         database.query(logSQL, [user_email, friend_email, friend_name || 'User'], (err2) => {
@@ -401,7 +401,7 @@ app.post('/api/restore-friend', (req, res) => {
     if (!req.session.user) return res.status(401).json({ error: "Unauthorized" });
     const { friend_email } = req.body;
     const user_email = req.session.user.email;
-    
+
     const SQL_COMMAND = "DELETE FROM removed_friends WHERE user_email = ? AND friend_email = ?";
     database.query(SQL_COMMAND, [user_email, friend_email], (err) => {
         if (err) return res.status(500).json({ error: "Failed to restore" });
@@ -459,6 +459,63 @@ app.post('/reset-password', (req, res) => {
 
 // 🔥 Socket.io logic
 io.on('connection', (socket) => {
+    // --- WebRTC Signaling ---
+    socket.on('call-user', (data) => {
+        const { to, offer, from, name, type } = data;
+        const targetSocketId = userSockets[to.toLowerCase()];
+
+        if (targetSocketId) {
+            io.to(targetSocketId).emit('video-offer', {
+                offer,
+                from,
+                name,
+                type
+            });
+        }
+    });
+
+    socket.on('make-answer', (data) => {
+        const { to, answer } = data;
+        const targetSocketId = userSockets[to.toLowerCase()];
+
+        if (targetSocketId) {
+            io.to(targetSocketId).emit('video-answer', {
+                answer,
+                from: socket.request.session.user.email
+            });
+        }
+    });
+
+    socket.on('ice-candidate', (data) => {
+        const { to, candidate } = data;
+        const targetSocketId = userSockets[to.toLowerCase()];
+
+        if (targetSocketId) {
+            io.to(targetSocketId).emit('ice-candidate', {
+                candidate,
+                from: socket.request.session.user.email
+            });
+        }
+    });
+
+    socket.on('reject-call', (data) => {
+        const { to } = data;
+        const targetSocketId = userSockets[to.toLowerCase()];
+
+        if (targetSocketId) {
+            io.to(targetSocketId).emit('call-rejected');
+        }
+    });
+
+    socket.on('hangup', (data) => {
+        const { to } = data;
+        const targetSocketId = userSockets[to.toLowerCase()];
+
+        if (targetSocketId) {
+            io.to(targetSocketId).emit('video-hangup');
+        }
+    });
+    // till here i added the peice of code
     // Session tracking
     if (socket.request.session && socket.request.session.user) {
         const email = socket.request.session.user.email.toLowerCase();
@@ -523,9 +580,10 @@ io.on('connection', (socket) => {
         const targetSocketId = userSockets[to.toLowerCase()];
         if (targetSocketId) {
             io.to(targetSocketId).emit('video-offer', {
-                offer: offer,
-                from: from,
-                name: name
+                offer,
+                from,
+                name,
+                type
             });
         }
     });
