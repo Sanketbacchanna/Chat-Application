@@ -9,7 +9,8 @@
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#6b73ff">
     <link rel="icon" type="image/png" href="/icons/icon-192.png">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
     <script src="/socket.io/socket.io.js"></script>
     <style>
         :root {
@@ -22,7 +23,8 @@
         }
 
         /* Basic Reset */
-        body, html {
+        body,
+        html {
             margin: 0;
             padding: 0;
             height: 100%;
@@ -39,7 +41,8 @@
             left: 0;
             width: 100%;
             height: 100vh;
-            background: #000000; /* Sleek pure black */
+            background: #000000;
+            /* Sleek pure black */
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -67,7 +70,8 @@
             position: absolute;
             width: 60px;
             height: 60px;
-            background: rgba(255, 255, 255, 0.05); /* Very subtle white */
+            background: rgba(255, 255, 255, 0.05);
+            /* Very subtle white */
             -webkit-backdrop-filter: blur(5px);
             backdrop-filter: blur(5px);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -80,27 +84,65 @@
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
         }
 
-        .avatar-anim:nth-child(1) { top: 0; left: 70px; animation: orbit 4s linear infinite; }
-        .avatar-anim:nth-child(2) { bottom: 0; left: 70px; animation: orbit 4s linear infinite reverse; }
-        .avatar-anim:nth-child(3) { left: 0; top: 70px; animation: orbit 4s linear infinite; animation-delay: -1s; }
-        .avatar-anim:nth-child(4) { right: 0; top: 70px; animation: orbit 4s linear infinite; animation-delay: -2s; }
+        .avatar-anim:nth-child(1) {
+            top: 0;
+            left: 70px;
+            animation: orbit 4s linear infinite;
+        }
+
+        .avatar-anim:nth-child(2) {
+            bottom: 0;
+            left: 70px;
+            animation: orbit 4s linear infinite reverse;
+        }
+
+        .avatar-anim:nth-child(3) {
+            left: 0;
+            top: 70px;
+            animation: orbit 4s linear infinite;
+            animation-delay: -1s;
+        }
+
+        .avatar-anim:nth-child(4) {
+            right: 0;
+            top: 70px;
+            animation: orbit 4s linear infinite;
+            animation-delay: -2s;
+        }
 
         @keyframes orbit {
-            from { transform: rotate(0deg) translateX(80px) rotate(0deg); }
-            to { transform: rotate(360deg) translateX(80px) rotate(-360deg); }
+            from {
+                transform: rotate(0deg) translateX(80px) rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg) translateX(80px) rotate(-360deg);
+            }
         }
 
         @keyframes pulse {
-            0% { transform: scale(1); opacity: 0.8; }
-            50% { transform: scale(1.05); opacity: 1; }
-            100% { transform: scale(1); opacity: 0.8; }
+            0% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+
+            50% {
+                transform: scale(1.05);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
         }
 
         /* Main Dashboard Content */
         #homepage {
             opacity: 0;
             transition: opacity 1s ease;
-            padding-top: 80px; /* Navbar space */
+            padding-top: 80px;
+            /* Navbar space */
         }
 
         nav {
@@ -206,7 +248,7 @@
             right: 0;
             background: white;
             border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             display: none;
             flex-direction: column;
             min-width: 220px;
@@ -215,7 +257,8 @@
             z-index: 1001;
         }
 
-        .dropdown-menu a, .dropdown-menu button {
+        .dropdown-menu a,
+        .dropdown-menu button {
             padding: 14px 16px;
             text-decoration: none;
             color: var(--text-main);
@@ -232,7 +275,8 @@
             gap: 12px;
         }
 
-        .dropdown-menu a:hover, .dropdown-menu button:hover {
+        .dropdown-menu a:hover,
+        .dropdown-menu button:hover {
             background: #f8f9fd;
             color: var(--accent-color);
         }
@@ -376,25 +420,58 @@
         }
 
         @media (max-width: 768px) {
-            nav { width: 96%; left: 2%; padding: 0 15px; height: 70px; top: 10px; border-radius: 20px; }
-            .search-container { margin: 0 10px; }
-            .logo span { display: none; } /* Hide text logo on small screens to save space */
-            header h1 { font-size: 28px; }
-            .project-grid { 
-                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); 
+            nav {
+                width: 96%;
+                left: 2%;
+                padding: 0 15px;
+                height: 70px;
+                top: 10px;
+                border-radius: 20px;
+            }
+
+            .search-container {
+                margin: 0 10px;
+            }
+
+            .logo span {
+                display: none;
+            }
+
+            /* Hide text logo on small screens to save space */
+            header h1 {
+                font-size: 28px;
+            }
+
+            .project-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
                 gap: 15px;
                 padding: 0 15px 100px;
             }
-            .project { padding: 20px 15px; }
-            .avatar-placeholder { width: 70px; height: 70px; font-size: 24px; }
+
+            .project {
+                padding: 20px 15px;
+            }
+
+            .avatar-placeholder {
+                width: 70px;
+                height: 70px;
+                font-size: 24px;
+            }
         }
 
         @media (max-width: 480px) {
-            header h1 { font-size: 24px; }
-            .project-grid { 
-                grid-template-columns: 1fr; 
+            header h1 {
+                font-size: 24px;
             }
-            .dropdown-menu { width: calc(100vw - 40px); right: -10px; }
+
+            .project-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .dropdown-menu {
+                width: calc(100vw - 40px);
+                right: -10px;
+            }
         }
 
         /* PWA Install Banner */
@@ -407,15 +484,23 @@
             padding: 25px;
             border-radius: 24px;
             box-shadow: 0 20px 40px rgba(255, 69, 0, 0.3);
-            display: none; /* Hidden by default */
+            display: none;
+            /* Hidden by default */
             z-index: 9999;
             width: 350px;
             animation: slideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         @keyframes slideIn {
-            from { transform: translateY(100px) scale(0.8); opacity: 0; }
-            to { transform: translateY(0) scale(1); opacity: 1; }
+            from {
+                transform: translateY(100px) scale(0.8);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
         }
 
         .pwa-banner-header {
@@ -456,7 +541,9 @@
             transition: 0.2s;
         }
 
-        .close-pwa:hover { opacity: 1; }
+        .close-pwa:hover {
+            opacity: 1;
+        }
 
         .pwa-btn {
             background: white;
@@ -491,10 +578,10 @@
     <div class="scene" id="animation-scene">
         <div class="loader-logo">CWM</div>
         <div class="avatar-cluster">
-            <div class="avatar-anim">A</div>
-            <div class="avatar-anim">B</div>
             <div class="avatar-anim">C</div>
-            <div class="avatar-anim">D</div>
+            <div class="avatar-anim">W</div>
+            <div class="avatar-anim">M</div>
+            <!-- <div class="avatar-anim">D</div> -->
         </div>
         <p style="color: white; margin-top: 40px; font-weight: 300; opacity: 0.8;">Connecting you to the world...</p>
     </div>
@@ -514,8 +601,11 @@
                     <div class="dropdown-menu" id="dropdownMenu">
                         <a href="profile.html">👤 My Profile</a>
                         <a href="Chats.html">💬 My Friends</a>
-                        <div id="removedFriendsSection" style="padding: 10px; border-top: 1px solid #edf2f7; display:none;">
-                            <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; font-weight: 700;">Removed Friends</p>
+                        <div id="removedFriendsSection"
+                            style="padding: 10px; border-top: 1px solid #edf2f7; display:none;">
+                            <p
+                                style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; font-weight: 700;">
+                                Removed Friends</p>
                             <div id="removedFriendsList"></div>
                         </div>
                         <button id="installApp" onclick="installPWA()" style="display: none;">📲 Install App</button>
@@ -534,23 +624,23 @@
         <section id="projects">
             <div class="project-grid" id="projectGrid">
                 <!-- Users will be dynamically loaded here -->
-        </div>
-        <div id="friendRequestsContainer" style="position:fixed;top:90px;right:20px;z-index:2000;max-width:300px;">
-            <!-- Friend request notifications will be injected here -->
-        </div>
-
-        <!-- PWA Install Banner -->
-        <div id="pwaBanner" class="pwa-banner">
-            <div class="pwa-banner-header">
-                <div class="pwa-icon">📥</div>
-                <div class="pwa-title">
-                    <h2>Install Our App</h2>
-                    <p>Get quick access and stay connected with your friends faster!</p>
-                </div>
-                <div class="close-pwa" onclick="closePWABanner()">✕</div>
             </div>
-            <button class="pwa-btn" onclick="installPWA()">Install Now</button>
-        </div>
+            <div id="friendRequestsContainer" style="position:fixed;top:90px;right:20px;z-index:2000;max-width:300px;">
+                <!-- Friend request notifications will be injected here -->
+            </div>
+
+            <!-- PWA Install Banner -->
+            <div id="pwaBanner" class="pwa-banner">
+                <div class="pwa-banner-header">
+                    <div class="pwa-icon">📥</div>
+                    <div class="pwa-title">
+                        <h2>Install Our App</h2>
+                        <p>Get quick access and stay connected with your friends faster!</p>
+                    </div>
+                    <div class="close-pwa" onclick="closePWABanner()">✕</div>
+                </div>
+                <button class="pwa-btn" onclick="installPWA()">Install Now</button>
+            </div>
     </div>
 
     <script>
@@ -604,7 +694,7 @@
                 });
             } catch (e) { console.error('Error loading friend requests', e); }
         }
-        
+
         async function acceptFriend(email, name) {
             try {
                 const res = await fetch('/api/accept-friend', {
@@ -620,7 +710,7 @@
                 }
             } catch (e) { console.error(e); }
         }
-        
+
         // Initialize friend request loading and socket listeners
         loadFriendRequests();
         socket.on('friend request', data => {
@@ -653,7 +743,7 @@
                     fetch('/api/sent-requests'),
                     fetch('/api/removed-friends')
                 ]);
-                
+
                 if (meRes.ok) currentUser = await meRes.json();
                 if (friendsRes.ok) friends = await friendsRes.json();
                 if (sentRes.ok) sentRequests = await sentRes.json();
@@ -677,11 +767,11 @@
 
                     const isFriend = friends.some(f => f.friend_email === user.email_id);
                     const isPending = sentRequests.includes(user.email_id);
-                    
+
                     const projectDiv = document.createElement('div');
                     projectDiv.className = 'project';
                     projectDiv.dataset.email = user.email_id;
-                    
+
                     let buttonHTML = '';
                     if (isFriend) {
                         buttonHTML = `<button class="btn-chat" onclick="goToChat('${user.UserName}', '${user.email_id}')">Start Chat</button>`;
@@ -720,7 +810,7 @@
                 const removed = await res.json();
                 const section = document.getElementById('removedFriendsSection');
                 const list = document.getElementById('removedFriendsList');
-                
+
                 if (removed.length > 0) {
                     section.style.display = 'block';
                     list.innerHTML = removed.map(u => `
@@ -774,32 +864,32 @@
         }
 
         async function handleAddFriend(button) {
-    const card = button.closest('.project');
-    const name = card.querySelector('h3').textContent;
-    const email = card.dataset.email;
+            const card = button.closest('.project');
+            const name = card.querySelector('h3').textContent;
+            const email = card.dataset.email;
 
-    button.disabled = true;
-    button.textContent = "Requesting...";
+            button.disabled = true;
+            button.textContent = "Requesting...";
 
-    try {
-        const res = await fetch('/api/request-friend', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ friend_email: email, friend_name: name })
-        });
-        if (res.ok) {
-            button.parentElement.innerHTML = `<button class="btn-chat" onclick="goToChat('${name}', '${email}')">Start Chat</button>`;
-        } else {
-            button.disabled = false;
-            button.textContent = "Add Friend";
-            alert('Failed to send friend request');
+            try {
+                const res = await fetch('/api/request-friend', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ friend_email: email, friend_name: name })
+                });
+                if (res.ok) {
+                    button.parentElement.innerHTML = `<button class="btn-chat" onclick="goToChat('${name}', '${email}')">Start Chat</button>`;
+                } else {
+                    button.disabled = false;
+                    button.textContent = "Add Friend";
+                    alert('Failed to send friend request');
+                }
+            } catch (err) {
+                button.disabled = false;
+                button.textContent = "Add Friend";
+                alert('Connection error');
+            }
         }
-    } catch (err) {
-        button.disabled = false;
-        button.textContent = "Add Friend";
-        alert('Connection error');
-    }
-}
 
         function goToChat(name, email) {
             window.location.href = `personal_chat.html?user=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}`;
@@ -813,51 +903,51 @@
             });
         }
 
-// PWA - Service Worker registration and install handling
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-            .then(reg => console.log('Service Worker registered', reg))
-            .catch(err => console.error('SW registration failed', err));
-    });
-}
+        // PWA - Service Worker registration and install handling
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('Service Worker registered', reg))
+                    .catch(err => console.error('SW registration failed', err));
+            });
+        }
 
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e) => {
-    // Prevent the mini-infobar from appearing on mobile
-    e.preventDefault();
-    // Stash the event so it can be triggered later.
-    deferredPrompt = e;
-    // Update UI notify the user they can install the PWA
-    const banner = document.getElementById('pwaBanner');
-    const menuBtn = document.getElementById('installApp');
-    if (banner && !localStorage.getItem('pwaDismissed')) {
-        banner.style.display = 'block';
-    }
-    if (menuBtn) {
-        menuBtn.style.display = 'flex';
-    }
-});
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent the mini-infobar from appearing on mobile
+            e.preventDefault();
+            // Stash the event so it can be triggered later.
+            deferredPrompt = e;
+            // Update UI notify the user they can install the PWA
+            const banner = document.getElementById('pwaBanner');
+            const menuBtn = document.getElementById('installApp');
+            if (banner && !localStorage.getItem('pwaDismissed')) {
+                banner.style.display = 'block';
+            }
+            if (menuBtn) {
+                menuBtn.style.display = 'flex';
+            }
+        });
 
-async function installPWA() {
-    if (deferredPrompt) {
-        // Show the install prompt
-        deferredPrompt.prompt();
-        // Wait for the user to respond to the prompt
-        const { outcome } = await deferredPrompt.userChoice;
-        console.log(`User response to the install prompt: ${outcome}`);
-        // We've used the prompt, and can't use it again, throw it away
-        deferredPrompt = null;
-        // Hide the banner
-        document.getElementById('pwaBanner').style.display = 'none';
-    }
-}
+        async function installPWA() {
+            if (deferredPrompt) {
+                // Show the install prompt
+                deferredPrompt.prompt();
+                // Wait for the user to respond to the prompt
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to the install prompt: ${outcome}`);
+                // We've used the prompt, and can't use it again, throw it away
+                deferredPrompt = null;
+                // Hide the banner
+                document.getElementById('pwaBanner').style.display = 'none';
+            }
+        }
 
-function closePWABanner() {
-    document.getElementById('pwaBanner').style.display = 'none';
-    // Remember the user dismissed it so we don't show it every time
-    localStorage.setItem('pwaDismissed', 'true');
-}
+        function closePWABanner() {
+            document.getElementById('pwaBanner').style.display = 'none';
+            // Remember the user dismissed it so we don't show it every time
+            localStorage.setItem('pwaDismissed', 'true');
+        }
 
     </script>
 </body>
