@@ -577,7 +577,7 @@
     </audio>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script>
+    <!-- <script>
         const socket = io();
 
         socket.on('video-answer', async (data) => {
@@ -1036,7 +1036,83 @@
             audio.pause();
             audio.currentTime = 0;
         }
+    </script> -->
+    <script>
+        const socket = io();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const contactName = urlParams.get('user') || 'Contact';
+        const contactEmail = urlParams.get('email');
+
+        document.getElementById('chatHeader').innerText = contactName;
+        document.getElementById('userAvatar').innerText = contactName.charAt(0).toUpperCase();
+
+        let myEmail = "";
+        let myUsername = "";
+        let roomId = "";
+        let localStream = null;
+        let peerConnection = null;
+        let incomingCallData = null;
+        let currentCallType = 'video';
+
+        const servers = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' }
+            ]
+        };
+
+        fetch('/api/me')
+            .then(res => res.json())
+            .then(user => {
+                myEmail = user.email.toLowerCase();
+                myUsername = user.username;
+
+                if (contactEmail) {
+                    roomId = [myEmail, contactEmail.toLowerCase()].sort().join('_');
+                    socket.emit('join room', { room_id: roomId });
+                }
+            });
+
+        function createPeerConnection(targetEmail) {
+            if (peerConnection) {
+                peerConnection.close();
+            }
+
+            peerConnection = new RTCPeerConnection(servers);
+
+            peerConnection.ontrack = (event) => {
+                document.getElementById('remoteVideo').srcObject = event.streams[0];
+                document.getElementById('callStatus').innerText = 'In Call';
+            };
+
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    socket.emit('ice-candidate', {
+                        to: targetEmail,
+                        candidate: event.candidate
+                    });
+                }
+            };
+
+            peerConnection.oniceconnectionstatechange = () => {
+                if (
+                    peerConnection.iceConnectionState === 'failed' ||
+                    peerConnection.iceConnectionState === 'disconnected' ||
+                    peerConnection.iceConnectionState === 'closed'
+                ) {
+                    endVideoCall(false);
+                }
+            };
+
+            if (localStream) {
+                localStream.getTracks().forEach(track => {
+                    peerConnection.addTrack(track, localStream);
+                });
+            }
+        }
     </script>
+
 </body>
 
 </html>
