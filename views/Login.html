@@ -234,7 +234,8 @@
             window.location.href = "/homepage";
         }
 
-        // Handle login form submission
+        // Replace your current form submit script with this:
+
         document.querySelector("form").addEventListener("submit", async function (e) {
             e.preventDefault();
 
@@ -245,24 +246,27 @@
                 const response = await fetch("/login", {
                     method: "POST",
                     headers: {
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/x-www-form-urlencoded"
                     },
-                    body: JSON.stringify({
+                    body: new URLSearchParams({
                         email_id: email,
                         Passwords: password
                     })
                 });
 
-                const result = await response.json();
-
-                if (result.success) {
-                    // Save login session
+                // If login successful, server may redirect
+                if (response.redirected) {
                     localStorage.setItem("chatUser", email);
-
-                    // Redirect to homepage/chat
-                    window.location.href = "/homepage";
+                    window.location.href = response.url;
                 } else {
-                    alert("Invalid email or password");
+                    const text = await response.text();
+
+                    if (text.includes("Invalid") || text.includes("error")) {
+                        alert("Invalid email or password");
+                    } else {
+                        localStorage.setItem("chatUser", email);
+                        window.location.href = "/homepage";
+                    }
                 }
 
             } catch (error) {
@@ -270,7 +274,6 @@
                 console.error(error);
             }
         });
-
         // Register Service Worker
         if ("serviceWorker" in navigator) {
             navigator.serviceWorker.register("sw.js")
