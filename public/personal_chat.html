@@ -1220,28 +1220,25 @@
             peerConnection = new RTCPeerConnection(servers);
 
             peerConnection.ontrack = (event) => {
-                console.log("Remote stream received:", event);
-
+                console.log("Remote track received:", event.track.kind);
                 const remoteVideo = document.getElementById("remoteVideo");
 
+                // FIX: Only assign srcObject once. 
+                // event.streams[0] contains all tracks (audio & video).
                 if (!remoteVideo.srcObject) {
-                    remoteVideo.srcObject = new MediaStream();
+                    remoteVideo.srcObject = event.streams[0];
                 }
 
-                event.streams[0].getTracks().forEach(track => {
-                    remoteVideo.srcObject.addTrack(track);
-                });
-
-                remoteVideo.autoplay = true;
-                remoteVideo.playsInline = true;
-                remoteVideo.muted = false;
-
-                remoteVideo.play().catch(err => {
-                    console.log("Remote playback failed:", err);
-                });
+                // Let the browser handle the metadata load before playing
+                remoteVideo.onloadedmetadata = () => {
+                    remoteVideo.play().catch(err => {
+                        console.log("Autoplay blocked or interrupted:", err);
+                    });
+                };
 
                 document.getElementById("callStatus").innerText = "Connected";
             };
+
             peerConnection.onicecandidate = (event) => {
                 if (event.candidate) {
                     socket.emit("ice-candidate", {
@@ -1251,24 +1248,31 @@
                 }
             };
 
-            peerConnection.oniceconnectionstatechange = () => {
-                console.log("ICE State:", peerConnection.iceConnectionState);
-
-                if (
-                    peerConnection.iceConnectionState === "failed" ||
-                    peerConnection.iceConnectionState === "disconnected" ||
-                    peerConnection.iceConnectionState === "closed"
-                ) {
-                    endVideoCall(false);
-                }
-            };
-
+            // Add local tracks to the connection
             if (localStream) {
                 localStream.getTracks().forEach(track => {
                     peerConnection.addTrack(track, localStream);
                 });
             }
         }
+        peerConnection.oniceconnectionstatechange = () => {
+            console.log("ICE State:", peerConnection.iceConnectionState);
+
+            if (
+                peerConnection.iceConnectionState === "failed" ||
+                peerConnection.iceConnectionState === "disconnected" ||
+                peerConnection.iceConnectionState === "closed"
+            ) {
+                endVideoCall(false);
+            }
+        };
+
+        if (localStream) {
+            localStream.getTracks().forEach(track => {
+                peerConnection.addTrack(track, localStream);
+            });
+        }
+
 
         async function startCall(withVideo) {
             try {
