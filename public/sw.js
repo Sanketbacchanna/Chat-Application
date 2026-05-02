@@ -28,38 +28,56 @@ self.addEventListener("activate", (event) => {
     caches.keys().then((keys) =>
       Promise.all(
         keys.filter((key) => key !== cacheName)
-            .map((key) => caches.delete(key))
+          .map((key) => caches.delete(key))
       )
     )
   );
 });
 
-self.addEventListener("fetch", (event) => {
-  const url = new URL(event.request.url);
-  
-  // Strategy: Network Only for API calls to ensure data freshless
-  if (url.pathname.includes('/api/')) {
-    event.respondWith(fetch(event.request));
+// self.addEventListener("fetch", (event) => {
+//   const url = new URL(event.request.url);
+
+//   // Strategy: Network Only for API calls to ensure data freshless
+//   if (url.pathname.includes('/api/')) {
+//     event.respondWith(fetch(event.request));
+//     return;
+//   }
+
+//   // Strategy: Network First, falling back to Cache for static assets
+//   event.respondWith(
+//     fetch(event.request)
+//       .then((networkResponse) => {
+//         if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+//           return networkResponse;
+//         }
+
+//         const responseToCache = networkResponse.clone();
+//         caches.open(cacheName).then((cache) => {
+//           cache.put(event.request, responseToCache);
+//         });
+
+//         return networkResponse;
+//       })
+//       .catch(() => {
+//         return caches.match(event.request);
+//       })
+//   );
+// });
+self.addEventListener('fetch', (event) => {
+  // FIX: Skip caching for POST, PUT, DELETE, etc.
+  if (event.request.method !== 'GET') {
     return;
   }
 
-  // Strategy: Network First, falling back to Cache for static assets
   event.respondWith(
-    fetch(event.request)
-      .then((networkResponse) => {
-        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-          return networkResponse;
-        }
-
-        const responseToCache = networkResponse.clone();
-        caches.open(cacheName).then((cache) => {
-          cache.put(event.request, responseToCache);
+    caches.match(event.request).then((response) => {
+      return response || fetch(event.request).then((fetchResponse) => {
+        return caches.open('v1').then((cache) => {
+          // Only 'GET' requests will reach this line now
+          cache.put(event.request, fetchResponse.clone());
+          return fetchResponse;
         });
-
-        return networkResponse;
-      })
-      .catch(() => {
-        return caches.match(event.request);
-      })
+      });
+    })
   );
 });

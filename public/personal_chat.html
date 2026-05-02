@@ -1356,7 +1356,7 @@
                     audio: true
                 });
 
-                if (withVideo) {
+                if (isVideo) { // matches the 'const isVideo' you declared earlier
                     localStream.getVideoTracks().forEach(track => {
                         track.enabled = true;
                     });
