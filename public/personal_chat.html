@@ -1055,11 +1055,16 @@
         let peerConnection = null;
         let incomingCallData = null;
         let currentCallType = "video";
+        let pendingCandidates = [];
 
         const servers = {
             iceServers: [
                 { urls: "stun:stun.l.google.com:19302" },
-                { urls: "stun:stun1.l.google.com:19302" }
+                {
+                    urls: "turn:openrelay.metered.ca:80",
+                    username: "openrelayproject",
+                    credential: "openrelayproject"
+                }
             ]
         };
 
@@ -1206,12 +1211,34 @@
         =========================== */
 
         function createPeerConnection(targetEmail) {
-            if (peerConnection) peerConnection.close();
+            if (peerConnection) {
+                peerConnection.close();
+                peerConnection = null;
+            }
 
             peerConnection = new RTCPeerConnection(servers);
 
             peerConnection.ontrack = (event) => {
-                document.getElementById("remoteVideo").srcObject = event.streams[0];
+                console.log("Remote stream received");
+
+                const remoteVideo = document.getElementById("remoteVideo");
+
+                if (event.streams && event.streams[0]) {
+                    remoteVideo.srcObject = event.streams[0];
+                } else {
+                    const inboundStream = new MediaStream();
+                    inboundStream.addTrack(event.track);
+                    remoteVideo.srcObject = inboundStream;
+                }
+
+                remoteVideo.muted = false;
+                remoteVideo.setAttribute("autoplay", true);
+                remoteVideo.setAttribute("playsinline", true);
+
+                remoteVideo.play().catch(err => {
+                    console.log("Remote play error:", err);
+                });
+
                 document.getElementById("callStatus").innerText = "Connected";
             };
 
@@ -1225,9 +1252,12 @@
             };
 
             peerConnection.oniceconnectionstatechange = () => {
+                console.log("ICE State:", peerConnection.iceConnectionState);
+
                 if (
                     peerConnection.iceConnectionState === "failed" ||
-                    peerConnection.iceConnectionState === "disconnected"
+                    peerConnection.iceConnectionState === "disconnected" ||
+                    peerConnection.iceConnectionState === "closed"
                 ) {
                     endVideoCall(false);
                 }
@@ -1256,7 +1286,8 @@
 
                 document.getElementById("localVideo").srcObject = localStream;
                 // document.getElementById("localVideo").style.display = withVideo ? "block" : "none";
-                document.getElementById("remoteVideo").style.display = withVideo ? "block" : "none";
+                document.getElementById("localVideo").style.display = withVideo ? "block" : "none";
+                document.getElementById("remoteVideo").style.display = "block";
 
                 createPeerConnection(contactEmail);
 
@@ -1292,6 +1323,8 @@
             document.getElementById("callerName").innerText = `${data.name} is calling...`;
             document.getElementById("callerAvatar").innerText = data.name.charAt(0).toUpperCase();
             document.getElementById("incomingCallModal").style.display = "flex";
+            document.getElementById("remoteVideo").setAttribute("playsinline", true);
+            document.getElementById("remoteVideo").play().catch(() => { });
 
             playIncomingRing();
         });
@@ -1306,29 +1339,44 @@
             document.getElementById("incomingCallModal").style.display = "none";
             document.getElementById("videoContainer").style.display = "flex";
 
-            localStream = await navigator.mediaDevices.getUserMedia({
-                video: isVideo,
-                audio: true
-            });
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    video: isVideo,
+                    audio: true
+                });
 
-            document.getElementById("localVideo").srcObject = localStream;
-            document.getElementById("remoteVideo").style.display = isVideo ? "block" : "none";
+                document.getElementById("localVideo").srcObject = localStream;
+                document.getElementById("localVideo").style.display = isVideo ? "block" : "none";
+                document.getElementById("remoteVideo").style.display = "block";
 
-            createPeerConnection(incomingCallData.from);
+                createPeerConnection(incomingCallData.from);
 
-            await peerConnection.setRemoteDescription(
-                new RTCSessionDescription(incomingCallData.offer)
-            );
+                await peerConnection.setRemoteDescription(
+                    new RTCSessionDescription(incomingCallData.offer)
+                );
 
-            const answer = await peerConnection.createAnswer();
-            await peerConnection.setLocalDescription(answer);
+                // Add pending ICE candidates
+                for (const candidate of pendingCandidates) {
+                    await peerConnection.addIceCandidate(
+                        new RTCIceCandidate(candidate)
+                    );
+                }
+                pendingCandidates = [];
 
-            socket.emit("make-answer", {
-                to: incomingCallData.from,
-                answer
-            });
+                const answer = await peerConnection.createAnswer();
+                await peerConnection.setLocalDescription(answer);
+
+                socket.emit("make-answer", {
+                    to: incomingCallData.from,
+                    answer
+                });
+
+            } catch (err) {
+                console.error("Accept call error:", err);
+                alert("Failed to access camera/microphone");
+                endVideoCall();
+            }
         }
-
         function rejectCall() {
             stopIncomingRing();
 
@@ -1345,19 +1393,33 @@
                 new RTCSessionDescription(data.answer)
             );
 
+            // Add stored ICE candidates
+            for (const candidate of pendingCandidates) {
+                await peerConnection.addIceCandidate(
+                    new RTCIceCandidate(candidate)
+                );
+            }
+            pendingCandidates = [];
+
             stopOutgoingRing();
             document.getElementById("callStatus").innerText = "Connected";
+            document.getElementById("remoteVideo").setAttribute("playsinline", true);
+            document.getElementById("remoteVideo").play().catch(() => { });
         });
 
         socket.on("ice-candidate", async (data) => {
-            if (peerConnection && data.candidate) {
-                try {
+            if (!peerConnection) return;
+
+            try {
+                if (peerConnection.remoteDescription) {
                     await peerConnection.addIceCandidate(
                         new RTCIceCandidate(data.candidate)
                     );
-                } catch (err) {
-                    console.error(err);
+                } else {
+                    pendingCandidates.push(data.candidate);
                 }
+            } catch (err) {
+                console.error("ICE candidate error:", err);
             }
         });
 
