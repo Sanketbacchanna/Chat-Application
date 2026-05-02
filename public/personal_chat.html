@@ -1070,17 +1070,29 @@
         };
 
         fetch('/api/me')
-            .then(res => res.json())
-            .then(user => {
-                myEmail = user.email.toLowerCase();
-                myUsername = user.username;
-
-                if (contactEmail) {
-                    roomId = [myEmail, contactEmail.toLowerCase()].sort().join('_');
-                    socket.emit('join room', { room_id: roomId });
+            .then(res => {
+                if (res.status === 401) {
+                    // Redirect to login if unauthorized
+                    window.location.href = '/login.html';
+                    throw new Error("Unauthorized");
                 }
-            });
+                return res.json();
+            })
+            .then(user => {
+                // FIX: Check if user and user.email exist before calling toLowerCase()
+                if (user && user.email) {
+                    myEmail = user.email.toLowerCase();
+                    myUsername = user.username;
 
+                    if (contactEmail) {
+                        roomId = [myEmail, contactEmail.toLowerCase()].sort().join('_');
+                        socket.emit('join room', { room_id: roomId });
+                    }
+                } else {
+                    console.error("User data is incomplete:", user);
+                }
+            })
+            .catch(err => console.error("Fetch error:", err));
         /* ===========================
            CHAT FUNCTIONS
         =========================== */
