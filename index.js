@@ -459,9 +459,89 @@ app.post('/reset-password', (req, res) => {
 
 // 🔥 Socket.io logic
 io.on('connection', (socket) => {
-    // --- WebRTC Signaling ---
+
+    // ✅ Session tracking
+    if (socket.request.session && socket.request.session.user) {
+        const email = socket.request.session.user.email.toLowerCase();
+        userSockets[email] = socket.id;
+        console.log(`👤 User ${email} connected with socket ${socket.id}`);
+    } else {
+        console.log(`👤 Guest connected: ${socket.id}`);
+    }
+
+    // =========================
+    // PRIVATE CHAT ROOM JOIN
+    // =========================
+    socket.on('join room', (data) => {
+        let { room_id } = data;
+
+        if (!room_id) return;
+
+        room_id = room_id.trim().toLowerCase();
+        socket.join(room_id);
+
+        console.log(`👤 Socket ${socket.id} joined room: ${room_id}`);
+
+        // Load previous messages
+        const SQL_COMMAND = `
+            SELECT sender_name as username,
+                   sender_email,
+                   message_text as text,
+                   timestamp
+            FROM messages
+            WHERE room_id = ?
+            ORDER BY timestamp ASC
+        `;
+
+        database.query(SQL_COMMAND, [room_id], (err, results) => {
+            if (err) {
+                console.error("❌ Error fetching history:", err);
+                return;
+            }
+
+            socket.emit('chat history', results);
+        });
+    });
+
+    // =========================
+    // CHAT MESSAGE
+    // =========================
+    socket.on('chat message', (msg) => {
+        let { room_id, sender_email, username, text } = msg;
+
+        if (!room_id || !text) return;
+
+        room_id = room_id.trim().toLowerCase();
+
+        socket.join(room_id);
+
+        // Save message
+        const SQL_COMMAND = `
+            INSERT INTO messages (room_id, sender_email, sender_name, message_text)
+            VALUES (?, ?, ?, ?)
+        `;
+
+        database.query(SQL_COMMAND, [room_id, sender_email, username, text], (err) => {
+            if (err) {
+                console.error("❌ Error saving message:", err);
+            }
+        });
+
+        // Broadcast message
+        io.to(room_id).emit('chat message', {
+            text,
+            username,
+            sender_email,
+            timestamp: new Date().toISOString()
+        });
+    });
+
+    // =========================
+    // WEBRTC CALL USER
+    // =========================
     socket.on('call-user', (data) => {
         const { to, offer, from, name, type } = data;
+
         const targetSocketId = userSockets[to.toLowerCase()];
 
         if (targetSocketId) {
@@ -469,28 +549,40 @@ io.on('connection', (socket) => {
                 offer,
                 from,
                 name,
-                type
+                type // video or audio
             });
+
+            console.log(`📞 Call from ${from} to ${to}`);
         }
     });
 
+    // =========================
+    // ANSWER CALL
+    // =========================
     socket.on('make-answer', (data) => {
         const { to, answer } = data;
+
         const targetSocketId = userSockets[to.toLowerCase()];
 
-        if (targetSocketId) {
+        if (targetSocketId && socket.request.session.user) {
             io.to(targetSocketId).emit('video-answer', {
                 answer,
                 from: socket.request.session.user.email
             });
+
+            console.log(`✅ Call answered by ${socket.request.session.user.email}`);
         }
     });
 
+    // =========================
+    // ICE CANDIDATES
+    // =========================
     socket.on('ice-candidate', (data) => {
         const { to, candidate } = data;
+
         const targetSocketId = userSockets[to.toLowerCase()];
 
-        if (targetSocketId) {
+        if (targetSocketId && socket.request.session.user) {
             io.to(targetSocketId).emit('ice-candidate', {
                 candidate,
                 from: socket.request.session.user.email
@@ -498,145 +590,53 @@ io.on('connection', (socket) => {
         }
     });
 
+    // =========================
+    // REJECT CALL
+    // =========================
     socket.on('reject-call', (data) => {
         const { to } = data;
+
         const targetSocketId = userSockets[to.toLowerCase()];
 
-        if (targetSocketId) {
-            io.to(targetSocketId).emit('call-rejected');
-        }
-    });
-
-    socket.on('hangup', (data) => {
-        const { to } = data;
-        const targetSocketId = userSockets[to.toLowerCase()];
-
-        if (targetSocketId) {
-            io.to(targetSocketId).emit('video-hangup');
-        }
-    });
-    // till here i added the peice of code
-    // Session tracking
-    if (socket.request.session && socket.request.session.user) {
-        const email = socket.request.session.user.email.toLowerCase();
-        userSockets[email] = socket.id;
-        console.log(`👤 User ${email} connected with socket ${socket.id}`);
-    } else {
-        console.log('User connected:', socket.id);
-    }
-
-    // Join a private room
-    socket.on('join room', (data) => {
-        let { room_id } = data;
-        if (room_id) {
-            room_id = room_id.trim().toLowerCase();
-            socket.join(room_id);
-            console.log(`👤 Socket ${socket.id} joined room: ${room_id}`);
-
-            // Send chat history for this room
-            const SQL_COMMAND = "SELECT sender_name as username, sender_email, message_text as text, timestamp FROM messages WHERE room_id = ? ORDER BY timestamp ASC";
-            database.query(SQL_COMMAND, [room_id], (err, results) => {
-                if (err) {
-                    console.error("❌ Error fetching history:", err);
-                    return;
-                }
-                const history = results.map(msg => ({
-                    ...msg,
-                    timestamp: msg.timestamp // Send raw DB timestamp (ISO/Date object)
-                }));
-                socket.emit('chat history', history);
-            });
-        }
-    });
-
-    // Chat message event
-    socket.on('chat message', (msg) => {
-        let { room_id, sender_email, username, text } = msg;
-        if (room_id) {
-            room_id = room_id.trim().toLowerCase();
-
-            // Re-ensure the socket is in the room (prevents silent drops)
-            socket.join(room_id);
-
-            // Save to DB
-            const SQL_COMMAND = "INSERT INTO messages (room_id, sender_email, sender_name, message_text) VALUES (?, ?, ?, ?)";
-            database.query(SQL_COMMAND, [room_id, sender_email, username, text], (err) => {
-                if (err) console.error("❌ Error saving message:", err);
-            });
-
-            // Broadcast to EVERYONE in the room
-            io.to(room_id).emit('chat message', {
-                text: text,
-                username: username,
-                sender_email: sender_email,
-                timestamp: new Date().toISOString() // Send raw ISO string
-            });
-        }
-    });
-
-    // --- WebRTC Signaling ---
-    socket.on('call-user', (data) => {
-        const { to, offer, from, name } = data;
-        const targetSocketId = userSockets[to.toLowerCase()];
-        if (targetSocketId) {
-            io.to(targetSocketId).emit('video-offer', {
-                offer,
-                from,
-                name,
-                type
-            });
-        }
-    });
-
-    socket.on('make-answer', (data) => {
-        const { to, answer } = data;
-        const targetSocketId = userSockets[to.toLowerCase()];
-        if (targetSocketId) {
-            io.to(targetSocketId).emit('video-answer', {
-                answer: answer,
-                from: socket.request.session.user.email
-            });
-        }
-    });
-
-    socket.on('reject-call', (data) => {
-        const { to } = data;
-        const targetSocketId = userSockets[to.toLowerCase()];
-        if (targetSocketId) {
+        if (targetSocketId && socket.request.session.user) {
             io.to(targetSocketId).emit('call-rejected', {
                 from: socket.request.session.user.email
             });
+
+            console.log(`❌ Call rejected by ${socket.request.session.user.email}`);
         }
     });
 
-    socket.on('ice-candidate', (data) => {
-        const { to, candidate } = data;
-        const targetSocketId = userSockets[to.toLowerCase()];
-        if (targetSocketId) {
-            io.to(targetSocketId).emit('ice-candidate', {
-                candidate: candidate,
-                from: socket.request.session.user.email
-            });
-        }
-    });
-
+    // =========================
+    // HANGUP CALL
+    // =========================
     socket.on('hangup', (data) => {
         const { to } = data;
+
         const targetSocketId = userSockets[to.toLowerCase()];
+
         if (targetSocketId) {
             io.to(targetSocketId).emit('video-hangup');
+
+            console.log(`📴 Call ended`);
         }
     });
 
+    // =========================
+    // DISCONNECT
+    // =========================
     socket.on('disconnect', () => {
         if (socket.request.session && socket.request.session.user) {
-            const email = socket.request.session.user.email;
+            const email = socket.request.session.user.email.toLowerCase();
+
             delete userSockets[email];
+
             console.log(`👤 User ${email} disconnected`);
         } else {
-            console.log('User disconnected:', socket.id);
+            console.log(`👤 Guest disconnected: ${socket.id}`);
         }
     });
+
 });
 
 // 🔥 Start server
