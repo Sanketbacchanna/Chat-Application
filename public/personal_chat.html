@@ -1072,27 +1072,25 @@
         fetch('/api/me')
             .then(res => {
                 if (res.status === 401) {
-                    // Redirect to login if unauthorized
+                    // Your session expired! Send to login.
                     window.location.href = '/login.html';
-                    throw new Error("Unauthorized");
+                    return;
                 }
                 return res.json();
             })
             .then(user => {
-                // FIX: Check if user and user.email exist before calling toLowerCase()
-                if (user && user.email) {
-                    myEmail = user.email.toLowerCase();
-                    myUsername = user.username;
+                if (!user) return; // Stop if no user data
 
-                    if (contactEmail) {
-                        roomId = [myEmail, contactEmail.toLowerCase()].sort().join('_');
-                        socket.emit('join room', { room_id: roomId });
-                    }
-                } else {
-                    console.error("User data is incomplete:", user);
+                myEmail = user.email.toLowerCase();
+                myUsername = user.username;
+
+                // Ensure roomId is created so socket knows where to listen
+                if (contactEmail) {
+                    roomId = [myEmail, contactEmail.toLowerCase()].sort().join('_');
+                    socket.emit('join room', { room_id: roomId });
                 }
             })
-            .catch(err => console.error("Fetch error:", err));
+            .catch(err => console.error("Identity fetch failed:", err));
         /* ===========================
            CHAT FUNCTIONS
         =========================== */

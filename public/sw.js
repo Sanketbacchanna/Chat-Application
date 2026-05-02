@@ -64,18 +64,25 @@ self.addEventListener("activate", (event) => {
 //   );
 // });
 self.addEventListener('fetch', (event) => {
-  // FIX: Skip caching for POST, PUT, DELETE, etc.
-  if (event.request.method !== 'GET') {
+  // FIX 1: Ignore non-GET requests (like POST messages)
+  if (event.request.method !== 'GET') return;
+
+  // FIX 2: Do not cache API calls. Let them always go to the network.
+  // This ensures your 401 status is handled by the page, not the cache.
+  if (event.request.url.includes('/api/')) {
     return;
   }
 
   event.respondWith(
     caches.match(event.request).then((response) => {
-      return response || fetch(event.request).then((fetchResponse) => {
+      return response || fetch(event.request).then((fetchRes) => {
+        // FIX 3: Don't cache redirected responses (like the login page)
+        if (fetchRes.status !== 200 || fetchRes.type === 'opaqueredirect') {
+          return fetchRes;
+        }
         return caches.open('v1').then((cache) => {
-          // Only 'GET' requests will reach this line now
-          cache.put(event.request, fetchResponse.clone());
-          return fetchResponse;
+          cache.put(event.request, fetchRes.clone());
+          return fetchRes;
         });
       });
     })
