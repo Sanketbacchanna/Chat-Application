@@ -1233,22 +1233,22 @@
                 console.log("Remote track received:", event.track.kind);
                 const remoteVideo = document.getElementById("remoteVideo");
 
-                // FIX: Only assign srcObject once. 
-                // event.streams[0] contains all tracks (audio & video).
+                // 1. Only assign the stream if it's not already attached.
+                // This prevents the "AbortError" by not resetting the video element.
                 if (!remoteVideo.srcObject) {
                     remoteVideo.srcObject = event.streams[0];
                 }
 
-                // Let the browser handle the metadata load before playing
+                // 2. Use the 'onloadedmetadata' event to trigger play.
+                // This ensures the browser has processed the stream before trying to render it.
                 remoteVideo.onloadedmetadata = () => {
                     remoteVideo.play().catch(err => {
-                        console.log("Autoplay blocked or interrupted:", err);
+                        console.warn("Autoplay was prevented or interrupted:", err);
                     });
                 };
 
                 document.getElementById("callStatus").innerText = "Connected";
             };
-
             peerConnection.onicecandidate = (event) => {
                 if (event.candidate) {
                     socket.emit("ice-candidate", {
