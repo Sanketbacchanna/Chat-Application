@@ -331,6 +331,7 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+            background: black;
         }
 
         #localVideo {
@@ -1219,29 +1220,28 @@
             peerConnection = new RTCPeerConnection(servers);
 
             peerConnection.ontrack = (event) => {
-                console.log("Remote stream received");
+                console.log("Remote stream received:", event);
 
                 const remoteVideo = document.getElementById("remoteVideo");
 
-                if (event.streams && event.streams[0]) {
-                    remoteVideo.srcObject = event.streams[0];
-                } else {
-                    const inboundStream = new MediaStream();
-                    inboundStream.addTrack(event.track);
-                    remoteVideo.srcObject = inboundStream;
+                if (!remoteVideo.srcObject) {
+                    remoteVideo.srcObject = new MediaStream();
                 }
 
+                event.streams[0].getTracks().forEach(track => {
+                    remoteVideo.srcObject.addTrack(track);
+                });
+
+                remoteVideo.autoplay = true;
+                remoteVideo.playsInline = true;
                 remoteVideo.muted = false;
-                remoteVideo.setAttribute("autoplay", true);
-                remoteVideo.setAttribute("playsinline", true);
 
                 remoteVideo.play().catch(err => {
-                    console.log("Remote play error:", err);
+                    console.log("Remote playback failed:", err);
                 });
 
                 document.getElementById("callStatus").innerText = "Connected";
             };
-
             peerConnection.onicecandidate = (event) => {
                 if (event.candidate) {
                     socket.emit("ice-candidate", {
@@ -1280,7 +1280,11 @@
                 playOutgoingRing();
 
                 localStream = await navigator.mediaDevices.getUserMedia({
-                    video: withVideo,
+                    video: withVideo ? {
+                        facingMode: "user",
+                        width: { ideal: 640 },
+                        height: { ideal: 480 }
+                    } : false,
                     audio: true
                 });
 
@@ -1291,7 +1295,10 @@
 
                 createPeerConnection(contactEmail);
 
-                const offer = await peerConnection.createOffer();
+                const offer = await peerConnection.createOffer({
+                    offerToReceiveVideo: true,
+                    offerToReceiveAudio: true
+                });
                 await peerConnection.setLocalDescription(offer);
 
                 socket.emit("call-user", {
@@ -1341,9 +1348,19 @@
 
             try {
                 localStream = await navigator.mediaDevices.getUserMedia({
-                    video: isVideo,
+                    video: withVideo ? {
+                        facingMode: "user",
+                        width: { ideal: 640 },
+                        height: { ideal: 480 }
+                    } : false,
                     audio: true
                 });
+
+                if (withVideo) {
+                    localStream.getVideoTracks().forEach(track => {
+                        track.enabled = true;
+                    });
+                }
 
                 document.getElementById("localVideo").srcObject = localStream;
                 document.getElementById("localVideo").style.display = isVideo ? "block" : "none";
@@ -1365,6 +1382,8 @@
 
                 const answer = await peerConnection.createAnswer();
                 await peerConnection.setLocalDescription(answer);
+
+                await new Promise(resolve => setTimeout(resolve, 500));
 
                 socket.emit("make-answer", {
                     to: incomingCallData.from,
@@ -1393,20 +1412,19 @@
                 new RTCSessionDescription(data.answer)
             );
 
-            // Add stored ICE candidates
             for (const candidate of pendingCandidates) {
                 await peerConnection.addIceCandidate(
                     new RTCIceCandidate(candidate)
                 );
             }
+
             pendingCandidates = [];
+
+            document.getElementById("remoteVideo").load();
 
             stopOutgoingRing();
             document.getElementById("callStatus").innerText = "Connected";
-            document.getElementById("remoteVideo").setAttribute("playsinline", true);
-            document.getElementById("remoteVideo").play().catch(() => { });
         });
-
         socket.on("ice-candidate", async (data) => {
             if (!peerConnection) return;
 
