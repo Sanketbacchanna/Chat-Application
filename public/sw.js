@@ -64,11 +64,11 @@ self.addEventListener("activate", (event) => {
 //   );
 // });
 self.addEventListener('fetch', (event) => {
-  // FIX 1: Ignore non-GET requests (like POST messages)
+  // 1. Skip non-GET requests
   if (event.request.method !== 'GET') return;
 
-  // FIX 2: Do not cache API calls. Let them always go to the network.
-  // This ensures your 401 status is handled by the page, not the cache.
+  // 2. IMPORTANT: Do not cache API responses. 
+  // This ensures that if you log out, the browser knows immediately.
   if (event.request.url.includes('/api/')) {
     return;
   }
@@ -76,10 +76,11 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((response) => {
       return response || fetch(event.request).then((fetchRes) => {
-        // FIX 3: Don't cache redirected responses (like the login page)
+        // 3. Do not cache redirected responses (like the login page)
         if (fetchRes.status !== 200 || fetchRes.type === 'opaqueredirect') {
           return fetchRes;
         }
+
         return caches.open('v1').then((cache) => {
           cache.put(event.request, fetchRes.clone());
           return fetchRes;
