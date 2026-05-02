@@ -1280,13 +1280,17 @@
                 playOutgoingRing();
 
                 localStream = await navigator.mediaDevices.getUserMedia({
-                    video: withVideo ? {
-                        facingMode: "user",
-                        width: { ideal: 640 },
-                        height: { ideal: 480 }
-                    } : false,
+                    video: withVideo,
                     audio: true
                 });
+
+                if (withVideo) {
+                    localStream.getVideoTracks().forEach(track => {
+                        track.enabled = true;
+                    });
+                }
+
+
 
                 document.getElementById("localVideo").srcObject = localStream;
                 // document.getElementById("localVideo").style.display = withVideo ? "block" : "none";
@@ -1348,11 +1352,7 @@
 
             try {
                 localStream = await navigator.mediaDevices.getUserMedia({
-                    video: withVideo ? {
-                        facingMode: "user",
-                        width: { ideal: 640 },
-                        height: { ideal: 480 }
-                    } : false,
+                    video: isVideo,
                     audio: true
                 });
 
