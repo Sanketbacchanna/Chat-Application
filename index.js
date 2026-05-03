@@ -23,7 +23,7 @@ const sessionMiddleware = session({
     secret: 'chat-app-secret-123',
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 24 * 60 * 60 * 1000 } // 24 hours
+    cookie: { maxAge: 365 * 24 * 60 * 60 * 1000 } // 1 year
 });
 app.use(sessionMiddleware);
 

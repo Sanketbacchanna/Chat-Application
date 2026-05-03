@@ -1264,26 +1264,19 @@
                     peerConnection.addTrack(track, localStream);
                 });
             }
+
+            peerConnection.oniceconnectionstatechange = () => {
+                console.log("ICE State:", peerConnection.iceConnectionState);
+
+                if (
+                    peerConnection.iceConnectionState === "failed" ||
+                    peerConnection.iceConnectionState === "disconnected" ||
+                    peerConnection.iceConnectionState === "closed"
+                ) {
+                    endVideoCall(false);
+                }
+            };
         }
-        peerConnection.oniceconnectionstatechange = () => {
-            console.log("ICE State:", peerConnection.iceConnectionState);
-
-            if (
-                peerConnection.iceConnectionState === "failed" ||
-                peerConnection.iceConnectionState === "disconnected" ||
-                peerConnection.iceConnectionState === "closed"
-            ) {
-                endVideoCall(false);
-            }
-        };
-
-        if (localStream) {
-            localStream.getTracks().forEach(track => {
-                peerConnection.addTrack(track, localStream);
-            });
-        }
-
-
         async function startCall(withVideo) {
             try {
                 currentCallType = withVideo ? "video" : "audio";
@@ -1440,10 +1433,8 @@
             document.getElementById("callStatus").innerText = "Connected";
         });
         socket.on("ice-candidate", async (data) => {
-            if (!peerConnection) return;
-
             try {
-                if (peerConnection.remoteDescription) {
+                if (peerConnection && peerConnection.remoteDescription) {
                     await peerConnection.addIceCandidate(
                         new RTCIceCandidate(data.candidate)
                     );
@@ -1467,6 +1458,8 @@
         function endVideoCall(sendSignal = true) {
             stopOutgoingRing();
             stopIncomingRing();
+
+            pendingCandidates = []; // Clear pending candidates
 
             if (peerConnection) {
                 peerConnection.close();
@@ -1566,6 +1559,53 @@
             window.visualViewport.addEventListener("resize", () => {
                 document.body.style.height = window.visualViewport.height + "px";
             });
+        }
+
+        /* ===========================
+           VOICE RECORDING
+        =========================== */
+        let mediaRecorder; 
+        let audioChunks = [];
+
+        async function toggleRecording() {
+            const btn = document.getElementById('recordBtn');
+            if (btn.classList.contains('recording-active')) { 
+                mediaRecorder.stop(); 
+                btn.classList.remove('recording-active'); 
+                btn.style.color = ""; 
+            } else {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream); 
+                    mediaRecorder.start(); 
+                    
+                    btn.classList.add('recording-active');
+                    btn.style.color = "red"; 
+                    
+                    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                    
+                    mediaRecorder.onstop = () => {
+                        const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                        const reader = new FileReader(); 
+                        reader.readAsDataURL(blob);
+                        reader.onloadend = () => {
+                            const audioHtml = `<audio controls src="${reader.result}" style="width: 200px; height: 30px;"></audio>`;
+                            const msgData = {
+                                room_id: roomId,
+                                sender_email: myEmail,
+                                username: myUsername,
+                                text: audioHtml
+                            };
+                            socket.emit("chat message", msgData);
+                            renderMessage({ ...msgData, timestamp: new Date().toISOString() }, true);
+                        };
+                        audioChunks = [];
+                        stream.getTracks().forEach(track => track.stop());
+                    };
+                } catch (err) { 
+                    alert("Mic access denied"); 
+                }
+            }
         }
     </script>
 

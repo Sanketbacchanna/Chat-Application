@@ -67,9 +67,9 @@ self.addEventListener('fetch', (event) => {
   // 1. Skip non-GET requests
   if (event.request.method !== 'GET') return;
 
-  // 2. IMPORTANT: Do not cache API responses. 
+  // 2. IMPORTANT: Do not cache API responses or socket.io requests. 
   // This ensures that if you log out, the browser knows immediately.
-  if (event.request.url.includes('/api/')) {
+  if (event.request.url.includes('/api/') || event.request.url.includes('socket.io')) {
     return;
   }
 
