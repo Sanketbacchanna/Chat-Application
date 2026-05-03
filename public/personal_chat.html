@@ -1233,19 +1233,17 @@
                 console.log("Remote track received:", event.track.kind);
                 const remoteVideo = document.getElementById("remoteVideo");
 
-                // 1. Only assign the stream if it's not already attached.
-                // This prevents the "AbortError" by not resetting the video element.
-                if (!remoteVideo.srcObject) {
+                // Assign stream without interrupting if already attached
+                if (remoteVideo.srcObject !== event.streams[0]) {
                     remoteVideo.srcObject = event.streams[0];
                 }
 
-                // 2. Use the 'onloadedmetadata' event to trigger play.
-                // This ensures the browser has processed the stream before trying to render it.
-                remoteVideo.onloadedmetadata = () => {
+                // Force play on every new track to ensure mobile browsers render it
+                setTimeout(() => {
                     remoteVideo.play().catch(err => {
-                        console.warn("Autoplay was prevented or interrupted:", err);
+                        console.warn("Autoplay error:", err);
                     });
-                };
+                }, 100);
 
                 document.getElementById("callStatus").innerText = "Connected";
             };
@@ -1427,8 +1425,8 @@
 
             pendingCandidates = [];
 
-            document.getElementById("remoteVideo").load();
-
+            // Do NOT call .load() on MediaStreams, it breaks mobile WebRTC!
+            
             stopOutgoingRing();
             document.getElementById("callStatus").innerText = "Connected";
         });
