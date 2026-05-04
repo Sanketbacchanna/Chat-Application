@@ -157,8 +157,11 @@ app.post('/handleform', (req, res) => {
                 return res.redirect("login_error.html");
             }
             req.session.user = { id: result.insertId, username: UserName, email: email_id.toLowerCase() };
-            console.log("✅ Signup successful, session created");
-            res.redirect("homepage.html");
+            req.session.save((saveErr) => {
+                if (saveErr) console.error("❌ Session save error:", saveErr);
+                console.log("✅ Signup successful, session created");
+                res.redirect("homepage.html");
+            });
         });
     } catch (err) {
         console.error("❌ Signup Catch Error:", err);
@@ -193,8 +196,11 @@ app.post('/Login', (req, res) => {
             if (results.length > 0) {
                 const user = results[0];
                 req.session.user = { id: user.id, username: user.UserName, email: user.email_id.toLowerCase() };
-                console.log(`✅ Login successful for ${user.UserName}`);
-                res.redirect("/homepage.html");
+                req.session.save((saveErr) => {
+                    if (saveErr) console.error("❌ Session save error:", saveErr);
+                    console.log(`✅ Login successful for ${user.UserName}`);
+                    res.redirect("/homepage.html");
+                });
             } else {
                 console.warn(`⚠️ Login failed for ${email_id}: Invalid credentials`);
                 res.redirect("login_error.html");
@@ -528,13 +534,26 @@ io.on('connection', (socket) => {
             }
         });
 
-        // Broadcast message
+        // Broadcast message to room
         io.to(room_id).emit('chat message', {
             text,
             username,
             sender_email,
             timestamp: new Date().toISOString()
         });
+
+        // Send push notification to the receiver's personal room
+        const emails = room_id.split('_');
+        const targetEmail = emails.find(e => e !== sender_email);
+        if (targetEmail) {
+            io.to(targetEmail).emit('push notification', {
+                type: 'message',
+                fromEmail: sender_email,
+                fromName: username,
+                text: text,
+                room_id: room_id
+            });
+        }
     });
 
     // =========================
