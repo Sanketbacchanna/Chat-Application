@@ -570,481 +570,14 @@
         </div>
     </div>
     <audio id="outgoingRing" loop>
-        <source src="https://actions.google.com/sounds/v1/alarms/phone_alerts_and_rings.ogg" type="audio/ogg">
+        <source src="https://pixabay.com/sound-effects/film-special-effects-phone-ringing-382734/" type="audio/ogg">
     </audio>
 
     <audio id="incomingRing" loop>
-        <source src="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg" type="audio/ogg">
+        <source src="https://www.zedge.net/ringtones/b320a15f-455f-38ab-88e1-06bda9564584" type="audio/ogg">
     </audio>
 
-    <!-- <script src="/socket.io/socket.io.js"></script> -->
-    <!-- <script>
-        const socket = io();
 
-        socket.on('video-answer', async (data) => {
-            if (!peerConnection) return;
-
-            try {
-                await peerConnection.setRemoteDescription(
-                    new RTCSessionDescription(data.answer)
-                );
-
-                stopOutgoingRing();
-            } catch (e) {
-                console.error("Answer error:", e);
-            }
-        });
-
-
-        document.addEventListener('click', () => {
-            document.getElementById('outgoingRing').play().then(() => {
-                document.getElementById('outgoingRing').pause();
-                document.getElementById('outgoingRing').currentTime = 0;
-            }).catch(() => { });
-        }, { once: true });
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const contactName = urlParams.get('user') || 'Contact';
-        const contactEmail = urlParams.get('email');
-        const autoAccept = urlParams.get('acceptCall') === 'true';
-
-        document.getElementById('chatHeader').innerText = contactName;
-        document.getElementById('userAvatar').innerText = contactName.charAt(0).toUpperCase();
-
-        let myEmail = "";
-        let myUsername = "";
-        let roomId = "";
-
-        // WebRTC Variables
-        let localStream;
-        let remoteStream;
-        let peerConnection;
-        let incomingCallData = null;
-        // const servers = { vers: [{ urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }] };
-        const servers = {
-            iceServers: [
-                { urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }
-            ]
-        };
-
-        // Session & Room Setup
-        fetch('/api/me').then(res => {
-            if (res.status === 401) {
-                localStorage.removeItem("chatUser");
-                window.location.href = '/login.html';
-                throw new Error("Session expired");
-            }
-            return res.json();
-        }).then(user => {
-            if (user.email) {
-                myEmail = user.email.toLowerCase();
-                myUsername = user.username;
-                if (contactEmail) {
-                    roomId = [myEmail, contactEmail.toLowerCase()].sort().join('_');
-                    socket.emit('join room', { room_id: roomId });
-                    if (autoAccept) { setTimeout(() => { acceptCall(); }, 1000); }
-                }
-            }
-        });
-
-        // Messaging
-        function sendMessage() {
-            const input = document.getElementById("message");
-            const text = input.value.trim();
-            if (!text || !roomId) return;
-            const msgData = { room_id: roomId, sender_email: myEmail, username: myUsername, text: text };
-            socket.emit("chat message", msgData);
-            renderMessage({ ...msgData, timestamp: new Date().toISOString() }, true);
-            input.value = "";
-            input.focus();
-        }
-
-        function handleKeyPress(e) { if (e.key === 'Enter') sendMessage(); }
-
-        async function handleFileSelect(event) {
-            const file = event.target.files[0];
-            if (!file || !roomId) return;
-
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                const base64Data = e.target.result;
-                let messageHtml = '';
-
-                if (file.type.startsWith('image/')) {
-                    messageHtml = `<img src="${base64Data}" alt="${file.name}">`;
-                } else {
-                    messageHtml = `<a href="${base64Data}" download="${file.name}">📄 ${file.name}</a>`;
-                }
-
-                const msgData = {
-                    room_id: roomId,
-                    sender_email: myEmail,
-                    username: myUsername,
-                    text: messageHtml
-                };
-
-                socket.emit("chat message", msgData);
-                renderMessage({ ...msgData, timestamp: new Date().toISOString() }, true);
-            };
-            reader.readAsDataURL(file);
-            event.target.value = ''; // Reset input
-        }
-
-        socket.on('chat history', (history) => {
-            const box = document.getElementById("chatBox");
-            box.innerHTML = '';
-            history.forEach(msg => renderMessage(msg));
-            box.scrollTop = box.scrollHeight;
-        });
-
-        socket.on("chat message", (data) => {
-            if (data.sender_email !== myEmail) renderMessage(data);
-        });
-
-        function renderMessage(data, isMe = false) {
-            const box = document.getElementById("chatBox");
-            const side = (isMe || data.sender_email === myEmail) ? 'me' : 'other';
-            const timeString = data.timestamp ? new Date(data.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now';
-            const wrapper = document.createElement('div');
-            wrapper.className = `msg-wrapper ${side}`;
-            wrapper.innerHTML = `<div class="msg-bubble">${data.text}</div><div class="msg-time">${timeString}</div>`;
-            box.appendChild(wrapper);
-            box.scrollTop = box.scrollHeight;
-        }
-
-        // --- WebRTC Logic (Keep existing) ---
-        // async function startVideoCall() {
-        //     try {
-        //         document.getElementById('videoContainer').style.display = 'flex';
-        //         document.getElementById('callStatus').innerText = "Requesting camera...";
-        //         localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        //         document.getElementById('localVideo').srcObject = localStream;
-        //         createPeerConnection();
-        //         localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-        //         const offer = await peerConnection.createOffer();
-        //         await peerConnection.setLocalDescription(offer);
-        //         socket.emit('call-user', { to: contactEmail, offer: offer, from: myEmail, name: myUsername });
-        //         document.getElementById('callStatus').innerText = "Calling " + contactName + "...";
-        //     } catch (err) { console.error(err); alert("Could not access camera/mic"); endVideoCall(); }
-        // }
-
-        async function startVideoCall() {
-            try {
-                document.getElementById('videoContainer').style.display = 'flex';
-                document.getElementById('callStatus').innerText = "Requesting camera...";
-
-                playOutgoingRing(); // 🔊 ONLY CALLER
-
-                localStream = await navigator.mediaDevices.getUserMedia({
-                    video: true,
-                    audio: true
-                });
-
-                document.getElementById('localVideo').srcObject = localStream;
-
-                createPeerConnection();
-
-                localStream.getTracks().forEach(track =>
-                    peerConnection.addTrack(track, localStream)
-                );
-
-                const offer = await peerConnection.createOffer();
-                await peerConnection.setLocalDescription(offer);
-
-                socket.emit('call-user', {
-                    to: contactEmail,
-                    offer,
-                    from: myEmail,
-                    name: myUsername
-                });
-
-                document.getElementById('callStatus').innerText =
-                    "Calling " + contactName + "...";
-
-            } catch (err) {
-                console.error(err);
-                alert("Camera/Mic error");
-                endVideoCall();
-            }
-        }
-
-        // function createPeerConnection() {
-        //     peerConnection = new RTCPeerConnection(servers);
-        //     remoteStream = new MediaStream();
-        //     document.getElementById('remoteVideo').srcObject = remoteStream;
-        //     // peerConnection.ontrack = (event) => { event.streams[0].getTracks().forEach(track => remoteStream.addTrack(track));
-        //     peerConnection.ontrack = (event) => {
-        //         document.getElementById('remoteVideo').srcObject = event.streams[0];
-        //         document.getElementById('callStatus').innerText = "In Call";
-        //     };
-        //     document.getElementById('callStatus').innerText = "In Call";
-        // };
-        // peerConnection.onicecandidate = (event) => { if (event.candidate) { socket.emit('ice-candidate', { to: contactEmail, candidate: event.candidate }); } };
-        // peerConnection.oniceconnectionstatechange = () => { if (peerConnection.iceConnectionState === 'disconnected') endVideoCall(); };
-
-        function createPeerConnection() {
-            if (peerConnection) {
-                peerConnection.close();
-            }
-
-            peerConnection = new RTCPeerConnection(servers);
-
-            peerConnection.ontrack = (event) => {
-                document.getElementById('remoteVideo').srcObject = event.streams[0];
-                document.getElementById('callStatus').innerText = "In Call";
-            };
-
-            peerConnection.onicecandidate = (event) => {
-                if (event.candidate) {
-                    socket.emit('ice-candidate', {
-                        to: contactEmail,
-                        candidate: event.candidate
-                    });
-                }
-            };
-
-            peerConnection.oniceconnectionstatechange = () => {
-                if (
-                    peerConnection.iceConnectionState === 'disconnected' ||
-                    peerConnection.iceConnectionState === 'failed'
-                ) {
-                    endVideoCall();
-                }
-            };
-        }
-
-        socket.on('video-offer', async (data) => {
-            if (data.to !== myEmail) return;
-
-            incomingCallData = data;
-
-            document.getElementById('callerName').innerText =
-                data.name + " is calling...";
-            document.getElementById('callerAvatar').innerText =
-                data.name.charAt(0).toUpperCase();
-
-            document.getElementById('incomingCallModal').style.display = 'flex';
-
-            playIncomingRing(); // 🔊 ONLY RECEIVER
-        });
-        // socket.on('video-offer', async (data) => { incomingCallData = data; document.getElementById('callerName').innerText = data.name + " is calling..."; document.getElementById('callerAvatar').innerText = data.name.charAt(0).toUpperCase(); document.getElementById('incomingCallModal').style.display = 'flex'; });
-        // async function acceptCall() {
-        //     document.getElementById('incomingCallModal').style.display = 'none'; document.getElementById('videoContainer').style.display = 'flex'; try { localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true }); document.getElementById('localVideo').srcObject = localStream; createPeerConnection(); localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream)); await peerConnection.setRemoteDescription(new RTCSessionDescription(incomingCallData.offer)); const answer = await peerConnection.createAnswer(); await peerConnection.setLocalDescription(answer); socket.emit('make-answer', { to: incomingCallData.from, answer: answer }); } catch (err) {
-        //         console.error(err); alert("Error answering call"); endVideoCall(); document.getElementById('incomingRing').pause();
-        //         document.getElementById('incomingRing').currentTime = 0;
-        //     }
-        // }
-        async function acceptCall() {
-            if (!incomingCallData) return;
-
-            stopIncomingRing();
-
-            document.getElementById('incomingCallModal').style.display = 'none';
-            document.getElementById('videoContainer').style.display = 'flex';
-
-            try {
-                localStream = await navigator.mediaDevices.getUserMedia({
-                    video: true,
-                    audio: true
-                });
-
-                document.getElementById('localVideo').srcObject = localStream;
-
-                createPeerConnection();
-
-                localStream.getTracks().forEach(track =>
-                    peerConnection.addTrack(track, localStream)
-                );
-
-                await peerConnection.setRemoteDescription(
-                    new RTCSessionDescription(incomingCallData.offer)
-                );
-
-                const answer = await peerConnection.createAnswer();
-                await peerConnection.setLocalDescription(answer);
-
-                socket.emit('make-answer', {
-                    to: incomingCallData.from,
-                    answer
-                });
-
-            } catch (err) {
-                console.error(err);
-                alert("Error answering call");
-                endVideoCall();
-            }
-        }
-
-        function rejectCall() { // 🔇 STOP ALL RINGING
-            document.getElementById('outgoingRing').pause();
-            document.getElementById('outgoingRing').currentTime = 0;
-
-            document.getElementById('incomingRing').pause();
-            document.getElementById('incomingRing').currentTime = 0;
-            document.getElementById('incomingCallModal').style.display = 'none'; socket.emit('reject-call', { to: incomingCallData.from }); incomingCallData = null;
-        }
-        // socket.on('video-answer', async (data) => { await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer)); });
-        // socket.on('video-answer', async (data) => {
-        //     await peerConnection.setRemoteDescription(
-        //         new RTCSessionDescription(data.answer)
-        //     );
-
-        //     // 🔇 STOP OUTGOING RING
-        //     document.getElementById('outgoingRing').pause();
-        //     document.getElementById('outgoingRing').currentTime = 0;
-        // });
-        socket.on('ice-candidate', async (data) => { if (peerConnection) { try { await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate)); } catch (e) { console.warn(e); } } });
-        socket.on('call-rejected', () => { alert("Call rejected"); endVideoCall(); });
-        socket.on('video-hangup', () => { endVideoCall(); });
-
-        // function endVideoCall() { if (peerConnection) { peerConnection.close(); peerConnection = null; } if (localStream) { localStream.getTracks().forEach(track => track.stop()); localStream = null; } socket.emit('hangup', { to: contactEmail }); document.getElementById('videoContainer').style.display = 'none'; document.getElementById('incomingCallModal').style.display = 'none'; }
-        function endVideoCall() {
-            stopOutgoingRing();
-            stopIncomingRing();
-
-            if (peerConnection) {
-                peerConnection.close();
-                peerConnection = null;
-            }
-
-            if (localStream) {
-                localStream.getTracks().forEach(t => t.stop());
-                localStream = null;
-            }
-
-            document.getElementById('localVideo').srcObject = null;
-            document.getElementById('remoteVideo').srcObject = null;
-
-            document.getElementById('videoContainer').style.display = 'none';
-            document.getElementById('incomingCallModal').style.display = 'none';
-
-            socket.emit('hangup', { to: contactEmail });
-        }
-        // function toggleMic() { const audioTrack = localStream.getAudioTracks()[0]; audioTrack.enabled = !audioTrack.enabled; document.querySelector('.toggle-mic').classList.toggle('btn-off', !audioTrack.enabled); }
-        function toggleMic() {
-            if (!localStream) return;
-            const audioTrack = localStream.getAudioTracks()[0];
-            if (!audioTrack) return;
-
-            audioTrack.enabled = !audioTrack.enabled;
-            document.querySelector('.toggle-mic')
-                .classList.toggle('btn-off', !audioTrack.enabled);
-        }
-        // function toggleVideo() { const videoTrack = localStream.getVideoTracks()[0]; videoTrack.enabled = !videoTrack.enabled; document.querySelector('.toggle-video').classList.toggle('btn-off', !videoTrack.enabled); }
-        function toggleVideo() {
-            if (!localStream) return;
-            const videoTrack = localStream.getVideoTracks()[0];
-            if (!videoTrack) return;
-
-            videoTrack.enabled = !videoTrack.enabled;
-            document.querySelector('.toggle-video')
-                .classList.toggle('btn-off', !videoTrack.enabled);
-        }
-        function toggleEmojiPicker() { const p = document.getElementById('emojiPicker'); p.style.display = p.style.display === 'grid' ? 'none' : 'grid'; }
-        function addEmoji(e) { document.getElementById('message').value += e; toggleEmojiPicker(); }
-
-        let mediaRecorder; let audioChunks = [];
-        async function toggleRecording() {
-            const btn = document.getElementById('recordBtn');
-            if (btn.classList.contains('recording-active')) { mediaRecorder.stop(); btn.classList.remove('recording-active'); }
-            else {
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    mediaRecorder = new MediaRecorder(stream); mediaRecorder.start(); btn.classList.add('recording-active');
-                    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-                    mediaRecorder.onstop = () => {
-                        const blob = new Blob(audioChunks, { type: 'audio/webm' });
-                        const reader = new FileReader(); reader.readAsDataURL(blob);
-                        reader.onloadend = () => {
-                            const audioHtml = `<audio controls src="${reader.result}" style="width: 200px; height: 30px;"></audio>`;
-                            socket.emit("chat message", { room_id: roomId, sender_email: myEmail, username: myUsername, text: audioHtml });
-                            renderMessage({ sender_email: myEmail, text: audioHtml }, true);
-                        };
-                        audioChunks = [];
-                    };
-                } catch (err) { alert("Mic access denied"); }
-            }
-        }
-        // new added code by me
-        function fixViewport() {
-            document.body.style.height = window.innerHeight + "px";
-        }
-
-        window.addEventListener("resize", fixViewport);
-        window.addEventListener("load", fixViewport);
-
-        // ✅ ADD THIS BELOW
-        if (window.visualViewport) {
-            window.visualViewport.addEventListener("resize", () => {
-                document.body.style.height = window.visualViewport.height + "px";
-            });
-        }
-        async function startAudioCall() {
-            try {
-                document.getElementById('videoContainer').style.display = 'flex';
-                document.getElementById('callStatus').innerText = "Calling (Audio)...";
-
-                playOutgoingRing();
-
-                localStream = await navigator.mediaDevices.getUserMedia({
-                    audio: true,
-                    video: false
-                });
-
-                // Hide local video
-                document.getElementById('localVideo').style.display = 'none';
-
-                createPeerConnection();
-
-                localStream.getTracks().forEach(track =>
-                    peerConnection.addTrack(track, localStream)
-                );
-
-                const offer = await peerConnection.createOffer();
-                await peerConnection.setLocalDescription(offer);
-
-                socket.emit('call-user', {
-                    to: contactEmail,
-                    offer,
-                    from: myEmail,
-                    name: myUsername,
-                    type: "audio"
-                });
-
-            } catch (err) {
-                console.error(err);
-                alert("Mic error");
-                endVideoCall();
-            }
-        }
-
-        function openUserInfo() {
-            alert(`Name: ${contactName}\nEmail: ${contactEmail}`);
-        }
-        function playOutgoingRing() {
-            const audio = document.getElementById('outgoingRing');
-            audio.currentTime = 0;
-            audio.play().catch(() => { });
-        }
-
-        function stopOutgoingRing() {
-            const audio = document.getElementById('outgoingRing');
-            audio.pause();
-            audio.currentTime = 0;
-        }
-
-        function playIncomingRing() {
-            const audio = document.getElementById('incomingRing');
-            audio.currentTime = 0;
-            audio.play().catch(() => { });
-        }
-
-        function stopIncomingRing() {
-            const audio = document.getElementById('incomingRing');
-            audio.pause();
-            audio.currentTime = 0;
-        }
-    </script> -->
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
@@ -1433,7 +966,7 @@
             pendingCandidates = [];
 
             // Do NOT call .load() on MediaStreams, it breaks mobile WebRTC!
-            
+
             stopOutgoingRing();
             document.getElementById("callStatus").innerText = "Connected";
         });
@@ -1569,29 +1102,29 @@
         /* ===========================
            VOICE RECORDING
         =========================== */
-        let mediaRecorder; 
+        let mediaRecorder;
         let audioChunks = [];
 
         async function toggleRecording() {
             const btn = document.getElementById('recordBtn');
-            if (btn.classList.contains('recording-active')) { 
-                mediaRecorder.stop(); 
-                btn.classList.remove('recording-active'); 
-                btn.style.color = ""; 
+            if (btn.classList.contains('recording-active')) {
+                mediaRecorder.stop();
+                btn.classList.remove('recording-active');
+                btn.style.color = "";
             } else {
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    mediaRecorder = new MediaRecorder(stream); 
-                    mediaRecorder.start(); 
-                    
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.start();
+
                     btn.classList.add('recording-active');
-                    btn.style.color = "red"; 
-                    
+                    btn.style.color = "red";
+
                     mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-                    
+
                     mediaRecorder.onstop = () => {
                         const blob = new Blob(audioChunks, { type: 'audio/webm' });
-                        const reader = new FileReader(); 
+                        const reader = new FileReader();
                         reader.readAsDataURL(blob);
                         reader.onloadend = () => {
                             const audioHtml = `<audio controls src="${reader.result}" style="width: 200px; height: 30px;"></audio>`;
@@ -1607,8 +1140,8 @@
                         audioChunks = [];
                         stream.getTracks().forEach(track => track.stop());
                     };
-                } catch (err) { 
-                    alert("Mic access denied"); 
+                } catch (err) {
+                    alert("Mic access denied");
                 }
             }
         }
