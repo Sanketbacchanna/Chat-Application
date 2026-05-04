@@ -257,8 +257,9 @@
                     document.getElementById('userEmail').innerText = user.email;
                     document.getElementById('valName').innerText = user.username;
                     document.getElementById('userAvatar').innerText = user.username.charAt(0).toUpperCase();
-                } else {
-                    window.location.href = '/login';
+                } else if (res.status === 401) {
+                    localStorage.removeItem("chatUser");
+                    window.location.href = '/login.html';
                 }
             } catch (err) {
                 console.error("Profile load error:", err);

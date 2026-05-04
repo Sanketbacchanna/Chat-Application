@@ -19,7 +19,7 @@ app.use((req, res, next) => {
 });
 
 const sessionMiddleware = session({
-    store: new FileStore({ path: './sessions' }),
+    store: new FileStore({ path: './sessions', ttl: 31536000 }), // 1 year in seconds
     secret: 'chat-app-secret-123',
     resave: false,
     saveUninitialized: false,
@@ -464,6 +464,7 @@ io.on('connection', (socket) => {
     if (socket.request.session && socket.request.session.user) {
         const email = socket.request.session.user.email.toLowerCase();
         userSockets[email] = socket.id;
+        socket.join(email); // Join a personal room for multi-device support
         console.log(`👤 User ${email} connected with socket ${socket.id}`);
     } else {
         console.log(`👤 Guest connected: ${socket.id}`);
@@ -541,19 +542,8 @@ io.on('connection', (socket) => {
     // =========================
     socket.on('call-user', (data) => {
         const { to, offer, from, name, type } = data;
-
-        const targetSocketId = userSockets[to.toLowerCase()];
-
-        if (targetSocketId) {
-            io.to(targetSocketId).emit('video-offer', {
-                offer,
-                from,
-                name,
-                type // video or audio
-            });
-
-            console.log(`📞 Call from ${from} to ${to}`);
-        }
+        io.to(to.toLowerCase()).emit('video-offer', { offer, from, name, type });
+        console.log(`📞 Call from ${from} to ${to}`);
     });
 
     // =========================
@@ -561,15 +551,11 @@ io.on('connection', (socket) => {
     // =========================
     socket.on('make-answer', (data) => {
         const { to, answer } = data;
-
-        const targetSocketId = userSockets[to.toLowerCase()];
-
-        if (targetSocketId && socket.request.session.user) {
-            io.to(targetSocketId).emit('video-answer', {
+        if (socket.request.session.user) {
+            io.to(to.toLowerCase()).emit('video-answer', {
                 answer,
                 from: socket.request.session.user.email
             });
-
             console.log(`✅ Call answered by ${socket.request.session.user.email}`);
         }
     });
@@ -579,11 +565,8 @@ io.on('connection', (socket) => {
     // =========================
     socket.on('ice-candidate', (data) => {
         const { to, candidate } = data;
-
-        const targetSocketId = userSockets[to.toLowerCase()];
-
-        if (targetSocketId && socket.request.session.user) {
-            io.to(targetSocketId).emit('ice-candidate', {
+        if (socket.request.session.user) {
+            io.to(to.toLowerCase()).emit('ice-candidate', {
                 candidate,
                 from: socket.request.session.user.email
             });
@@ -595,14 +578,10 @@ io.on('connection', (socket) => {
     // =========================
     socket.on('reject-call', (data) => {
         const { to } = data;
-
-        const targetSocketId = userSockets[to.toLowerCase()];
-
-        if (targetSocketId && socket.request.session.user) {
-            io.to(targetSocketId).emit('call-rejected', {
+        if (socket.request.session.user) {
+            io.to(to.toLowerCase()).emit('call-rejected', {
                 from: socket.request.session.user.email
             });
-
             console.log(`❌ Call rejected by ${socket.request.session.user.email}`);
         }
     });
@@ -612,14 +591,8 @@ io.on('connection', (socket) => {
     // =========================
     socket.on('hangup', (data) => {
         const { to } = data;
-
-        const targetSocketId = userSockets[to.toLowerCase()];
-
-        if (targetSocketId) {
-            io.to(targetSocketId).emit('video-hangup');
-
-            console.log(`📴 Call ended`);
-        }
+        io.to(to.toLowerCase()).emit('video-hangup');
+        console.log(`📴 Call ended`);
     });
 
     // =========================

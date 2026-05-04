@@ -762,11 +762,18 @@
                     fetch('/api/removed-friends')
                 ]);
 
+                if (meRes.status === 401) {
+                    localStorage.removeItem("chatUser");
+                    window.location.href = "/login.html";
+                    return;
+                }
+
                 if (meRes.ok) currentUser = await meRes.json();
                 if (friendsRes.ok) friends = await friendsRes.json();
                 if (sentRes.ok) sentRequests = await sentRes.json();
                 if (removedRes.ok) removedFriends = await removedRes.json();
             } catch (err) { console.error("Session/Friends check failed", err); }
+
 
             try {
                 const response = await fetch('/api/users');

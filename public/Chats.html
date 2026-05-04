@@ -224,6 +224,11 @@
             const profileList = document.getElementById('profileList');
             try {
                 const res = await fetch('/api/friends');
+                if (res.status === 401) {
+                    localStorage.removeItem("chatUser");
+                    window.location.href = '/login.html';
+                    return;
+                }
                 const friendList = await res.json();
 
                 if (friendList.length === 0) {

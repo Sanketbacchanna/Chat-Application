@@ -628,7 +628,14 @@
         };
 
         // Session & Room Setup
-        fetch('/api/me').then(res => res.json()).then(user => {
+        fetch('/api/me').then(res => {
+            if (res.status === 401) {
+                localStorage.removeItem("chatUser");
+                window.location.href = '/login.html';
+                throw new Error("Session expired");
+            }
+            return res.json();
+        }).then(user => {
             if (user.email) {
                 myEmail = user.email.toLowerCase();
                 myUsername = user.username;
