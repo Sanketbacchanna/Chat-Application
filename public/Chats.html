@@ -212,14 +212,7 @@
             showNotification(`${data.name || data.from} sent you a friend request`);
         });
 
-        socket.on('video-offer', data => {
-            const accept = confirm(`📞 Incoming video call from ${data.name}. Answer?`);
-            if (accept) {
-                window.location.href = `personal_chat.html?user=${encodeURIComponent(data.name)}&email=${encodeURIComponent(data.from)}&acceptCall=true`;
-            } else {
-                socket.emit('reject-call', { to: data.from });
-            }
-        });
+        // --- Global Video Call Listener is now handled by notifications.js ---
 
         window.onload = async function () {
             const profileList = document.getElementById('profileList');
