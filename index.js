@@ -146,6 +146,18 @@ database.getConnection((err, connection) => {
         else console.log("✅ Push subscriptions table is ready");
     });
 
+    database.query(`CREATE TABLE IF NOT EXISTS friend_requests (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        requester_email VARCHAR(255) NOT NULL,
+        requester_name VARCHAR(255) NOT NULL,
+        receiver_email VARCHAR(255) NOT NULL,
+        status ENUM('pending', 'accepted') DEFAULT 'pending',
+        UNIQUE KEY unique_request (requester_email, receiver_email)
+    )`, (err) => {
+        if (err) console.error("❌ Error creating friend_requests table:", err);
+        else console.log("✅ friend_requests table is ready");
+    });
+
     database.query(`CREATE TABLE IF NOT EXISTS call_history (
         id INT AUTO_INCREMENT PRIMARY KEY,
         caller_email VARCHAR(255) NOT NULL,
@@ -307,11 +319,11 @@ app.post('/api/request-friend', async (req, res) => {
     const requester_name = req.session.user.username;
     const target_email = friend_email.toLowerCase();
 
-    // Insert request if not exists
-    const insertSQL = "INSERT IGNORE INTO friend_requests (requester_email, requester_name, receiver_email) VALUES (?, ?, ?)";
-    database.query(insertSQL, [requester_email, requester_name, target_email], (err, result) => {
+    // Insert request if not exists, or update status to pending if it already exists
+    const insertSQL = "INSERT INTO friend_requests (requester_email, requester_name, receiver_email, status) VALUES (?, ?, ?, 'pending') ON DUPLICATE KEY UPDATE status='pending', requester_name=?";
+    database.query(insertSQL, [requester_email, requester_name, target_email, requester_name], (err, result) => {
         if (err) {
-            console.error("❌ DB Error inserting friend request:", err);
+            console.error("❌ DB Error inserting/updating friend request:", err);
             return res.status(500).json({ error: "Failed to request friend" });
         }
         console.log(`✅ Friend request from ${requester_email} to ${target_email}`);
@@ -424,20 +436,21 @@ app.post('/api/remove-friend', (req, res) => {
     if (!req.session.user) return res.status(401).json({ error: "Unauthorized" });
 
     const { friend_email, friend_name } = req.body;
-    const user_email = req.session.user.email;
+    const user_email = req.session.user.email.toLowerCase();
+    const target_email = friend_email.toLowerCase();
 
-    console.log(`👤 User ${user_email} is removing friend ${friend_email}`);
+    console.log(`👤 User ${user_email} is removing friend ${target_email}`);
 
-    // First, get the friend's name if not provided (though it usually is)
-    const removeSQL = "DELETE FROM friends WHERE user_email = ? AND friend_email = ?";
-    database.query(removeSQL, [user_email, friend_email], (err, result) => {
+    // Delete from friends table
+    const removeSQL = "DELETE FROM friends WHERE (user_email = ? AND friend_email = ?) OR (user_email = ? AND friend_email = ?)";
+    database.query(removeSQL, [user_email, target_email, target_email, user_email], (err, result) => {
         if (err) {
             console.error("❌ DB Error removing friend:", err);
             return res.status(500).json({ error: "Failed to remove friend" });
         }
 
-        // Also remove reciprocal
-        database.query("DELETE FROM friends WHERE user_email = ? AND friend_email = ?", [friend_email, user_email]);
+        // Also delete from friend_requests to allow re-requesting later
+        database.query("DELETE FROM friend_requests WHERE (requester_email = ? AND receiver_email = ?) OR (requester_email = ? AND receiver_email = ?)", [user_email, target_email, target_email, user_email]);
 
         // Add to removed_friends list
         const logSQL = "INSERT IGNORE INTO removed_friends (user_email, friend_email, friend_name) VALUES (?, ?, ?)";
