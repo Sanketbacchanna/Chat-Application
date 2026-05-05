@@ -249,10 +249,7 @@ app.post('/api/request-friend', async (req, res) => {
         }
         console.log(`✅ Friend request from ${requester_email} to ${target_email}`);
         // Notify receiver if online via socket
-        const socketId = userSockets[target_email];
-        if (socketId) {
-            io.to(socketId).emit('friend request', { from: requester_email, name: req.session.user.username });
-        }
+        io.to(target_email).emit('friend request', { from: requester_email, name: req.session.user.username });
         res.json({ success: true });
     });
 });
@@ -283,10 +280,7 @@ app.post('/api/accept-friend', (req, res) => {
             }
 
             // Notify requester if online
-            const socketId = userSockets[requester_email];
-            if (socketId) {
-                io.to(socketId).emit('friend accepted', { by: receiver_email });
-            }
+            io.to(requester_email).emit('friend accepted', { by: receiver_email });
             res.json({ success: true });
         });
     });
