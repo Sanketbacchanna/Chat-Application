@@ -876,7 +876,20 @@
         }
 
         socket.on("video-offer", (data) => {
+            // Check if we are already in a call
+            if (peerConnection || localStream) {
+                socket.emit("reject-call", { to: data.from });
+                return;
+            }
             incomingCallData = data;
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('acceptCall') === 'true') {
+                acceptCall();
+                // Remove parameter so it doesn't auto-answer subsequent calls on refresh
+                window.history.replaceState({}, document.title, window.location.pathname + "?user=" + urlParams.get('user') + "&email=" + urlParams.get('email'));
+                return;
+            }
 
             document.getElementById("callerName").innerText = `${data.name} is calling...`;
             document.getElementById("callerAvatar").innerText = data.name.charAt(0).toUpperCase();
@@ -1021,6 +1034,14 @@
                 socket.emit("hangup", { to: contactEmail });
             }
         }
+
+        // Auto-answer logic from URL
+        window.addEventListener('load', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('acceptCall') === 'true') {
+                socket.emit('request-offer', { from: contactEmail });
+            }
+        });
 
         /* ===========================
            CONTROLS

@@ -5,6 +5,7 @@ const session = require('express-session');
 const FileStore = require('session-file-store')(session);
 const path = require('path');
 const mysql2 = require('mysql2');
+const webpush = require('web-push');
 const app = express();
 
 // your PWA / service worker code
@@ -52,6 +53,7 @@ const io = new Server(server, {
     }
 });
 const userSockets = {};
+const activeOffers = {}; // Stores pending calls
 
 io.use((socket, next) => {
     sessionMiddleware(socket.request, {}, next);
@@ -133,7 +135,72 @@ database.getConnection((err, connection) => {
         if (err) console.error("❌ Error creating messages table:", err);
         else console.log("✅ Messages table is ready");
     });
+
+    database.query(`CREATE TABLE IF NOT EXISTS push_subscriptions (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_email VARCHAR(255) NOT NULL,
+        subscription TEXT NOT NULL,
+        UNIQUE KEY unique_sub (user_email, subscription(255))
+    )`, (err) => {
+        if (err) console.error("❌ Error creating push_subscriptions table:", err);
+        else console.log("✅ Push subscriptions table is ready");
+    });
+
+    database.query(`CREATE TABLE IF NOT EXISTS call_history (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        caller_email VARCHAR(255) NOT NULL,
+        caller_name VARCHAR(255) NOT NULL,
+        receiver_email VARCHAR(255) NOT NULL,
+        call_type ENUM('audio', 'video') NOT NULL,
+        status ENUM('missed', 'rejected', 'completed') NOT NULL,
+        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX (caller_email),
+        INDEX (receiver_email)
+    )`, (err) => {
+        if (err) console.error("❌ Error creating call_history table:", err);
+        else console.log("✅ call_history table is ready");
+    });
 });
+
+// Configure Web Push
+const publicVapidKey = 'BNFk2xYscFbIl9RUG74PoTlxwkJPw8XoBuWnCQan0P5_yMlKQ6FhA4Dtn0uaEta8RyOthkCraoiOvgN2GDCtHgo';
+const privateVapidKey = 'uCPs0wTlMwnB5-vIKGQfJgZnI6xYtyVceKgn6J1vUck';
+webpush.setVapidDetails('mailto:test@example.com', publicVapidKey, privateVapidKey);
+
+// Push subscription endpoint
+app.post('/api/subscribe', (req, res) => {
+    if (!req.session || !req.session.user) return res.status(401).json({ error: 'Unauthorized' });
+    const subscription = req.body;
+    const user_email = req.session.user.email.toLowerCase();
+    
+    const SQL = "INSERT IGNORE INTO push_subscriptions (user_email, subscription) VALUES (?, ?)";
+    database.query(SQL, [user_email, JSON.stringify(subscription)], (err) => {
+        if (err) {
+            console.error('❌ Failed to save push subscription:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+        res.status(201).json({ success: true });
+    });
+});
+
+// Helper to send push
+function sendPushNotification(userEmail, payload) {
+    const SQL = "SELECT subscription FROM push_subscriptions WHERE user_email = ?";
+    database.query(SQL, [userEmail.toLowerCase()], (err, results) => {
+        if (err || results.length === 0) return;
+        results.forEach(row => {
+            try {
+                const sub = JSON.parse(row.subscription);
+                webpush.sendNotification(sub, JSON.stringify(payload)).catch(e => {
+                    if (e.statusCode === 410 || e.statusCode === 404) {
+                        // Delete expired subscription
+                        database.query("DELETE FROM push_subscriptions WHERE subscription = ?", [row.subscription]);
+                    }
+                });
+            } catch (err) {}
+        });
+    });
+}
 // Sign-up handler
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'views')));
@@ -169,7 +236,7 @@ app.post('/handleform', (req, res) => {
     }
 });
 
-app.get('/login', (req, res) => {
+app.get(['/login', '/login.html'], (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'Login.html'));
 });
 
@@ -427,6 +494,22 @@ app.get('/api/users', (req, res) => {
     });
 });
 
+// ✅ API to Get Call History
+app.get('/api/call-history', (req, res) => {
+    if (!req.session.user) return res.status(401).json({ error: "Unauthorized" });
+    const myEmail = req.session.user.email.toLowerCase();
+
+    const SQL_COMMAND = `
+        SELECT * FROM call_history 
+        WHERE caller_email = ? OR receiver_email = ? 
+        ORDER BY timestamp DESC LIMIT 50
+    `;
+    database.query(SQL_COMMAND, [myEmail, myEmail], (err, results) => {
+        if (err) return res.status(500).json({ error: "Database error" });
+        res.json(results);
+    });
+});
+
 // for forgot password 
 
 app.post('/reset-password', (req, res) => {
@@ -540,12 +623,25 @@ io.on('connection', (socket) => {
         const emails = room_id.split('_');
         const targetEmail = emails.find(e => e !== sender_email);
         if (targetEmail) {
-            io.to(targetEmail).emit('push notification', {
+            const pushData = {
                 type: 'message',
                 fromEmail: sender_email,
                 fromName: username,
                 text: text,
                 room_id: room_id
+            };
+            io.to(targetEmail).emit('push notification', pushData);
+            
+            // Send actual Web Push for offline support
+            let msgText = text;
+            if (msgText.includes('<img')) msgText = '📷 Image';
+            else if (msgText.includes('<audio')) msgText = '🎤 Voice Message';
+            else if (msgText.includes('<a href')) msgText = '📎 Attachment';
+
+            sendPushNotification(targetEmail, {
+                title: `Message from ${username}`,
+                body: msgText,
+                url: `/personal_chat.html?user=${encodeURIComponent(username)}&email=${encodeURIComponent(sender_email)}`
             });
         }
     });
@@ -555,8 +651,27 @@ io.on('connection', (socket) => {
     // =========================
     socket.on('call-user', (data) => {
         const { to, offer, from, name, type } = data;
+        
+        // Store the active offer in memory
+        activeOffers[to.toLowerCase()] = data;
+        
         io.to(to.toLowerCase()).emit('video-offer', { offer, from, name, type });
         console.log(`📞 Call from ${from} to ${to}`);
+        
+        // Send Web Push for incoming call
+        sendPushNotification(to, {
+            title: `Incoming ${type} Call`,
+            body: `${name} is calling you. Tap to answer.`,
+            url: `/personal_chat.html?user=${encodeURIComponent(name)}&email=${encodeURIComponent(from)}&acceptCall=true`
+        });
+    });
+
+    // Request pending offer (when navigating from notification)
+    socket.on('request-offer', (data) => {
+        const email = socket.request.session.user.email.toLowerCase();
+        if (activeOffers[email] && activeOffers[email].from === data.from) {
+            socket.emit('video-offer', activeOffers[email]);
+        }
     });
 
     // =========================
@@ -565,11 +680,19 @@ io.on('connection', (socket) => {
     socket.on('make-answer', (data) => {
         const { to, answer } = data;
         if (socket.request.session.user) {
+            const myEmail = socket.request.session.user.email.toLowerCase();
+            
+            const offerData = activeOffers[myEmail];
+            if (offerData) {
+                const SQL = "INSERT INTO call_history (caller_email, caller_name, receiver_email, call_type, status) VALUES (?, ?, ?, ?, 'completed')";
+                database.query(SQL, [offerData.from, offerData.name, myEmail, offerData.type]);
+            }
+
             io.to(to.toLowerCase()).emit('video-answer', {
                 answer,
-                from: socket.request.session.user.email
+                from: myEmail
             });
-            console.log(`✅ Call answered by ${socket.request.session.user.email}`);
+            console.log(`✅ Call answered by ${myEmail}`);
         }
     });
 
@@ -592,10 +715,20 @@ io.on('connection', (socket) => {
     socket.on('reject-call', (data) => {
         const { to } = data;
         if (socket.request.session.user) {
+            const myEmail = socket.request.session.user.email.toLowerCase();
+            
+            const offerData = activeOffers[myEmail];
+            if (offerData) {
+                const SQL = "INSERT INTO call_history (caller_email, caller_name, receiver_email, call_type, status) VALUES (?, ?, ?, ?, 'rejected')";
+                database.query(SQL, [offerData.from, offerData.name, myEmail, offerData.type]);
+            }
+            
+            delete activeOffers[myEmail]; // Clear pending offer
+            
             io.to(to.toLowerCase()).emit('call-rejected', {
-                from: socket.request.session.user.email
+                from: myEmail
             });
-            console.log(`❌ Call rejected by ${socket.request.session.user.email}`);
+            console.log(`❌ Call rejected by ${myEmail}`);
         }
     });
 
@@ -604,6 +737,20 @@ io.on('connection', (socket) => {
     // =========================
     socket.on('hangup', (data) => {
         const { to } = data;
+        if (socket.request.session.user) {
+            const myEmail = socket.request.session.user.email.toLowerCase();
+            const targetEmail = to.toLowerCase();
+            
+            // If the caller hung up before the receiver answered, log as missed
+            const offerData = activeOffers[targetEmail];
+            if (offerData && offerData.from === myEmail) {
+                const SQL = "INSERT INTO call_history (caller_email, caller_name, receiver_email, call_type, status) VALUES (?, ?, ?, ?, 'missed')";
+                database.query(SQL, [myEmail, socket.request.session.user.username, targetEmail, offerData.type]);
+            }
+            
+            delete activeOffers[myEmail];
+            delete activeOffers[targetEmail];
+        }
         io.to(to.toLowerCase()).emit('video-hangup');
         console.log(`📴 Call ended`);
     });

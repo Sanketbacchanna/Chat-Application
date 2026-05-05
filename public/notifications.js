@@ -1,10 +1,52 @@
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+        .replace(/\-/g, '+')
+        .replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+}
+
+async function subscribeUserToPush() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    try {
+        const registration = await navigator.serviceWorker.ready;
+        let subscription = await registration.pushManager.getSubscription();
+        if (!subscription) {
+            const publicVapidKey = 'BNFk2xYscFbIl9RUG74PoTlxwkJPw8XoBuWnCQan0P5_yMlKQ6FhA4Dtn0uaEta8RyOthkCraoiOvgN2GDCtHgo';
+            const convertedVapidKey = urlBase64ToUint8Array(publicVapidKey);
+            subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: convertedVapidKey
+            });
+        }
+        await fetch('/api/subscribe', {
+            method: 'POST',
+            body: JSON.stringify(subscription),
+            headers: { 'Content-Type': 'application/json' }
+        });
+    } catch (e) {
+        console.error('Push Subscription failed:', e);
+    }
+}
+
 function initNotifications() {
-    if ("Notification" in window && Notification.permission === "default") {
-        // Note: Modern browsers require user interaction for this to succeed, 
-        // but keeping it as a fallback.
-        setTimeout(() => {
-            try { Notification.requestPermission(); } catch(e) {}
-        }, 1000);
+    if ("Notification" in window) {
+        if (Notification.permission === "default") {
+            setTimeout(() => {
+                try { 
+                    Notification.requestPermission().then(permission => {
+                        if (permission === "granted") subscribeUserToPush();
+                    }); 
+                } catch(e) {}
+            }, 1000);
+        } else if (Notification.permission === "granted") {
+            subscribeUserToPush();
+        }
     }
     injectStyles();
 }
