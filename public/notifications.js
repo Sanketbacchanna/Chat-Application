@@ -1,10 +1,19 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // Request notification permission for desktop
+function initNotifications() {
     if ("Notification" in window && Notification.permission === "default") {
-        setTimeout(() => Notification.requestPermission(), 1000);
+        // Note: Modern browsers require user interaction for this to succeed, 
+        // but keeping it as a fallback.
+        setTimeout(() => {
+            try { Notification.requestPermission(); } catch(e) {}
+        }, 1000);
     }
     injectStyles();
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initNotifications);
+} else {
+    initNotifications();
+}
 
 function injectStyles() {
     if (document.getElementById('cwm-notify-styles')) return;
@@ -186,10 +195,13 @@ function playMessageSound() {
 }
 
 const socketCheckInterval = setInterval(() => {
-    if (typeof socket !== 'undefined') {
+    // Use window.socket to avoid Temporal Dead Zone issues with 'const socket'
+    const currentSocket = window.socket || (typeof socket !== 'undefined' ? socket : null);
+    
+    if (currentSocket) {
         clearInterval(socketCheckInterval);
         
-        socket.on('push notification', data => {
+        currentSocket.on('push notification', data => {
             if (data.type === 'message') {
                 const urlParams = new URLSearchParams(window.location.search);
                 const currentContactEmail = urlParams.get('email');
@@ -215,7 +227,7 @@ const socketCheckInterval = setInterval(() => {
         });
 
         // Listen for incoming calls on ALL pages except personal_chat.html (which handles it internally)
-        socket.on('video-offer', data => {
+        currentSocket.on('video-offer', data => {
             if (window.location.pathname.includes('personal_chat.html')) return; // handled by personal_chat.html modal
             
             try {
@@ -236,7 +248,7 @@ const socketCheckInterval = setInterval(() => {
                     window.location.href = acceptUrl;
                 }, 
                 () => { // Reject
-                    socket.emit('reject-call', { to: data.from });
+                    currentSocket.emit('reject-call', { to: data.from });
                 },
                 data.name.charAt(0).toUpperCase()
             );

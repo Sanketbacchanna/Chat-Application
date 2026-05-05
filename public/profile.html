@@ -248,7 +248,7 @@
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script>const socket = io();</script>
+    <script>window.socket = io(); const socket = window.socket;</script>
     <script src="/notifications.js"></script>
     <script>
         window.onload = async function () {
@@ -262,7 +262,7 @@
                     document.getElementById('userAvatar').innerText = user.username.charAt(0).toUpperCase();
                 } else if (res.status === 401) {
                     localStorage.removeItem("chatUser");
-                    window.location.href = '/login.html';
+                    window.location.href = '/login';
                 }
             } catch (err) {
                 console.error("Profile load error:", err);

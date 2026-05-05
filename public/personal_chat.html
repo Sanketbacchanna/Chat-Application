@@ -581,7 +581,8 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="/notifications.js"></script>
     <script>
-        const socket = io();
+        window.socket = io();
+        const socket = window.socket;
 
         const urlParams = new URLSearchParams(window.location.search);
         const contactName = urlParams.get('user') || 'Contact';
@@ -614,7 +615,7 @@
             .then(res => {
                 if (res.status === 401) {
                     // Your session expired! Send to login.
-                    window.location.href = '/login.html';
+                    window.location.href = '/login';
                     return;
                 }
                 return res.json();

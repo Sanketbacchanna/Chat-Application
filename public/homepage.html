@@ -648,13 +648,14 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="/notifications.js"></script>
     <script>
-        const socket = io();
+        window.socket = io();
+        const socket = window.socket;
         // Add this to homepage.html
 
         const savedUser = localStorage.getItem("chatUser");
 
         if (!savedUser) {
-            window.location.href = "/login.html";
+            window.location.href = "/login";
         }
 
         const userDisplay = document.getElementById("user-email");
@@ -664,7 +665,7 @@
 
         function logout() {
             localStorage.removeItem("chatUser");
-            window.location.href = "/login.html";
+            window.location.href = "/login";
         }
         // Smooth transition from loader
         window.addEventListener('load', () => {
@@ -758,7 +759,7 @@
 
                 if (meRes.status === 401) {
                     localStorage.removeItem("chatUser");
-                    window.location.href = "/login.html";
+                    window.location.href = "/login";
                     return;
                 }
 

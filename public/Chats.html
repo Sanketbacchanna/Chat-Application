@@ -195,7 +195,8 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="/notifications.js"></script>
     <script>
-        const socket = io();
+        window.socket = io();
+        const socket = window.socket;
 
         function showNotification(msg) {
             const toast = document.createElement('div');
@@ -220,7 +221,7 @@
                 const res = await fetch('/api/friends');
                 if (res.status === 401) {
                     localStorage.removeItem("chatUser");
-                    window.location.href = '/login.html';
+                    window.location.href = '/login';
                     return;
                 }
                 const friendList = await res.json();
