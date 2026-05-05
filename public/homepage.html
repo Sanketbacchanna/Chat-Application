@@ -785,8 +785,9 @@
                     if (hiddenUsers.includes(user.email_id)) return;
                     if (removedEmails.includes(user.email_id)) return; // Exclude removed friends from main grid
 
-                    const isFriend = friends.some(f => f.friend_email === user.email_id);
-                    const isPending = sentRequests.includes(user.email_id);
+                    const normalizedEmail = user.email_id.toLowerCase();
+                    const isFriend = friends.some(f => f.friend_email.toLowerCase() === normalizedEmail);
+                    const isPending = sentRequests.some(email => email.toLowerCase() === normalizedEmail);
 
                     const projectDiv = document.createElement('div');
                     projectDiv.className = 'project';
@@ -902,7 +903,7 @@
                     body: JSON.stringify({ friend_email: email, friend_name: name })
                 });
                 if (res.ok) {
-                    button.parentElement.innerHTML = `<button class="btn-chat" onclick="goToChat('${name}', '${email}')">Start Chat</button>`;
+                    button.parentElement.innerHTML = `<button class="btn-add" style="background:#b2bec3;cursor:default;" disabled>Request Sent</button>`;
                 } else {
                     button.disabled = false;
                     button.textContent = "Add Friend";

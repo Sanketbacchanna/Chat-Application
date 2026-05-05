@@ -380,7 +380,7 @@ app.post('/api/add-friend', (req, res) => {
 // ✅ API to get sent friend requests
 app.get('/api/sent-requests', (req, res) => {
     if (!req.session.user) return res.status(401).json({ error: "Unauthorized" });
-    const user_email = req.session.user.email;
+    const user_email = req.session.user.email.toLowerCase();
     const SQL_COMMAND = "SELECT receiver_email FROM friend_requests WHERE requester_email = ? AND status = 'pending'";
     database.query(SQL_COMMAND, [user_email], (err, results) => {
         if (err) {
@@ -394,7 +394,7 @@ app.get('/api/sent-requests', (req, res) => {
 // ✅ API to get pending friend requests
 app.get('/api/friend-requests', (req, res) => {
     if (!req.session.user) return res.status(401).json({ error: "Unauthorized" });
-    const user_email = req.session.user.email;
+    const user_email = req.session.user.email.toLowerCase();
     const SQL_COMMAND = "SELECT requester_email, requester_name FROM friend_requests WHERE receiver_email = ? AND status = 'pending'";
     database.query(SQL_COMMAND, [user_email], (err, results) => {
         if (err) {
@@ -408,7 +408,7 @@ app.get('/api/friend-requests', (req, res) => {
 app.get('/api/friends', (req, res) => {
     if (!req.session.user) return res.status(401).json({ error: "Unauthorized" });
 
-    const user_email = req.session.user.email;
+    const user_email = req.session.user.email.toLowerCase();
     const SQL_COMMAND = "SELECT friend_email, friend_name FROM friends WHERE user_email = ?";
     database.query(SQL_COMMAND, [user_email], (err, results) => {
         if (err) {
