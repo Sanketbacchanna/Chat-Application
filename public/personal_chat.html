@@ -511,6 +511,7 @@
         <div class="header-actions">
             <button class="action-icon" onclick="startVideoCall()" title="Video Call">📹</button>
             <button class="action-icon" onclick="startAudioCall()" title="Call">📞</button>
+            <button class="action-icon" onclick="removeFriend()" title="Remove Friend" style="color: #ff4757;">🗑️</button>
             <button class="action-icon" onclick="openUserInfo()" title="More Info">ℹ️</button>
         </div>
     </div>
@@ -1107,6 +1108,26 @@
 
         function openUserInfo() {
             alert(`Name: ${contactName}\nEmail: ${contactEmail}`);
+        }
+
+        async function removeFriend() {
+            if (confirm(`Are you sure you want to remove ${contactName} from your friends?`)) {
+                try {
+                    const res = await fetch('/api/remove-friend', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ friend_email: contactEmail, friend_name: contactName })
+                    });
+
+                    if (res.ok) {
+                        window.location.href = 'Chats.html';
+                    } else {
+                        alert("Failed to remove friend.");
+                    }
+                } catch (err) {
+                    alert("Operation failed. Try again.");
+                }
+            }
         }
 
         function fixViewport() {
