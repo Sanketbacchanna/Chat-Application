@@ -452,16 +452,52 @@ app.post('/api/remove-friend', (req, res) => {
 // ✅ API to get removed friends
 app.get('/api/removed-friends', (req, res) => {
     if (!req.session.user) return res.status(401).json({ error: "Unauthorized" });
+    
     const user_email = req.session.user.email;
     const SQL_COMMAND = "SELECT friend_email, friend_name FROM removed_friends WHERE user_email = ?";
+    
     database.query(SQL_COMMAND, [user_email], (err, results) => {
         if (err) {
-            console.error(err);
+            console.error("❌ DB Error fetching removed friends:", err);
             return res.status(500).json({ error: "Failed to fetch removed friends" });
         }
         res.json(results);
     });
 });
+
+// ✅ API to restore a friend
+app.post('/api/restore-friend', (req, res) => {
+    if (!req.session.user) return res.status(401).json({ error: "Unauthorized" });
+    
+    const { friend_email } = req.body;
+    const user_email = req.session.user.email;
+    const user_name = req.session.user.username;
+
+    // 1. Get friend's name from removed_friends
+    database.query("SELECT friend_name FROM removed_friends WHERE user_email = ? AND friend_email = ?", [user_email, friend_email], (err, results) => {
+        if (err || results.length === 0) return res.status(400).json({ error: "Friend not found in removed list" });
+        
+        const friend_name = results[0].friend_name;
+        
+        // 2. Insert into friends table (both ways)
+        const insertSQL = "INSERT IGNORE INTO friends (user_email, friend_email, friend_name) VALUES (?, ?, ?), (?, ?, ?)";
+        database.query(insertSQL, [user_email, friend_email, friend_name, friend_email, user_email, user_name], (err2) => {
+            if (err2) {
+                console.error("❌ DB Error restoring friend:", err2);
+                return res.status(500).json({ error: "Failed to restore friend" });
+            }
+            
+            // 3. Delete from removed_friends
+            database.query("DELETE FROM removed_friends WHERE user_email = ? AND friend_email = ?", [user_email, friend_email], (err3) => {
+                if (err3) console.error("❌ Error deleting from removed_friends:", err3);
+                console.log(`✅ Friend ${friend_email} restored by ${user_email}`);
+                res.json({ success: true });
+            });
+        });
+    });
+});
+
+
 
 // ✅ API to restore/re-add a removed friend
 app.post('/api/restore-friend', (req, res) => {
