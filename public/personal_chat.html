@@ -604,6 +604,10 @@
         const servers = {
             iceServers: [
                 { urls: "stun:stun.l.google.com:19302" },
+                { urls: "stun:stun1.l.google.com:19302" },
+                { urls: "stun:stun2.l.google.com:19302" },
+                { urls: "stun:stun3.l.google.com:19302" },
+                { urls: "stun:stun4.l.google.com:19302" },
                 {
                     urls: "turn:openrelay.metered.ca:80",
                     username: "openrelayproject",
@@ -776,9 +780,16 @@
                 console.log("Remote track received:", event.track.kind);
                 const remoteVideo = document.getElementById("remoteVideo");
 
-                // Assign stream without interrupting if already attached
-                if (remoteVideo.srcObject !== event.streams[0]) {
-                    remoteVideo.srcObject = event.streams[0];
+                // Assign stream safely
+                if (event.streams && event.streams[0]) {
+                    if (remoteVideo.srcObject !== event.streams[0]) {
+                        remoteVideo.srcObject = event.streams[0];
+                    }
+                } else {
+                    if (!remoteVideo.srcObject) {
+                        remoteVideo.srcObject = new MediaStream();
+                    }
+                    remoteVideo.srcObject.addTrack(event.track);
                 }
 
                 // Force play on every new track to ensure mobile browsers render it
