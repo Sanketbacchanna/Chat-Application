@@ -70,12 +70,26 @@ self.addEventListener('push', (event) => {
   if (event.data) {
     try {
       const data = event.data.json();
+      
+      const isCall = data.title && data.title.includes('Incoming');
+      
       const options = {
         body: data.body,
         icon: '/icons/icon-192.png',
         badge: '/icons/icon-192.png',
         data: { url: data.url }
       };
+
+      if (isCall) {
+        options.requireInteraction = true;
+        options.renotify = true;
+        options.tag = 'incoming_call';
+        // Intense vibration pattern for a ringing phone
+        options.vibrate = [500, 1000, 500, 1000, 500, 1000, 500, 1000, 500, 1000];
+        // Custom sound if supported by the browser (usually Android Chrome)
+        options.sound = 'https://www.zedge.net/ringtones/b320a15f-455f-38ab-88e1-06bda9564584';
+        options.silent = false;
+      }
 
       event.waitUntil(
         self.registration.showNotification(data.title, options)

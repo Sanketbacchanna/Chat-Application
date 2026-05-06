@@ -236,6 +236,8 @@ function playMessageSound() {
     } catch(e) {}
 }
 
+let incomingCallRing = null;
+
 const socketCheckInterval = setInterval(() => {
     // Use window.socket to avoid Temporal Dead Zone issues with 'const socket'
     const currentSocket = window.socket || (typeof socket !== 'undefined' ? socket : null);
@@ -273,8 +275,12 @@ const socketCheckInterval = setInterval(() => {
             if (window.location.pathname.includes('personal_chat.html')) return; // handled by personal_chat.html modal
             
             try {
-                const audio = new Audio('https://www.zedge.net/ringtones/b320a15f-455f-38ab-88e1-06bda9564584');
-                audio.play().catch(e => console.warn('Audio play blocked', e));
+                if (!incomingCallRing) {
+                    incomingCallRing = new Audio('https://www.zedge.net/ringtones/b320a15f-455f-38ab-88e1-06bda9564584');
+                    incomingCallRing.loop = true;
+                }
+                incomingCallRing.currentTime = 0;
+                incomingCallRing.play().catch(e => console.warn('Audio play blocked', e));
             } catch(e) {}
 
             const acceptUrl = `personal_chat.html?user=${encodeURIComponent(data.name)}&email=${encodeURIComponent(data.from)}&acceptCall=true`;
@@ -287,13 +293,35 @@ const socketCheckInterval = setInterval(() => {
                 'call', 
                 null, 
                 () => { // Accept
+                    if (incomingCallRing) { incomingCallRing.pause(); incomingCallRing.currentTime = 0; }
                     window.location.href = acceptUrl;
                 }, 
                 () => { // Reject
+                    if (incomingCallRing) { incomingCallRing.pause(); incomingCallRing.currentTime = 0; }
                     currentSocket.emit('reject-call', { to: data.from });
                 },
                 data.name.charAt(0).toUpperCase()
             );
+        });
+
+        currentSocket.on('video-hangup', () => {
+            if (incomingCallRing) {
+                incomingCallRing.pause();
+                incomingCallRing.currentTime = 0;
+            }
+            const toasts = document.querySelectorAll('.cwm-toast');
+            toasts.forEach(toast => {
+                if (toast.innerHTML.includes('Incoming Call')) {
+                    closeToast(toast);
+                }
+            });
+        });
+        
+        currentSocket.on('call-rejected', () => {
+            if (incomingCallRing) {
+                incomingCallRing.pause();
+                incomingCallRing.currentTime = 0;
+            }
         });
     }
 }, 500);
