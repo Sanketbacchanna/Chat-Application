@@ -281,6 +281,11 @@ const socketCheckInterval = setInterval(() => {
                 }
                 incomingCallRing.currentTime = 0;
                 incomingCallRing.play().catch(e => console.warn('Audio play blocked', e));
+                
+                // Also vibrate the device if supported
+                if (navigator.vibrate) {
+                    navigator.vibrate([500, 1000, 500, 1000, 500, 1000, 500, 1000, 500, 1000]);
+                }
             } catch(e) {}
 
             const acceptUrl = `personal_chat.html?user=${encodeURIComponent(data.name)}&email=${encodeURIComponent(data.from)}&acceptCall=true`;
@@ -294,10 +299,12 @@ const socketCheckInterval = setInterval(() => {
                 null, 
                 () => { // Accept
                     if (incomingCallRing) { incomingCallRing.pause(); incomingCallRing.currentTime = 0; }
+                    if (navigator.vibrate) navigator.vibrate(0); // Stop vibrating
                     window.location.href = acceptUrl;
                 }, 
                 () => { // Reject
                     if (incomingCallRing) { incomingCallRing.pause(); incomingCallRing.currentTime = 0; }
+                    if (navigator.vibrate) navigator.vibrate(0);
                     currentSocket.emit('reject-call', { to: data.from });
                 },
                 data.name.charAt(0).toUpperCase()
@@ -309,6 +316,8 @@ const socketCheckInterval = setInterval(() => {
                 incomingCallRing.pause();
                 incomingCallRing.currentTime = 0;
             }
+            if (navigator.vibrate) navigator.vibrate(0);
+            
             const toasts = document.querySelectorAll('.cwm-toast');
             toasts.forEach(toast => {
                 if (toast.innerHTML.includes('Incoming Call')) {
@@ -322,6 +331,7 @@ const socketCheckInterval = setInterval(() => {
                 incomingCallRing.pause();
                 incomingCallRing.currentTime = 0;
             }
+            if (navigator.vibrate) navigator.vibrate(0);
         });
     }
 }, 500);
