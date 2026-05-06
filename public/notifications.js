@@ -276,7 +276,7 @@ const socketCheckInterval = setInterval(() => {
             
             try {
                 if (!incomingCallRing) {
-                    incomingCallRing = new Audio('https://www.zedge.net/ringtones/b320a15f-455f-38ab-88e1-06bda9564584');
+                    incomingCallRing = new Audio('https://raw.githubusercontent.com/rafaelbotazini/ringtone/master/iphone.mp3');
                     incomingCallRing.loop = true;
                 }
                 incomingCallRing.currentTime = 0;

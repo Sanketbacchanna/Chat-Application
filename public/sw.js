@@ -86,9 +86,15 @@ self.addEventListener('push', (event) => {
         options.tag = 'incoming_call';
         // Intense vibration pattern for a ringing phone
         options.vibrate = [500, 1000, 500, 1000, 500, 1000, 500, 1000, 500, 1000];
-        // Custom sound if supported by the browser (usually Android Chrome)
-        options.sound = 'https://www.zedge.net/ringtones/b320a15f-455f-38ab-88e1-06bda9564584';
+        // Direct MP3 link for better compatibility
+        options.sound = 'https://raw.githubusercontent.com/rafaelbotazini/ringtone/master/iphone.mp3';
         options.silent = false;
+        
+        // Add action buttons to the notification for quick response
+        options.actions = [
+          { action: 'accept', title: 'Answer', icon: '/icons/icon-192.png' },
+          { action: 'reject', title: 'Decline', icon: '/icons/icon-192.png' }
+        ];
       }
 
       event.waitUntil(
@@ -101,18 +107,28 @@ self.addEventListener('push', (event) => {
 });
 
 self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
-  if (event.notification.data && event.notification.data.url) {
+  const notification = event.notification;
+  const action = event.action;
+  const url = notification.data.url;
+
+  notification.close();
+
+  if (action === 'reject') {
+    // Ideally, notify the server to reject the call here via a background fetch
+    return;
+  }
+
+  if (url) {
     event.waitUntil(
-      clients.matchAll({ type: 'window' }).then(windowClients => {
+      clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
         for (let i = 0; i < windowClients.length; i++) {
           const client = windowClients[i];
-          if (client.url === event.notification.data.url && 'focus' in client) {
+          if (client.url === url && 'focus' in client) {
             return client.focus();
           }
         }
         if (clients.openWindow) {
-          return clients.openWindow(event.notification.data.url);
+          return clients.openWindow(url);
         }
       })
     );
