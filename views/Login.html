@@ -240,8 +240,14 @@
         document.querySelector("form").addEventListener("submit", async function (e) {
             e.preventDefault();
 
-            const email = document.getElementById("username").value;
+            const emailInput = document.getElementById("username").value;
+            const email = emailInput ? emailInput.trim().toLowerCase() : "";
             const password = document.getElementById("password").value;
+
+            if (!email || !password) {
+                alert("Please enter both email and password");
+                return;
+            }
 
             try {
                 const response = await fetch("/Login", {
@@ -263,7 +269,7 @@
                         return;
                     }
 
-                    // Save user session
+                    // Save user session in localStorage for immediate frontend checks
                     localStorage.setItem("chatUser", email);
 
                     // Redirect properly
@@ -273,12 +279,17 @@
                         window.location.href = "/homepage.html";
                     }
                 } else {
-                    alert("Invalid email or password");
+                    const errorText = await response.text();
+                    if (errorText.includes("Invalid")) {
+                        alert("Invalid email or password");
+                    } else {
+                        alert("Login failed. Server error.");
+                    }
                 }
 
             } catch (error) {
-                alert("Login failed. Please try again.");
-                console.error(error);
+                alert("Login failed. Please check your connection.");
+                console.error("Login Fetch Error:", error);
             }
         });
         // Register Service Worker

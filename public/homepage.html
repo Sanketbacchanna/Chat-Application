@@ -651,22 +651,43 @@
     <script>
         window.socket = io();
         const socket = window.socket;
-        // Add this to homepage.html
-
-        const savedUser = localStorage.getItem("chatUser");
-
-        if (!savedUser) {
-            window.location.href = "/login";
+        // Robust session check
+        async function checkSession() {
+            const savedUser = localStorage.getItem("chatUser");
+            
+            try {
+                const res = await fetch('/api/me');
+                if (res.ok) {
+                    const user = await res.json();
+                    // Sync localStorage if it was missing (e.g., after signup or cleared storage)
+                    if (!savedUser || savedUser !== user.email) {
+                        localStorage.setItem("chatUser", user.email);
+                    }
+                    const userDisplay = document.getElementById("user-email");
+                    if (userDisplay) {
+                        userDisplay.textContent = "Logged in as: " + user.email;
+                    }
+                    return true;
+                } else if (res.status === 401) {
+                    localStorage.removeItem("chatUser");
+                    window.location.href = "/login";
+                    return false;
+                }
+            } catch (err) {
+                console.error("Session check failed", err);
+                // If we can't reach the server but have a saved user, we might be offline
+                if (!savedUser) {
+                    window.location.href = "/login";
+                }
+            }
         }
 
-        const userDisplay = document.getElementById("user-email");
-        if (userDisplay) {
-            userDisplay.textContent = "Logged in as: " + savedUser;
-        }
+        // Initialize session check
+        checkSession();
 
         function logout() {
             localStorage.removeItem("chatUser");
-            window.location.href = "/login";
+            window.location.href = "/logout"; // Use the server logout route
         }
         // Smooth transition from loader
         window.addEventListener('load', () => {
@@ -751,24 +772,20 @@
             let sentRequests = [];
             let removedFriends = [];
             try {
-                const [meRes, friendsRes, sentRes, removedRes] = await Promise.all([
-                    fetch('/api/me'),
+                const [friendsRes, sentRes, removedRes] = await Promise.all([
                     fetch('/api/friends'),
                     fetch('/api/sent-requests'),
                     fetch('/api/removed-friends')
                 ]);
 
-                if (meRes.status === 401) {
-                    localStorage.removeItem("chatUser");
-                    window.location.href = "/login";
-                    return;
-                }
-
-                if (meRes.ok) currentUser = await meRes.json();
                 if (friendsRes.ok) friends = await friendsRes.json();
                 if (sentRes.ok) sentRequests = await sentRes.json();
                 if (removedRes.ok) removedFriends = await removedRes.json();
-            } catch (err) { console.error("Session/Friends check failed", err); }
+                
+                // Get current user from localStorage or previously set variable
+                const savedUser = localStorage.getItem("chatUser");
+                currentUser = { email: savedUser }; 
+            } catch (err) { console.error("Friends check failed", err); }
 
 
             try {

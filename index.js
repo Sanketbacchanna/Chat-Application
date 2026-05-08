@@ -227,15 +227,22 @@ app.get('/signup', (req, res) => {
 app.post('/handleform', (req, res) => {
     try {
         const { UserName, Passwords, email_id } = req.body;
-        console.log(`📝 Signup attempt: ${UserName} (${email_id})`);
+        const normalizedEmail = email_id ? email_id.trim().toLowerCase() : "";
+        const normalizedUsername = UserName ? UserName.trim() : "";
+        
+        console.log(`📝 Signup attempt: ${normalizedUsername} (${normalizedEmail})`);
+
+        if (!normalizedEmail || !Passwords || !normalizedUsername) {
+            return res.redirect("login_error.html");
+        }
 
         const SQL_COMMAND = "INSERT INTO users(UserName, Passwords, email_id ) VALUES (?, ?, ?)";
-        database.query(SQL_COMMAND, [UserName, Passwords, email_id.toLowerCase()], (err, result) => {
+        database.query(SQL_COMMAND, [normalizedUsername, Passwords, normalizedEmail], (err, result) => {
             if (err) {
                 console.error("❌ Signup DB Error:", err);
                 return res.redirect("login_error.html");
             }
-            req.session.user = { id: result.insertId, username: UserName, email: email_id.toLowerCase() };
+            req.session.user = { id: result.insertId, username: normalizedUsername, email: normalizedEmail };
             req.session.save((saveErr) => {
                 if (saveErr) console.error("❌ Session save error:", saveErr);
                 console.log("✅ Signup successful, session created");
@@ -259,15 +266,16 @@ app.get('/', (req, res) => {
 app.post('/Login', (req, res) => {
     try {
         const { email_id, Passwords } = req.body;
-        console.log(`🔑 Login attempt: ${email_id}`);
+        const normalizedEmail = email_id ? email_id.trim().toLowerCase() : "";
+        console.log(`🔑 Login attempt: ${normalizedEmail}`);
 
-        if (!email_id || !Passwords) {
+        if (!normalizedEmail || !Passwords) {
             console.warn("⚠️ Login failed: Missing credentials");
             return res.redirect("login_error.html");
         }
 
         const SQL_COMMAND = "SELECT * FROM users WHERE email_id = ? AND Passwords = ?";
-        database.query(SQL_COMMAND, [email_id.toLowerCase(), Passwords], (err, results) => {
+        database.query(SQL_COMMAND, [normalizedEmail, Passwords], (err, results) => {
             if (err) {
                 console.error("❌ Login DB Error:", err);
                 return res.redirect("login_error.html");
@@ -281,7 +289,7 @@ app.post('/Login', (req, res) => {
                     res.redirect("/homepage.html");
                 });
             } else {
-                console.warn(`⚠️ Login failed for ${email_id}: Invalid credentials`);
+                console.warn(`⚠️ Login failed for ${normalizedEmail}: Invalid credentials`);
                 res.redirect("login_error.html");
             }
         });
