@@ -125,13 +125,14 @@ self.addEventListener('notificationclick', (event) => {
        try {
            const urlObj = new URL(url, self.location.origin);
            const callerEmail = urlObj.searchParams.get('email');
-           if (callerEmail) {
+           const toEmail = urlObj.searchParams.get('toEmail');
+           const rt = urlObj.searchParams.get('rt');
+           if (callerEmail && toEmail && rt) {
                event.waitUntil(
                    fetch('/api/reject-call-push', {
                        method: 'POST',
                        headers: { 'Content-Type': 'application/json' },
-                       credentials: 'same-origin',
-                       body: JSON.stringify({ caller: callerEmail })
+                       body: JSON.stringify({ caller: callerEmail, receiver: toEmail, token: rt })
                    }).catch(err => console.error("Push reject error:", err))
                );
            }

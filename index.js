@@ -536,11 +536,21 @@ app.post('/api/restore-friend', (req, res) => {
 
 // ✅ API to reject call from Push Notification
 app.post('/api/reject-call-push', (req, res) => {
-    if (!req.session || !req.session.user) {
-        return res.status(401).json({ error: 'Unauthorized' });
+    let myEmail = "";
+    let callerEmail = req.body.caller ? req.body.caller.toLowerCase() : "";
+    
+    if (req.body.token && req.body.receiver) {
+        myEmail = req.body.receiver.toLowerCase();
+        const offerData = activeOffers[myEmail];
+        if (!offerData || offerData.rejectToken !== req.body.token) {
+            return res.status(401).json({ error: 'Unauthorized token' });
+        }
+    } else {
+        if (!req.session || !req.session.user) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+        myEmail = req.session.user.email.toLowerCase();
     }
-    const myEmail = req.session.user.email.toLowerCase();
-    const callerEmail = req.body.caller ? req.body.caller.toLowerCase() : "";
 
     const offerData = activeOffers[myEmail];
     if (offerData && offerData.from === callerEmail) {
@@ -734,7 +744,8 @@ io.on('connection', (socket) => {
         const { to, offer, from, name, type } = data;
         
         // Store the active offer in memory
-        activeOffers[to.toLowerCase()] = data;
+        const rejectToken = Math.random().toString(36).substring(2, 15);
+        activeOffers[to.toLowerCase()] = { offer, from, name, type, rejectToken };
         
         io.to(to.toLowerCase()).emit('video-offer', { offer, from, name, type });
         console.log(`📞 Call from ${from} to ${to}`);
@@ -743,7 +754,7 @@ io.on('connection', (socket) => {
         const pushPayload = {
             title: `Incoming ${type} Call`,
             body: `${name} is calling you. Tap to view.`,
-            url: `/personal_chat.html?user=${encodeURIComponent(name)}&email=${encodeURIComponent(from)}`
+            url: `/personal_chat.html?user=${encodeURIComponent(name)}&email=${encodeURIComponent(from)}&toEmail=${encodeURIComponent(to)}&rt=${rejectToken}`
         };
         sendPushNotification(to, pushPayload);
         

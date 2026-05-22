@@ -954,10 +954,14 @@
             document.getElementById("videoContainer").style.display = "flex";
 
             try {
-                localStream = await navigator.mediaDevices.getUserMedia({
+                const streamPromise = navigator.mediaDevices.getUserMedia({
                     video: isVideo,
                     audio: true
                 });
+                
+                // Fallback to manual accept if camera is blocked or requires explicit gesture
+                const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 3000));
+                localStream = await Promise.race([streamPromise, timeoutPromise]);
 
                 if (isVideo) { // matches the 'const isVideo' you declared earlier
                     localStream.getVideoTracks().forEach(track => {
@@ -995,8 +999,14 @@
 
             } catch (err) {
                 console.error("Accept call error:", err);
-                alert("Failed to access camera/microphone");
-                endVideoCall();
+                if (err.message === "Timeout" || err.name === "NotAllowedError") {
+                    // Browser blocked auto-answer. Re-show the modal for manual explicit interaction!
+                    document.getElementById("videoContainer").style.display = "none";
+                    document.getElementById("incomingCallModal").style.display = "flex";
+                } else {
+                    alert("Failed to access camera/microphone");
+                    endVideoCall();
+                }
             }
         }
         function rejectCall() {
@@ -1082,8 +1092,7 @@
 
         // Auto-answer logic from URL
         window.addEventListener('load', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('acceptCall') === 'true') {
+            if (contactEmail) {
                 socket.emit('request-offer', { from: contactEmail });
             }
         });
