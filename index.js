@@ -559,7 +559,7 @@ app.post('/api/reject-call-push', (req, res) => {
         delete activeOffers[myEmail];
         
         // Notify caller that call was rejected
-        io.to(callerEmail).emit('call-rejected', { from: myEmail });
+        io.to(callerEmail).emit('call-rejected', { from: myEmail, debug: "API reject-call-push" });
         
         // Tell all receiver's devices to stop ringing
         io.to(myEmail).emit('call-rejected', { from: myEmail, selfReject: true });
@@ -833,7 +833,8 @@ io.on('connection', (socket) => {
             if (callIntervals[myEmail]) clearInterval(callIntervals[myEmail]);
             
             io.to(to.toLowerCase()).emit('call-rejected', {
-                from: myEmail
+                from: myEmail,
+                debug: "Socket reject-call event"
             });
             console.log(`❌ Call rejected by ${myEmail}`);
         }
