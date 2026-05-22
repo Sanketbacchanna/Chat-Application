@@ -84,8 +84,8 @@ self.addEventListener('push', (event) => {
         options.requireInteraction = true;
         options.renotify = true;
         options.tag = 'incoming_call';
-        // Intense vibration pattern for a ringing phone
-        options.vibrate = [500, 1000, 500, 1000, 500, 1000, 500, 1000, 500, 1000];
+        // Short vibration pattern for ringing
+        options.vibrate = [500, 1000, 500];
         // Direct MP3 link for better compatibility
         options.sound = 'https://raw.githubusercontent.com/rafaelbotazini/ringtone/master/iphone.mp3';
         options.silent = false;

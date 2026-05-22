@@ -758,7 +758,7 @@ io.on('connection', (socket) => {
         };
         sendPushNotification(to, pushPayload);
         
-        // Keep ringing (sending push) every 4 seconds until answered or hung up
+        // Keep ringing (sending push) every 8 seconds until answered or hung up
         if (callIntervals[to.toLowerCase()]) clearInterval(callIntervals[to.toLowerCase()]);
         callIntervals[to.toLowerCase()] = setInterval(() => {
             if (activeOffers[to.toLowerCase()]) {
@@ -766,7 +766,7 @@ io.on('connection', (socket) => {
             } else {
                 clearInterval(callIntervals[to.toLowerCase()]);
             }
-        }, 4000);
+        }, 8000);
     });
 
     // Request pending offer (when navigating from notification)
