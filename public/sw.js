@@ -109,12 +109,35 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
   const notification = event.notification;
   const action = event.action;
-  const url = notification.data.url;
+  let url = notification.data.url;
 
   notification.close();
 
-  if (action === 'reject') {
-    // Ideally, notify the server to reject the call here via a background fetch
+  if (action === 'accept') {
+    if (url.includes('?')) {
+        url += '&acceptCall=true';
+    } else {
+        url += '?acceptCall=true';
+    }
+  } else if (action === 'reject') {
+    // Notify the server to reject the call via a background fetch
+    if (url) {
+       try {
+           const urlObj = new URL(url, self.location.origin);
+           const callerEmail = urlObj.searchParams.get('email');
+           if (callerEmail) {
+               event.waitUntil(
+                   fetch('/api/reject-call-push', {
+                       method: 'POST',
+                       headers: { 'Content-Type': 'application/json' },
+                       body: JSON.stringify({ caller: callerEmail })
+                   }).catch(err => console.error("Push reject error:", err))
+               );
+           }
+       } catch (e) {
+           console.error("URL parse error in sw.js:", e);
+       }
+    }
     return;
   }
 

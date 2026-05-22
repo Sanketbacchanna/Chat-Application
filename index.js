@@ -532,6 +532,29 @@ app.post('/api/restore-friend', (req, res) => {
         res.json({ success: true });
     });
 });
+
+// ✅ API to reject call from Push Notification
+app.post('/api/reject-call-push', (req, res) => {
+    if (!req.session || !req.session.user) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+    const myEmail = req.session.user.email.toLowerCase();
+    const callerEmail = req.body.caller ? req.body.caller.toLowerCase() : "";
+
+    const offerData = activeOffers[myEmail];
+    if (offerData && offerData.from === callerEmail) {
+        const SQL = "INSERT INTO call_history (caller_email, caller_name, receiver_email, call_type, status) VALUES (?, ?, ?, ?, 'rejected')";
+        database.query(SQL, [offerData.from, offerData.name, myEmail, offerData.type]);
+        delete activeOffers[myEmail];
+        
+        // Notify caller that call was rejected
+        io.to(callerEmail).emit('call-rejected', { from: myEmail });
+        
+        // Tell all receiver's devices to stop ringing
+        io.to(myEmail).emit('call-rejected', { from: myEmail, selfReject: true });
+    }
+    res.json({ success: true });
+});
 // ✅ HomePage handler
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -718,8 +741,8 @@ io.on('connection', (socket) => {
         // Send Web Push for incoming call
         sendPushNotification(to, {
             title: `Incoming ${type} Call`,
-            body: `${name} is calling you. Tap to answer.`,
-            url: `/personal_chat.html?user=${encodeURIComponent(name)}&email=${encodeURIComponent(from)}&acceptCall=true`
+            body: `${name} is calling you. Tap to view.`,
+            url: `/personal_chat.html?user=${encodeURIComponent(name)}&email=${encodeURIComponent(from)}`
         });
     });
 

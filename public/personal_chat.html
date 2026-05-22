@@ -1041,8 +1041,10 @@
             }
         });
 
-        socket.on("call-rejected", () => {
-            alert("Call rejected");
+        socket.on("call-rejected", (data) => {
+            if (!data || !data.selfReject) {
+                alert("Call rejected");
+            }
             endVideoCall();
         });
 
