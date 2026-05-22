@@ -960,7 +960,7 @@
                 });
                 
                 // Fallback to manual accept if camera is blocked or requires explicit gesture
-                const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 3000));
+                const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 5000));
                 localStream = await Promise.race([streamPromise, timeoutPromise]);
 
                 if (isVideo) { // matches the 'const isVideo' you declared earlier
@@ -1004,7 +1004,7 @@
                     document.getElementById("videoContainer").style.display = "none";
                     document.getElementById("incomingCallModal").style.display = "flex";
                 } else {
-                    alert("Failed to access camera/microphone");
+                    alert("Failed to access camera/microphone: " + err.message);
                     endVideoCall();
                 }
             }

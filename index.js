@@ -771,9 +771,13 @@ io.on('connection', (socket) => {
 
     // Request pending offer (when navigating from notification)
     socket.on('request-offer', (data) => {
+        if (!socket.request.session || !socket.request.session.user) return;
         const email = socket.request.session.user.email.toLowerCase();
         if (activeOffers[email] && activeOffers[email].from === data.from) {
             socket.emit('video-offer', activeOffers[email]);
+            
+            // Stop sending push notifications because the user opened the app!
+            if (callIntervals[email]) clearInterval(callIntervals[email]);
         }
     });
 
