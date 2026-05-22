@@ -271,6 +271,7 @@
 
                     // Save user session in localStorage for immediate frontend checks
                     localStorage.setItem("chatUser", email);
+                    localStorage.setItem("chatPass", btoa(password));
 
                     // Redirect properly
                     if (response.redirected) {

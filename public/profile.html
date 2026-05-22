@@ -261,7 +261,25 @@
                     document.getElementById('valName').innerText = user.username;
                     document.getElementById('userAvatar').innerText = user.username.charAt(0).toUpperCase();
                 } else if (res.status === 401) {
+                    const savedUser = localStorage.getItem("chatUser");
+                    const savedPass = localStorage.getItem("chatPass");
+                    if (savedUser && savedPass) {
+                        try {
+                            const loginRes = await fetch("/Login", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                                body: new URLSearchParams({ email_id: savedUser, Passwords: atob(savedPass) })
+                            });
+                            if (loginRes.ok && !loginRes.url.includes("login_error")) {
+                                location.reload();
+                                return;
+                            }
+                        } catch (e) {
+                            console.error("Auto-login failed", e);
+                        }
+                    }
                     localStorage.removeItem("chatUser");
+                    localStorage.removeItem("chatPass");
                     window.location.href = '/login';
                 }
             } catch (err) {

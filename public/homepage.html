@@ -654,6 +654,7 @@
         // Robust session check
         async function checkSession() {
             const savedUser = localStorage.getItem("chatUser");
+            const savedPass = localStorage.getItem("chatPass");
             
             try {
                 const res = await fetch('/api/me');
@@ -669,7 +670,36 @@
                     }
                     return true;
                 } else if (res.status === 401) {
+                    // Try to re-login silently
+                    if (savedUser && savedPass) {
+                        try {
+                            const password = atob(savedPass);
+                            const loginRes = await fetch("/Login", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/x-www-form-urlencoded"
+                                },
+                                body: new URLSearchParams({
+                                    email_id: savedUser,
+                                    Passwords: password
+                                })
+                            });
+                            
+                            if (loginRes.ok && !loginRes.url.includes("login_error")) {
+                                console.log("Auto-login successful");
+                                const userDisplay = document.getElementById("user-email");
+                                if (userDisplay) {
+                                    userDisplay.textContent = "Logged in as: " + savedUser;
+                                }
+                                return true;
+                            }
+                        } catch (e) {
+                            console.error("Auto-login failed", e);
+                        }
+                    }
+
                     localStorage.removeItem("chatUser");
+                    localStorage.removeItem("chatPass");
                     window.location.href = "/login";
                     return false;
                 }
@@ -687,6 +717,7 @@
 
         function logout() {
             localStorage.removeItem("chatUser");
+            localStorage.removeItem("chatPass");
             window.location.href = "/logout"; // Use the server logout route
         }
         // Smooth transition from loader

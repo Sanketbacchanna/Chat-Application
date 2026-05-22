@@ -161,7 +161,7 @@
     <div class="shape shape-2"></div>
 
     <div class="signup-container">
-        <form action="/handleform" method="POST">
+        <form id="signupForm" action="/handleform" method="POST">
             <h2>Join Us</h2>
             <div class="input-group">
                 <label for="name">Username</label>
@@ -182,6 +182,33 @@
             <p>Already have an account? <a href="/login">Sign In</a></p>
         </form>
     </div>
+
+    <script>
+        document.getElementById("signupForm").addEventListener("submit", async function(e) {
+            e.preventDefault();
+            const username = document.getElementById("name").value;
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            
+            try {
+                const res = await fetch("/handleform", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: new URLSearchParams({ UserName: username, email_id: email, Passwords: password })
+                });
+                
+                if (res.ok && !res.url.includes("login_error")) {
+                    localStorage.setItem("chatUser", email.toLowerCase());
+                    localStorage.setItem("chatPass", btoa(password));
+                    window.location.href = "/homepage.html";
+                } else {
+                    alert("Signup failed. Email might already exist.");
+                }
+            } catch (err) {
+                alert("Signup failed. Please try again.");
+            }
+        });
+    </script>
 </body>
 
 </html>
