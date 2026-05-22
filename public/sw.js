@@ -130,6 +130,7 @@ self.addEventListener('notificationclick', (event) => {
                    fetch('/api/reject-call-push', {
                        method: 'POST',
                        headers: { 'Content-Type': 'application/json' },
+                       credentials: 'same-origin',
                        body: JSON.stringify({ caller: callerEmail })
                    }).catch(err => console.error("Push reject error:", err))
                );

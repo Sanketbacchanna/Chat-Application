@@ -920,6 +920,7 @@
         socket.on("video-offer", (data) => {
             // Check if we are already in a call
             if (peerConnection || localStream) {
+                if (incomingCallData && incomingCallData.from === data.from) return; // Ignore duplicate offer for same call
                 socket.emit("reject-call", { to: data.from });
                 return;
             }

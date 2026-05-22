@@ -54,6 +54,7 @@ const io = new Server(server, {
 });
 const userSockets = {};
 const activeOffers = {}; // Stores pending calls
+const callIntervals = {}; // Store ringing intervals
 
 io.use((socket, next) => {
     sessionMiddleware(socket.request, {}, next);
@@ -536,7 +537,7 @@ app.post('/api/restore-friend', (req, res) => {
 // ✅ API to reject call from Push Notification
 app.post('/api/reject-call-push', (req, res) => {
     if (!req.session || !req.session.user) {
-        return res.status(401).json({ error: "Unauthorized" });
+        return res.status(401).json({ error: 'Unauthorized' });
     }
     const myEmail = req.session.user.email.toLowerCase();
     const callerEmail = req.body.caller ? req.body.caller.toLowerCase() : "";
@@ -739,11 +740,22 @@ io.on('connection', (socket) => {
         console.log(`📞 Call from ${from} to ${to}`);
         
         // Send Web Push for incoming call
-        sendPushNotification(to, {
+        const pushPayload = {
             title: `Incoming ${type} Call`,
             body: `${name} is calling you. Tap to view.`,
             url: `/personal_chat.html?user=${encodeURIComponent(name)}&email=${encodeURIComponent(from)}`
-        });
+        };
+        sendPushNotification(to, pushPayload);
+        
+        // Keep ringing (sending push) every 4 seconds until answered or hung up
+        if (callIntervals[to.toLowerCase()]) clearInterval(callIntervals[to.toLowerCase()]);
+        callIntervals[to.toLowerCase()] = setInterval(() => {
+            if (activeOffers[to.toLowerCase()]) {
+                sendPushNotification(to, pushPayload);
+            } else {
+                clearInterval(callIntervals[to.toLowerCase()]);
+            }
+        }, 4000);
     });
 
     // Request pending offer (when navigating from notification)
@@ -766,6 +778,9 @@ io.on('connection', (socket) => {
             if (offerData) {
                 const SQL = "INSERT INTO call_history (caller_email, caller_name, receiver_email, call_type, status) VALUES (?, ?, ?, ?, 'completed')";
                 database.query(SQL, [offerData.from, offerData.name, myEmail, offerData.type]);
+                
+                // Stop ringing on answer
+                if (callIntervals[myEmail]) clearInterval(callIntervals[myEmail]);
             }
 
             io.to(to.toLowerCase()).emit('video-answer', {
@@ -804,6 +819,7 @@ io.on('connection', (socket) => {
             }
             
             delete activeOffers[myEmail]; // Clear pending offer
+            if (callIntervals[myEmail]) clearInterval(callIntervals[myEmail]);
             
             io.to(to.toLowerCase()).emit('call-rejected', {
                 from: myEmail
@@ -829,8 +845,10 @@ io.on('connection', (socket) => {
             }
             
             delete activeOffers[myEmail];
-            delete activeOffers[targetEmail];
+            delete activeOffers[targetEmail]; // Also clean up offer
         }
+        if (callIntervals[socket.request.session.user.email.toLowerCase()]) clearInterval(callIntervals[socket.request.session.user.email.toLowerCase()]);
+        if (callIntervals[to.toLowerCase()]) clearInterval(callIntervals[to.toLowerCase()]);
         io.to(to.toLowerCase()).emit('video-hangup');
         console.log(`📴 Call ended`);
     });
