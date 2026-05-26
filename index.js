@@ -794,6 +794,20 @@ io.on('connection', (socket) => {
     });
 
     // =========================
+    // RINGING ACKNOWLEDGEMENT
+    // =========================
+    socket.on('ringing', (data) => {
+        if (!socket.request.session || !socket.request.session.user) return;
+        const email = socket.request.session.user.email.toLowerCase();
+        
+        // Stop sending push notifications because the user is already receiving the call in the app
+        if (callIntervals[email]) {
+            clearInterval(callIntervals[email]);
+            delete callIntervals[email];
+        }
+    });
+
+    // =========================
     // ANSWER CALL
     // =========================
     socket.on('make-answer', (data) => {

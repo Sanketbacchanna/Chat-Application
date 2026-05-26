@@ -926,6 +926,9 @@
             }
             incomingCallData = data;
             
+            // Tell the server we received the offer so it stops sending push notifications
+            socket.emit("ringing", { from: data.from });
+            
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('acceptCall') === 'true') {
                 acceptCall();
