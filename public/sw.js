@@ -1,4 +1,4 @@
-const cacheName = "chat-app-cache-v5";
+const cacheName = "chat-app-cache-v6";
 
 const filesToCache = [
   "/",

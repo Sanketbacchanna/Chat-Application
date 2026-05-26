@@ -554,6 +554,12 @@ app.post('/api/reject-call-push', (req, res) => {
 
     const offerData = activeOffers[myEmail];
     if (offerData && offerData.from === callerEmail) {
+        // If the interval was deleted, it means the user already opened the app!
+        // We should ignore stale push notification declines.
+        if (!callIntervals[myEmail]) {
+            return res.json({ success: true, ignored: true });
+        }
+
         const SQL = "INSERT INTO call_history (caller_email, caller_name, receiver_email, call_type, status) VALUES (?, ?, ?, ?, 'rejected')";
         database.query(SQL, [offerData.from, offerData.name, myEmail, offerData.type]);
         delete activeOffers[myEmail];
@@ -758,13 +764,16 @@ io.on('connection', (socket) => {
         };
         sendPushNotification(to, pushPayload);
         
-        // Keep ringing (sending push) every 8 seconds until answered or hung up
-        if (callIntervals[to.toLowerCase()]) clearInterval(callIntervals[to.toLowerCase()]);
+        if (callIntervals[to.toLowerCase()]) {
+            clearInterval(callIntervals[to.toLowerCase()]);
+            delete callIntervals[to.toLowerCase()];
+        }
         callIntervals[to.toLowerCase()] = setInterval(() => {
             if (activeOffers[to.toLowerCase()]) {
                 sendPushNotification(to, pushPayload);
             } else {
                 clearInterval(callIntervals[to.toLowerCase()]);
+                delete callIntervals[to.toLowerCase()];
             }
         }, 8000);
     });
@@ -777,7 +786,10 @@ io.on('connection', (socket) => {
             socket.emit('video-offer', activeOffers[email]);
             
             // Stop sending push notifications because the user opened the app!
-            if (callIntervals[email]) clearInterval(callIntervals[email]);
+            if (callIntervals[email]) {
+                clearInterval(callIntervals[email]);
+                delete callIntervals[email];
+            }
         }
     });
 
@@ -795,7 +807,10 @@ io.on('connection', (socket) => {
                 database.query(SQL, [offerData.from, offerData.name, myEmail, offerData.type]);
                 
                 // Stop ringing on answer
-                if (callIntervals[myEmail]) clearInterval(callIntervals[myEmail]);
+                if (callIntervals[myEmail]) {
+                    clearInterval(callIntervals[myEmail]);
+                    delete callIntervals[myEmail];
+                }
                 delete activeOffers[myEmail];
             }
 
@@ -835,7 +850,10 @@ io.on('connection', (socket) => {
             }
             
             delete activeOffers[myEmail]; // Clear pending offer
-            if (callIntervals[myEmail]) clearInterval(callIntervals[myEmail]);
+            if (callIntervals[myEmail]) {
+                clearInterval(callIntervals[myEmail]);
+                delete callIntervals[myEmail];
+            }
             
             io.to(to.toLowerCase()).emit('call-rejected', {
                 from: myEmail,
@@ -864,8 +882,14 @@ io.on('connection', (socket) => {
             delete activeOffers[myEmail];
             delete activeOffers[targetEmail]; // Also clean up offer
         }
-        if (callIntervals[socket.request.session.user.email.toLowerCase()]) clearInterval(callIntervals[socket.request.session.user.email.toLowerCase()]);
-        if (callIntervals[to.toLowerCase()]) clearInterval(callIntervals[to.toLowerCase()]);
+        if (callIntervals[socket.request.session.user.email.toLowerCase()]) {
+            clearInterval(callIntervals[socket.request.session.user.email.toLowerCase()]);
+            delete callIntervals[socket.request.session.user.email.toLowerCase()];
+        }
+        if (callIntervals[to.toLowerCase()]) {
+            clearInterval(callIntervals[to.toLowerCase()]);
+            delete callIntervals[to.toLowerCase()];
+        }
         io.to(to.toLowerCase()).emit('video-hangup');
         console.log(`📴 Call ended`);
     });
