@@ -796,6 +796,7 @@ io.on('connection', (socket) => {
                 
                 // Stop ringing on answer
                 if (callIntervals[myEmail]) clearInterval(callIntervals[myEmail]);
+                delete activeOffers[myEmail];
             }
 
             io.to(to.toLowerCase()).emit('video-answer', {
