@@ -231,12 +231,152 @@ function showOSNotification(title, body, onClickUrl) {
 
 function playMessageSound() {
     try {
-        const audio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
+        const audio = new Audio(getSavedMessageSound());
         audio.play().catch(e => console.warn('Audio play blocked', e));
     } catch(e) {}
 }
 
 let incomingCallRing = null;
+
+// Sound options
+const RINGTONES = {
+    'iphone': 'https://raw.githubusercontent.com/rafaelbotazini/ringtone/master/iphone.mp3',
+    'classic': 'https://www.soundjay.com/communication/telephone-ring-03a.mp3',
+    'modern': 'https://www.soundjay.com/communication/sounds/telephone-ring-04.mp3'
+};
+
+const MESSAGE_SOUNDS = {
+    'beep': 'https://actions.google.com/sounds/v1/alarms/beep_short.ogg',
+    'pop': 'https://actions.google.com/sounds/v1/water/pop.ogg',
+    'bell': 'https://actions.google.com/sounds/v1/alarms/bugle_tune.ogg'
+};
+
+function getSavedRingtone() {
+    const saved = localStorage.getItem('cwm_ringtone');
+    return RINGTONES[saved] || RINGTONES['iphone'];
+}
+
+function getSavedMessageSound() {
+    const saved = localStorage.getItem('cwm_message_sound');
+    return MESSAGE_SOUNDS[saved] || MESSAGE_SOUNDS['beep'];
+}
+
+function injectSettingsModal() {
+    // Add button to dropdown menu if exists
+    const dropdownMenu = document.getElementById('dropdownMenu');
+    if (dropdownMenu && !document.getElementById('openSettingsBtn')) {
+        const btn = document.createElement('button');
+        btn.id = 'openSettingsBtn';
+        btn.innerHTML = '⚙️ Settings';
+        btn.onclick = window.openSettingsModal;
+        
+        // Insert before Logout
+        const hr = dropdownMenu.querySelector('hr');
+        if (hr) {
+            dropdownMenu.insertBefore(btn, hr);
+        } else {
+            dropdownMenu.appendChild(btn);
+        }
+    }
+
+    // Create Modal if not exists
+    if (document.getElementById('cwmSettingsModal')) return;
+
+    const modalHTML = `
+        <div id="cwmSettingsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:999999; justify-content:center; align-items:center;">
+            <div style="background:white; padding:25px; border-radius:20px; width:90%; max-width:400px; box-shadow:0 15px 30px rgba(0,0,0,0.2); font-family:'Poppins',sans-serif;">
+                <h3 style="margin-top:0; color:#2d3436; font-size:20px; font-weight:700;">Sound Settings</h3>
+                
+                <div style="margin-bottom:20px;">
+                    <label style="display:block; font-size:14px; color:#636e72; font-weight:600; margin-bottom:8px;">Incoming Call Ringtone</label>
+                    <div style="display:flex; gap:10px;">
+                        <select id="cwmRingtoneSelect" style="flex:1; padding:10px; border-radius:10px; border:1px solid #edf2f7; font-family:inherit;">
+                            <option value="iphone">iPhone (Default)</option>
+                            <option value="classic">Classic Ring</option>
+                            <option value="modern">Modern Synth</option>
+                        </select>
+                        <button onclick="testSound('ringtone')" style="padding:10px 15px; background:#6c5ce7; color:white; border:none; border-radius:10px; cursor:pointer;">▶️ Test</button>
+                    </div>
+                </div>
+
+                <div style="margin-bottom:25px;">
+                    <label style="display:block; font-size:14px; color:#636e72; font-weight:600; margin-bottom:8px;">Message Notification Sound</label>
+                    <div style="display:flex; gap:10px;">
+                        <select id="cwmMessageSoundSelect" style="flex:1; padding:10px; border-radius:10px; border:1px solid #edf2f7; font-family:inherit;">
+                            <option value="beep">Short Beep (Default)</option>
+                            <option value="pop">Water Pop</option>
+                            <option value="bell">Bell</option>
+                        </select>
+                        <button onclick="testSound('message')" style="padding:10px 15px; background:#00b894; color:white; border:none; border-radius:10px; cursor:pointer;">▶️ Test</button>
+                    </div>
+                </div>
+
+                <div style="display:flex; justify-content:flex-end; gap:12px;">
+                    <button onclick="closeSettingsModal()" style="padding:10px 20px; background:#f7fafc; color:#2d3436; border:1px solid #edf2f7; border-radius:10px; cursor:pointer; font-weight:600;">Cancel</button>
+                    <button onclick="saveSettings()" style="padding:10px 20px; background:#6c5ce7; color:white; border:none; border-radius:10px; cursor:pointer; font-weight:600;">Save Settings</button>
+                </div>
+            </div>
+        </div>
+    `;
+    const div = document.createElement('div');
+    div.innerHTML = modalHTML;
+    document.body.appendChild(div.firstElementChild);
+}
+
+window.openSettingsModal = function() {
+    const modal = document.getElementById('cwmSettingsModal');
+    if (modal) {
+        // Load current
+        const r = localStorage.getItem('cwm_ringtone') || 'iphone';
+        const m = localStorage.getItem('cwm_message_sound') || 'beep';
+        document.getElementById('cwmRingtoneSelect').value = r;
+        document.getElementById('cwmMessageSoundSelect').value = m;
+        modal.style.display = 'flex';
+    }
+}
+
+window.closeSettingsModal = function() {
+    const modal = document.getElementById('cwmSettingsModal');
+    if (modal) modal.style.display = 'none';
+    if (window.testAudioNode) {
+        window.testAudioNode.pause();
+        window.testAudioNode = null;
+    }
+}
+
+window.testSound = function(type) {
+    if (window.testAudioNode) {
+        window.testAudioNode.pause();
+    }
+    
+    let url;
+    if (type === 'ringtone') {
+        const val = document.getElementById('cwmRingtoneSelect').value;
+        url = RINGTONES[val] || RINGTONES['iphone'];
+    } else {
+        const val = document.getElementById('cwmMessageSoundSelect').value;
+        url = MESSAGE_SOUNDS[val] || MESSAGE_SOUNDS['beep'];
+    }
+    
+    window.testAudioNode = new Audio(url);
+    window.testAudioNode.play().catch(e => console.error(e));
+}
+
+window.saveSettings = function() {
+    const r = document.getElementById('cwmRingtoneSelect').value;
+    const m = document.getElementById('cwmMessageSoundSelect').value;
+    localStorage.setItem('cwm_ringtone', r);
+    localStorage.setItem('cwm_message_sound', m);
+    
+    // Update incomingCallRing if exists
+    if (incomingCallRing) {
+        incomingCallRing = new Audio(getSavedRingtone());
+        incomingCallRing.loop = true;
+    }
+    
+    closeSettingsModal();
+    alert("Settings saved successfully!");
+}
 
 const socketCheckInterval = setInterval(() => {
     // Use window.socket to avoid Temporal Dead Zone issues with 'const socket'
@@ -276,7 +416,7 @@ const socketCheckInterval = setInterval(() => {
             
             try {
                 if (!incomingCallRing) {
-                    incomingCallRing = new Audio('https://raw.githubusercontent.com/rafaelbotazini/ringtone/master/iphone.mp3');
+                    incomingCallRing = new Audio(getSavedRingtone());
                     incomingCallRing.loop = true;
                 }
                 incomingCallRing.currentTime = 0;
@@ -335,3 +475,10 @@ const socketCheckInterval = setInterval(() => {
         });
     }
 }, 500);
+
+// Initialize settings modal
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', injectSettingsModal);
+} else {
+    injectSettingsModal();
+}

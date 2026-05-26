@@ -1146,6 +1146,20 @@
 
         function playIncomingRing() {
             const audio = document.getElementById("incomingRing");
+            const RINGTONES = {
+                'iphone': 'https://raw.githubusercontent.com/rafaelbotazini/ringtone/master/iphone.mp3',
+                'classic': 'https://www.soundjay.com/communication/telephone-ring-03a.mp3',
+                'modern': 'https://www.soundjay.com/communication/sounds/telephone-ring-04.mp3'
+            };
+            const savedRing = localStorage.getItem('cwm_ringtone') || 'iphone';
+            const targetSrc = RINGTONES[savedRing];
+            const sourceEl = audio.querySelector('source');
+            
+            if (sourceEl.src !== targetSrc) {
+                sourceEl.src = targetSrc;
+                audio.load();
+            }
+            
             audio.currentTime = 0;
             audio.play().catch(() => { });
         }
