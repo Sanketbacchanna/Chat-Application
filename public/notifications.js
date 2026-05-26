@@ -265,10 +265,16 @@ function injectSettingsModal() {
     // Add button to dropdown menu if exists
     const dropdownMenu = document.getElementById('dropdownMenu');
     if (dropdownMenu && !document.getElementById('openSettingsBtn')) {
-        const btn = document.createElement('button');
+        const btn = document.createElement('a');
         btn.id = 'openSettingsBtn';
+        btn.href = '#';
         btn.innerHTML = '⚙️ Settings';
-        btn.onclick = window.openSettingsModal;
+        btn.onclick = (e) => {
+            e.preventDefault();
+            const menu = document.getElementById('dropdownMenu');
+            if (menu) menu.style.display = 'none';
+            window.openSettingsModal();
+        };
         
         // Insert before Logout
         const hr = dropdownMenu.querySelector('hr');
