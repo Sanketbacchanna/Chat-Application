@@ -240,15 +240,15 @@ let incomingCallRing = null;
 
 // Sound options
 const RINGTONES = {
-    'iphone': 'https://raw.githubusercontent.com/rafaelbotazini/ringtone/master/iphone.mp3',
-    'classic': 'https://www.soundjay.com/communication/telephone-ring-03a.mp3',
-    'modern': 'https://www.soundjay.com/communication/sounds/telephone-ring-04.mp3'
+    'iphone': '/sounds/iphone.mp3',
+    'classic': '/sounds/classic.mp3',
+    'modern': '/sounds/modern.mp3'
 };
 
 const MESSAGE_SOUNDS = {
-    'beep': 'https://actions.google.com/sounds/v1/alarms/beep_short.ogg',
-    'pop': 'https://actions.google.com/sounds/v1/water/pop.ogg',
-    'bell': 'https://actions.google.com/sounds/v1/alarms/bugle_tune.ogg'
+    'beep': '/sounds/beep.mp3',
+    'pop': '/sounds/pop.mp3',
+    'bell': '/sounds/bell.mp3'
 };
 
 function getSavedRingtone() {
