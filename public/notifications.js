@@ -214,7 +214,8 @@ function showOSNotification(title, body, onClickUrl) {
         try {
             const notif = new Notification(title, {
                 body: body,
-                icon: '/icons/icon-192.png'
+                icon: '/icons/icon-192.png',
+                silent: true
             });
             if (onClickUrl) {
                 notif.onclick = function(event) {

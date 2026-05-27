@@ -98,7 +98,23 @@ self.addEventListener('push', (event) => {
       }
 
       event.waitUntil(
-        self.registration.showNotification(data.title, options)
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+          let isFocused = false;
+          for (let i = 0; i < windowClients.length; i++) {
+            if (windowClients[i].focused) {
+              isFocused = true;
+              break;
+            }
+          }
+
+          if (isFocused) {
+            // App is currently focused, do not show background push notification.
+            // The frontend socket.io will handle in-app notification & custom audio.
+            return;
+          }
+
+          return self.registration.showNotification(data.title, options);
+        })
       );
     } catch (e) {
       console.error("Push Error", e);
