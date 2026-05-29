@@ -603,6 +603,7 @@
 
         const servers = {
             iceServers: [
+                { urls: "stun:stun.l.google.com:19302" },
                 {
                     urls: "stun:stun.relay.metered.ca:80",
                 },
@@ -868,12 +869,27 @@
 
                 playOutgoingRing();
 
+            try {
                 localStream = await navigator.mediaDevices.getUserMedia({
                     video: withVideo,
                     audio: true
                 });
-
+            } catch (mediaErr) {
+                console.warn("Failed to get video/audio, trying audio only", mediaErr);
                 if (withVideo) {
+                    try {
+                        localStream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
+                        withVideo = false; // Downgrade to audio
+                        alert("Camera not accessible. Downgraded to audio-only call.");
+                    } catch (audioErr) {
+                        throw audioErr;
+                    }
+                } else {
+                    throw mediaErr;
+                }
+            }
+
+            if (withVideo) {
                     localStream.getVideoTracks().forEach(track => {
                         track.enabled = true;
                     });
@@ -957,16 +973,22 @@
             document.getElementById("videoContainer").style.display = "flex";
 
             try {
-                const streamPromise = navigator.mediaDevices.getUserMedia({
+                let streamPromise = navigator.mediaDevices.getUserMedia({
                     video: isVideo,
                     audio: true
+                }).catch(async (err) => {
+                    console.warn("Failed with video, trying audio only", err);
+                    if (isVideo) {
+                        return navigator.mediaDevices.getUserMedia({ video: false, audio: true });
+                    }
+                    throw err;
                 });
                 
                 // Fallback to manual accept if camera is blocked or requires explicit gesture
                 const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 5000));
                 localStream = await Promise.race([streamPromise, timeoutPromise]);
 
-                if (isVideo) { // matches the 'const isVideo' you declared earlier
+                if (localStream.getVideoTracks().length > 0) {
                     localStream.getVideoTracks().forEach(track => {
                         track.enabled = true;
                     });
@@ -992,8 +1014,6 @@
 
                 const answer = await peerConnection.createAnswer();
                 await peerConnection.setLocalDescription(answer);
-
-                await new Promise(resolve => setTimeout(resolve, 500));
 
                 socket.emit("make-answer", {
                     to: incomingCallData.from,
@@ -1169,7 +1189,7 @@
         window.addEventListener("beforeunload", () => {
             stopOutgoingRing();
             stopIncomingRing();
-            endVideoCall(false);
+            endVideoCall(true);
         });
 
 
