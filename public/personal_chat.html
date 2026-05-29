@@ -1056,9 +1056,6 @@
         });
 
         socket.on("call-rejected", (data) => {
-            if (!data || !data.selfReject) {
-                alert("Call rejected. Debug: " + (data ? data.debug : "unknown"));
-            }
             endVideoCall();
         });
 
