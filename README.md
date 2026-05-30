@@ -14,8 +14,8 @@ A feature-rich real-time chat platform built with Node.js, Express.js, Socket.IO
 </p>
 
 <p align="center">
-  <a href="(https://chat-application-lk1e.onrender.com)">
-    <img src="https://img.shields.io/badge/🚀 Live Demo-Visit Website-blue?style=for-the-badge">
+  <a href="https://chat-application-lk1e.onrender.com" target="_blank">
+    <img src="https://img.shields.io/badge/🚀_Live_Demo-Visit_Website-blue?style=for-the-badge" alt="Live Demo">
   </a>
 </p>
 
