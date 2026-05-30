@@ -14,7 +14,7 @@ A feature-rich real-time chat platform built with Node.js, Express.js, Socket.IO
 </p>
 
 <p align="center">
-  <a href="YOUR_LIVE_URL">
+  <a href="[YOUR_LIVE_URL](https://chat-application-lk1e.onrender.com)">
     <img src="https://img.shields.io/badge/🚀 Live Demo-Visit Website-blue?style=for-the-badge">
   </a>
 </p>
@@ -23,7 +23,7 @@ A feature-rich real-time chat platform built with Node.js, Express.js, Socket.IO
 
 ## 🌐 Live Demo
 
-🔗 **Website:** YOUR_LIVE_URL
+🔗 **Website:** [YOUR_LIVE_URL](https://chat-application-lk1e.onrender.com)
 
 ---
 
@@ -112,7 +112,6 @@ Chat-Application/
 **Sanket Bacchanna**
 
 🚀 Full Stack Developer
-🔐 Cybersecurity Enthusiast
 💻 Real-Time Application Builder
 
 ### Connect With Me
