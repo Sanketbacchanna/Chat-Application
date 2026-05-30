@@ -21,8 +21,6 @@ A feature-rich real-time chat platform built with Node.js, Express.js, Socket.IO
 
 ---
 
----
-
 ## ✨ Features
 
 * 💬 Real-Time Messaging
