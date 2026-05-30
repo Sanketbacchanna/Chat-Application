@@ -21,10 +21,6 @@ A feature-rich real-time chat platform built with Node.js, Express.js, Socket.IO
 
 ---
 
-## 🌐 Live Demo
-
-🔗 **Website:** (https://chat-application-lk1e.onrender.com)
-
 ---
 
 ## ✨ Features
