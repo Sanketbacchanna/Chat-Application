@@ -78,18 +78,6 @@ Chat-Application/
 
 ---
 
-## 📸 Screenshots
-
-### Chat Interface
-
-![Chat UI](screenshots/chat-ui.png)
-
-### Video Calling
-
-![Video Call](screenshots/video-call.png)
-
----
-
 ## 🚀 Key Highlights
 
 ✔ Real-Time Communication
