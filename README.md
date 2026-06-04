@@ -100,7 +100,7 @@ Chat-Application/
 
 * GitHub: https://github.com/Sanketbacchanna
 * LinkedIn: https://linkedin.com/in/sanketbacchanna
-* Portfolio: https://sanket-portfolioo.netlify.app
+* Portfolio: https://portfolio-6kn3.onrender.com/
 
 ---
 
